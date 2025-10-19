@@ -4,4 +4,5 @@ export type Task = {
   description?: string;
   completed: boolean;
   createdAt: Date;
+  assigneeId?: string | null; // New field for task assignment
 };

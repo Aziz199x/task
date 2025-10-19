@@ -6,10 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (title: string, description?: string) => void;
+  addTask: (title: string, description?: string, assigneeId?: string | null) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
-  updateTask: (id: string, newTitle: string, newDescription?: string) => void;
+  updateTask: (id: string, newTitle: string, newDescription?: string, newAssigneeId?: string | null) => void;
+  assignTask: (id: string, assigneeId: string | null) => void; // New function
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -17,13 +18,14 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const addTask = (title: string, description?: string) => {
+  const addTask = (title: string, description?: string, assigneeId?: string | null) => {
     const newTask: Task = {
       id: uuidv4(),
       title,
       description,
       completed: false,
       createdAt: new Date(),
+      assigneeId: assigneeId || null, // Default to null if not provided
     };
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
@@ -40,16 +42,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   };
 
-  const updateTask = (id: string, newTitle: string, newDescription?: string) => {
+  const updateTask = (id: string, newTitle: string, newDescription?: string, newAssigneeId?: string | null) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, title: newTitle, description: newDescription } : task
+        task.id === id ? { ...task, title: newTitle, description: newDescription, assigneeId: newAssigneeId } : task
+      )
+    );
+  };
+
+  const assignTask = (id: string, assigneeId: string | null) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, assigneeId: assigneeId } : task
       )
     );
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, updateTask }}>
+    <TaskContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, updateTask, assignTask }}>
       {children}
     </TaskContext.Provider>
   );
