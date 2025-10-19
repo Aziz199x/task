@@ -1,7 +1,6 @@
 "use client";
 
 import Layout from "@/components/Layout";
-import { TaskProvider } from "@/context/TaskContext";
 import TaskList from "./TaskList";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
@@ -26,11 +25,9 @@ const Index = () => {
   }
 
   return (
-    <TaskProvider>
-      <Layout>
-        <TaskList />
-      </Layout>
-    </TaskProvider>
+    <Layout>
+      <TaskList />
+    </Layout>
   );
 };
 

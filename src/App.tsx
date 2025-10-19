@@ -6,8 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; // Import the new Dashboard page
+import Dashboard from "./pages/Dashboard";
 import { SessionProvider } from "./context/SessionContext";
+import { TaskProvider } from "./context/TaskContext"; // Import TaskProvider
 
 const queryClient = new QueryClient();
 
@@ -18,13 +19,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SessionProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} /> {/* New Dashboard route */}
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <TaskProvider> {/* TaskProvider now wraps all routes */}
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TaskProvider>
         </SessionProvider>
       </BrowserRouter>
     </TooltipProvider>
