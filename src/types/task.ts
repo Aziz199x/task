@@ -2,7 +2,7 @@ export type Task = {
   id: string;
   title: string;
   description?: string;
-  completed: boolean;
+  status: 'unassigned' | 'assigned' | 'in-progress' | 'completed' | 'cancelled'; // New status field
   createdAt: Date;
-  assigneeId?: string | null; // New field for task assignment
+  assigneeId?: string | null;
 };

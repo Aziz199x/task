@@ -7,10 +7,10 @@ import { v4 as uuidv4 } from "uuid";
 interface TaskContextType {
   tasks: Task[];
   addTask: (title: string, description?: string, assigneeId?: string | null) => void;
-  toggleTask: (id: string) => void;
+  changeTaskStatus: (id: string, newStatus: Task['status']) => void; // New function to change status
   deleteTask: (id: string) => void;
   updateTask: (id: string, newTitle: string, newDescription?: string, newAssigneeId?: string | null) => void;
-  assignTask: (id: string, assigneeId: string | null) => void; // New function
+  assignTask: (id: string, assigneeId: string | null) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -23,17 +23,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       id: uuidv4(),
       title,
       description,
-      completed: false,
+      status: 'unassigned', // Default status for new tasks
       createdAt: new Date(),
-      assigneeId: assigneeId || null, // Default to null if not provided
+      assigneeId: assigneeId || null,
     };
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
 
-  const toggleTask = (id: string) => {
+  const changeTaskStatus = (id: string, newStatus: Task['status']) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, status: newStatus } : task
       )
     );
   };
@@ -53,13 +53,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const assignTask = (id: string, assigneeId: string | null) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, assigneeId: assigneeId } : task
+        task.id === id ? { ...task, assigneeId: assigneeId, status: assigneeId ? 'assigned' : 'unassigned' } : task
       )
     );
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, updateTask, assignTask }}>
+    <TaskContext.Provider value={{ tasks, addTask, changeTaskStatus, deleteTask, updateTask, assignTask }}>
       {children}
     </TaskContext.Provider>
   );
