@@ -122,6 +122,8 @@
   "list_view": "عرض القائمة",
   "add": "إضافة",
   "performance_rate": "معدل الأداء",
-  "user_identifier": "المستخدم",
-  "password_label": "كلمة المرور"
+  "user_identifier": "معرف المستخدم",
+  "password_label": "كلمة المرور",
+  "sign_in": "تسجيل الدخول",
+  "user_not_found": "المستخدم غير موجود"
 }
