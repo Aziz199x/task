@@ -8,7 +8,8 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import TechnicianTasks from "./pages/TechnicianTasks";
-import CreateAccount from "./pages/CreateAccount"; // Import the new page
+import CreateAccount from "./pages/CreateAccount";
+import ManageUsers from "./pages/ManageUsers"; // Import the new page
 import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 
@@ -27,7 +28,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/technician-tasks" element={<TechnicianTasks />} />
-              <Route path="/create-account" element={<CreateAccount />} /> {/* New route */}
+              <Route path="/create-account" element={<CreateAccount />} />
+              <Route path="/manage-users" element={<ManageUsers />} /> {/* New route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
