@@ -16,6 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { session, user, profile, signOut } = useSession();
   const { t } = useTranslation(); // Initialize useTranslation
 
+  // 'admin', 'manager', and 'supervisor' can create new accounts
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
   const allowedToManageUsers = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
 

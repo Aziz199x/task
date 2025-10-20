@@ -25,6 +25,7 @@ const CreateAccount: React.FC = () => {
   const [role, setRole] = useState<UserProfile['role']>("technician"); // Use UserProfile['role'] for all possible roles
   const [loading, setLoading] = useState(false);
 
+  // 'admin', 'manager', and 'supervisor' can access this page
   const allowedRolesToAccessPage = ['admin', 'manager', 'supervisor'];
   const isAuthorized = profile && allowedRolesToAccessPage.includes(profile.role);
 
