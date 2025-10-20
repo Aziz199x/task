@@ -128,7 +128,7 @@
   "user_not_found": "المستخدم غير موجود",
   "loading_users": "جارٍ تحميل المستخدمين...",
   "select_a_user_to_assign": "اختر مستخدمًا لتعيينه",
-  "after_work_photo_required": "مطلوب صورة 'بعد العمل' لإكمال المهمة.",
+  "after_work_photo_required": "مطلوب صور 'قبل' و 'بعد' العمل لإكمال المهمة.",
   "before_work_photo": "صورة قبل العمل",
   "after_work_photo": "صورة بعد العمل",
   "permit_photo": "صورة التصريح",

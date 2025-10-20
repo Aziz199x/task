@@ -33,7 +33,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<Task['status'] | "all">("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
-  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['type_of_work'] | "all">("all");
+  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
@@ -60,7 +60,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     }
   };
 
-  const handleBulkAction = (action: string, value?: string | null) => {
+  const handleBulkAction = async (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
       toast.error(t('no_tasks_selected_for_bulk_action'));
       return;
@@ -71,8 +71,20 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     switch (action) {
       case 'status':
         if (value) {
-          tasksToActOn.forEach(taskId => changeTaskStatus(taskId, value as Task['status']));
-          toast.success(t('status_updated_for_tasks', { count: selectedTaskIds.size }));
+          let successCount = 0;
+          for (const taskId of tasksToActOn) {
+            const success = await changeTaskStatus(taskId, value as Task['status']);
+            if (success) {
+              successCount++;
+            }
+          }
+          if (successCount > 0) {
+            toast.success(t('status_updated_for_tasks', { count: successCount }));
+          }
+          const failCount = tasksToActOn.length - successCount;
+          if (failCount > 0) {
+            toast.warning(`${failCount} tasks could not be updated. They may be missing required photos.`);
+          }
         }
         break;
       case 'assign':

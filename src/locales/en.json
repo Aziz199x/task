@@ -128,7 +128,7 @@
   "user_not_found": "User not found",
   "loading_users": "Loading users...",
   "select_a_user_to_assign": "Select a user to assign",
-  "after_work_photo_required": "An 'After Work' photo is required to complete the task.",
+  "after_work_photo_required": "Both 'Before' and 'After' work photos are required to complete the task.",
   "before_work_photo": "Before Work Photo",
   "after_work_photo": "After Work Photo",
   "permit_photo": "Permit Photo",

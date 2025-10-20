@@ -9,8 +9,8 @@ import { useSession } from "./SessionContext";
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string) => Promise<void>;
-  changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<void>;
+  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => Promise<void>;
+  changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   assignTask: (id: string, assigneeId: string | null) => Promise<void>;
@@ -21,7 +21,7 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useSession();
+  const { user, profile } = useSession();
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -59,7 +59,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [fetchTasks]);
 
-  const addTask = async (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string) => {
+  const addTask = async (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
     if (!equipmentNumber) {
       toast.error("Equipment number is mandatory.");
       return;
@@ -82,13 +82,28 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
+    const taskToUpdate = tasks.find(t => t.id === id);
+    if (!taskToUpdate) {
+        toast.error("Task not found.");
+        return false;
+    }
+
+    const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
+
+    if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url)) {
+        toast.error("Both 'Before' and 'After' work photos are required to complete the task.");
+        return false;
+    }
+
     const { error } = await supabase
       .from('tasks')
       .update({ status: newStatus })
       .eq('id', id);
     if (error) {
       toast.error("Failed to update status: " + error.message);
+      return false;
     }
+    return true;
   };
 
   const deleteTask = async (id: string) => {

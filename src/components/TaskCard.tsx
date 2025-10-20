@@ -64,13 +64,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     toast.success(t('task_deleted_successfully'));
   };
 
-  const handleStatusChange = (newStatus: Task['status']) => {
-    if (isTechOrContractor && newStatus === 'completed' && !task.photo_after_url) {
-      toast.error(t('after_work_photo_required'));
-      return;
+  const handleStatusChange = async (newStatus: Task['status']) => {
+    const success = await changeTaskStatus(task.id, newStatus);
+    if (success) {
+      toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
     }
-    changeTaskStatus(task.id, newStatus);
-    toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
   };
 
   const handleAssignToMe = () => {
