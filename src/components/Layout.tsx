@@ -62,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               )}
               <LanguageSwitcher /> {/* Add LanguageSwitcher here */}
-              <Button variant="ghost" size="icon" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button variant="destructive" size="icon" onClick={signOut}> {/* Changed variant to 'destructive' */}
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>

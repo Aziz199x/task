@@ -92,10 +92,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Failed to sign out: " + error.message);
-    } else {
-      toast.success("Signed out successfully!");
-      // The onAuthStateChange listener will handle clearing the profile and navigating to /login
     }
+    // The onAuthStateChange listener will handle clearing the profile, showing toast, and navigating to /login
   };
 
   return (
