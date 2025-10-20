@@ -35,6 +35,7 @@ const Login = () => {
           <Auth
             supabaseClient={supabase}
             providers={['phone']} // Explicitly set to only use 'phone' provider
+            magicLink={false} // Explicitly disable magic link to prevent email input
             appearance={{
               theme: ThemeSupa,
               variables: {
@@ -51,12 +52,12 @@ const Login = () => {
             localization={{
               variables: {
                 sign_in: {
-                  email_label: t('user_identifier'), // This will now be ignored as email is not a provider
+                  // email_label is removed as email is not a provider
                   phone_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
                 sign_up: {
-                  email_label: t('user_identifier'), // This will now be ignored as email is not a provider
+                  // email_label is removed as email is not a provider
                   phone_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
