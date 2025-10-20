@@ -6,11 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -34,8 +34,8 @@ const Login = () => {
         <CardContent>
           <Auth
             supabaseClient={supabase}
-            providers={['phone']} // Explicitly set to only use 'phone' provider
-            magicLink={false} // Explicitly disable magic link to prevent email input
+            providers={[]} // Remove phone provider to use default email/password
+            magicLink={false}
             appearance={{
               theme: ThemeSupa,
               variables: {
@@ -52,13 +52,11 @@ const Login = () => {
             localization={{
               variables: {
                 sign_in: {
-                  // email_label is removed as email is not a provider
-                  phone_label: t('user_identifier'),
+                  email_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
                 sign_up: {
-                  // email_label is removed as email is not a provider
-                  phone_label: t('user_identifier'),
+                  email_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
               },
