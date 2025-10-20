@@ -88,6 +88,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
     }
 
+    if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
+      toast.error("Completed tasks can only be modified by an admin.");
+      return false;
+    }
+
     const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
 
     if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url)) {
@@ -107,6 +112,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteTask = async (id: string) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (taskToDelete && taskToDelete.status === 'completed' && profile?.role !== 'admin') {
+      toast.error("Completed tasks can only be deleted by an admin.");
+      return;
+    }
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error("Failed to delete task: " + error.message);
@@ -114,6 +124,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
+    const taskToUpdate = tasks.find(t => t.id === id);
+    if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
+      toast.error("Completed tasks can only be modified by an admin.");
+      return;
+    }
     const { error } = await supabase
       .from('tasks')
       .update(updates)
@@ -124,6 +139,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const assignTask = async (id: string, assigneeId: string | null) => {
+    const taskToUpdate = tasks.find(t => t.id === id);
+    if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
+      toast.error("Completed tasks can only be modified by an admin.");
+      return;
+    }
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
     const { error } = await supabase
       .from('tasks')

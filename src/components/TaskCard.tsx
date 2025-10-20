@@ -42,10 +42,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     setEditedTask(task);
   }, [task, isEditing]);
 
+  const isAdmin = currentUserProfile?.role === 'admin';
+  const isCompleted = task.status === 'completed';
   const canEditOrDelete = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
   const isAssignedToCurrentUser = user && task.assignee_id === user.id;
 
+  const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
+  const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
 
   const handleSaveEdit = () => {
@@ -125,7 +129,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
             </span>
             {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
-            {(canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)) && (
+            {canEditTask && (
               <Dialog open={isEditing} onOpenChange={setIsEditing}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
@@ -187,15 +191,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleStatusChange('unassigned')}>{t('mark_as_unassigned')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('assigned')}>{t('mark_as_assigned')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('in-progress')}>{t('mark_as_in_progress')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('completed')}>{t('mark_as_completed')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('cancelled')}>{t('mark_as_cancelled')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('unassigned')} disabled={isCompleted && !isAdmin}>{t('mark_as_unassigned')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('assigned')} disabled={isCompleted && !isAdmin}>{t('mark_as_assigned')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin}>{t('mark_as_in_progress')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('completed')} disabled={isCompleted && !isAdmin}>{t('mark_as_completed')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin}>{t('mark_as_cancelled')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe}>{t('assign_to_me')}</DropdownMenuItem>}
-                {user && isAssignedToCurrentUser && <DropdownMenuItem onClick={handleUnassign}>{t('unassign')}</DropdownMenuItem>}
-                {canEditOrDelete && (
+                {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin}>{t('assign_to_me')}</DropdownMenuItem>}
+                {user && isAssignedToCurrentUser && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin}>{t('unassign')}</DropdownMenuItem>}
+                {canDeleteTask && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleDelete} className="text-destructive">

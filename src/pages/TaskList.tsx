@@ -66,7 +66,28 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       return;
     }
 
-    const tasksToActOn = Array.from(selectedTaskIds);
+    const isAdmin = currentUserProfile?.role === 'admin';
+    let tasksToActOn = Array.from(selectedTaskIds);
+    const originalCount = tasksToActOn.length;
+
+    if (!isAdmin) {
+      tasksToActOn = tasksToActOn.filter(taskId => {
+        const task = tasks.find(t => t.id === taskId);
+        return task && task.status !== 'completed';
+      });
+
+      const filteredCount = tasksToActOn.length;
+      if (originalCount > filteredCount) {
+        const skippedCount = originalCount - filteredCount;
+        toast.warning(t('skipped_completed_tasks_warning', { count: skippedCount }));
+      }
+    }
+    
+    if (tasksToActOn.length === 0) {
+        toast.info(t('no_eligible_tasks_for_action'));
+        setSelectedTaskIds(new Set());
+        return;
+    }
 
     switch (action) {
       case 'status':
@@ -83,17 +104,17 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            toast.warning(`${failCount} tasks could not be updated. They may be missing required photos.`);
+            toast.warning(t('tasks_could_not_be_updated_warning', { count: failCount }));
           }
         }
         break;
       case 'assign':
         tasksToActOn.forEach(taskId => assignTask(taskId, value === undefined ? null : value));
-        toast.success(t('assignee_updated_for_tasks', { count: selectedTaskIds.size }));
+        toast.success(t('assignee_updated_for_tasks', { count: tasksToActOn.length }));
         break;
       case 'delete':
         tasksToActOn.forEach(taskId => deleteTask(taskId));
-        toast.success(t('tasks_deleted', { count: selectedTaskIds.size }));
+        toast.success(t('tasks_deleted', { count: tasksToActOn.length }));
         break;
       default:
         break;
@@ -172,7 +193,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(value: Task['type_of_work'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
+        <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full md:w-[200px]">
             <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>

@@ -143,5 +143,8 @@
   "tasks_assigned": "مهام معينة",
   "tasks_to_accomplish": "مهام لإنجازها",
   "view_my_tasks": "عرض مهامي",
-  "complete_task": "إكمال المهمة"
+  "complete_task": "إكمال المهمة",
+  "skipped_completed_tasks_warning": "تم تخطي {{count}} مهمة مكتملة حيث لا يمكن تعديلها إلا بواسطة المسؤول.",
+  "no_eligible_tasks_for_action": "لا توجد مهام مؤهلة لتنفيذ الإجراء عليها.",
+  "tasks_could_not_be_updated_warning": "تعذر تحديث {{count}} مهام. قد تكون الصور المطلوبة مفقودة."
 }
