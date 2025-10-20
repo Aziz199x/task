@@ -109,7 +109,7 @@
   "error_loading_technicians": "خطأ في تحميل الفنيين:",
   "oops_page_not_found": "عذراً! الصفحة غير موجودة",
   "return_to_home": "العودة إلى الصفحة الرئيسية",
-  "admin_dashboard": "لوحة تحكم المسؤول",
+  "dashboard": "لوحة التحكم",
   "total_tasks": "إجمالي المهام",
   "pending": "معلقة",
   "in_progress": "قيد التقدم",

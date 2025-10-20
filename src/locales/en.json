@@ -109,7 +109,7 @@
   "error_loading_technicians": "Error loading technicians:",
   "oops_page_not_found": "Oops! Page not found",
   "return_to_home": "Return to Home",
-  "admin_dashboard": "Admin Dashboard",
+  "dashboard": "Dashboard",
   "total_tasks": "Total Tasks",
   "pending": "Pending",
   "in_progress": "In Progress",
