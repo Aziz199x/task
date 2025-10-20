@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench } from "lucide-react"; // Added Wrench icon
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,13 +31,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const [editedWorkOrderNumber, setEditedWorkOrderNumber] = React.useState(task.workOrderNumber || "");
   const [editedDueDate, setEditedDueDate] = React.useState(task.dueDate || "");
   const [editedAssigneeId, setEditedAssigneeId] = React.useState<string | null>(task.assigneeId || null);
+  const [editedTypeOfWork, setEditedTypeOfWork] = React.useState<Task['typeOfWork'] | undefined>(task.typeOfWork);
 
   const handleSaveEdit = () => {
     if (editedTitle.trim() === "") {
       toast.error("Task title cannot be empty.");
       return;
     }
-    updateTask(task.id, editedTitle, editedDescription, editedLocation, editedWorkOrderNumber, editedDueDate, editedAssigneeId);
+    updateTask(task.id, editedTitle, editedDescription, editedLocation, editedWorkOrderNumber, editedDueDate, editedAssigneeId, editedTypeOfWork);
     setIsEditing(false);
     toast.success("Task updated successfully!");
   };
@@ -117,6 +118,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="dueDate" className="text-right">Due Date</Label>
                   <Input id="dueDate" type="date" value={editedDueDate} onChange={(e) => setEditedDueDate(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="typeOfWork" className="text-right">Type of Work</Label>
+                  <Select onValueChange={(value: Task['typeOfWork']) => setEditedTypeOfWork(value)} value={editedTypeOfWork || ""}>
+                    <SelectTrigger id="typeOfWork" className="col-span-3">
+                      <SelectValue placeholder="Select type of work" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Correction Maintenance">Correction Maintenance</SelectItem>
+                      <SelectItem value="Civil Work">Civil Work</SelectItem>
+                      <SelectItem value="Overhead Maintenance">Overhead Maintenance</SelectItem>
+                      <SelectItem value="Termination Maintenance">Termination Maintenance</SelectItem>
+                      <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="assignee" className="text-right">Assignee</Label>
@@ -203,6 +219,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         {task.dueDate && (
           <div className="flex items-center text-sm text-muted-foreground">
             <CalendarDays className="h-4 w-4 mr-2" /> Due: {task.dueDate}
+          </div>
+        )}
+        {task.typeOfWork && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Wrench className="h-4 w-4 mr-2" /> Type: {task.typeOfWork}
           </div>
         )}
         {assignedTechnician && (

@@ -8,4 +8,5 @@ export type Task = {
   location?: string; // New field
   workOrderNumber?: string; // New field
   dueDate?: string; // New field (using string for simplicity with input type="date")
+  typeOfWork?: 'Correction Maintenance' | 'Civil Work' | 'Overhead Maintenance' | 'Termination Maintenance' | 'Replacing Equipment'; // New field for type of work
 };

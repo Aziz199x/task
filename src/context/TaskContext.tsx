@@ -6,10 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null) => void;
+  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork']) => void;
   changeTaskStatus: (id: string, newStatus: Task['status']) => void;
   deleteTask: (id: string) => void;
-  updateTask: (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null) => void;
+  updateTask: (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork']) => void;
   assignTask: (id: string, assigneeId: string | null) => void;
 }
 
@@ -18,7 +18,7 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const addTask = (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null) => {
+  const addTask = (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork']) => {
     const newTask: Task = {
       id: uuidv4(),
       title,
@@ -29,6 +29,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       location,
       workOrderNumber,
       dueDate,
+      typeOfWork,
     };
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
@@ -45,10 +46,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   };
 
-  const updateTask = (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null) => {
+  const updateTask = (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork']) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, title: newTitle, description: newDescription, location: newLocation, workOrderNumber: newWorkOrderNumber, dueDate: newDueDate, assigneeId: newAssigneeId } : task
+        task.id === id ? { ...task, title: newTitle, description: newDescription, location: newLocation, workOrderNumber: newWorkOrderNumber, dueDate: newDueDate, assigneeId: newAssigneeId, typeOfWork: newTypeOfWork } : task
       )
     );
   };

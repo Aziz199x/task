@@ -10,6 +10,7 @@ import { useTasks } from "@/context/TaskContext";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTechnicians } from "@/hooks/use-technicians"; // Import the new hook
+import { Task } from "@/types/task"; // Import Task type for typeOfWork
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
@@ -20,6 +21,7 @@ const TaskForm: React.FC = () => {
   const [workOrderNumber, setWorkOrderNumber] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
+  const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +29,14 @@ const TaskForm: React.FC = () => {
       toast.error("Task title cannot be empty.");
       return;
     }
-    addTask(title, description, location, workOrderNumber, dueDate, assigneeId);
+    addTask(title, description, location, workOrderNumber, dueDate, assigneeId, typeOfWork);
     setTitle("");
     setDescription("");
     setLocation("");
     setWorkOrderNumber("");
     setDueDate("");
     setAssigneeId(null);
+    setTypeOfWork(undefined);
     toast.success("Task added successfully!");
   };
 
@@ -89,6 +92,21 @@ const TaskForm: React.FC = () => {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />
+          </div>
+          <div>
+            <Label htmlFor="typeOfWork">Type of Work</Label>
+            <Select onValueChange={(value: Task['typeOfWork']) => setTypeOfWork(value)} value={typeOfWork || ""}>
+              <SelectTrigger id="typeOfWork">
+                <SelectValue placeholder="Select type of work" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Correction Maintenance">Correction Maintenance</SelectItem>
+                <SelectItem value="Civil Work">Civil Work</SelectItem>
+                <SelectItem value="Overhead Maintenance">Overhead Maintenance</SelectItem>
+                <SelectItem value="Termination Maintenance">Termination Maintenance</SelectItem>
+                <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="assignee">Assign Technician</Label>
