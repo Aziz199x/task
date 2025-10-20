@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { useSession, UserProfile } from "@/context/SessionContext"; // Import UserProfile
+import { useSession, UserProfile } from "@/context/SessionContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,21 +11,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+
+// Define role hierarchy for permission checks
+const roleHierarchy: Record<UserProfile['role'], number> = {
+  'admin': 4,
+  'manager': 3,
+  'supervisor': 2,
+  'technician': 1,
+  'contractor': 0,
+};
+
+const allRoles: UserProfile['role'][] = ['admin', 'manager', 'supervisor', 'technician', 'contractor'];
 
 const CreateAccount: React.FC = () => {
   const { profile, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<UserProfile['role']>("technician"); // Use UserProfile['role'] for all possible roles
+  const [role, setRole] = useState<UserProfile['role']>("technician");
   const [loading, setLoading] = useState(false);
 
-  // 'admin', 'manager', and 'supervisor' can access this page
+  // Determine which roles the current user can create
+  const availableRoles = useMemo(() => {
+    if (!profile) return [];
+    const currentUserLevel = roleHierarchy[profile.role];
+    // A user can only create users with a role level lower than their own
+    return allRoles.filter(roleOption => currentUserLevel > roleHierarchy[roleOption]);
+  }, [profile]);
+
+  // Adjust the selected role if it's not available
+  useEffect(() => {
+    if (availableRoles.length > 0 && !availableRoles.includes(role)) {
+      setRole(availableRoles[0]);
+    }
+  }, [availableRoles, role]);
+
   const allowedRolesToAccessPage = ['admin', 'manager', 'supervisor'];
   const isAuthorized = profile && allowedRolesToAccessPage.includes(profile.role);
 
@@ -63,7 +88,7 @@ const CreateAccount: React.FC = () => {
       setPassword("");
       setFirstName("");
       setLastName("");
-      setRole("technician"); // Reset to default
+      setRole(availableRoles.length > 0 ? availableRoles[0] : "technician"); // Reset to a valid default
     } catch (error: any) {
       console.error("Error creating account:", error.message);
       toast.error(`${t('failed_to_create_account')} ${error.message}`);
@@ -127,19 +152,19 @@ const CreateAccount: React.FC = () => {
             <div>
               <Label htmlFor="role">{t('role')}</Label>
               <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role}>
-                <SelectTrigger id="role">
+                <SelectTrigger id="role" disabled={availableRoles.length === 0}>
                   <SelectValue placeholder={t('select_role')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">{t('admin')}</SelectItem>
-                  <SelectItem value="manager">{t('manager')}</SelectItem>
-                  <SelectItem value="supervisor">{t('supervisor')}</SelectItem>
-                  <SelectItem value="technician">{t('technician')}</SelectItem>
-                  <SelectItem value="contractor">{t('contractor')}</SelectItem>
+                  {availableRoles.map((roleOption) => (
+                    <SelectItem key={roleOption} value={roleOption}>
+                      {t(roleOption)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || availableRoles.length === 0}>
               {loading ? t('creating') : t('create_account')}
             </Button>
           </form>
