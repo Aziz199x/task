@@ -13,15 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
 
-// Define role hierarchy for permission checks
-const roleHierarchy: Record<UserProfile['role'], number> = {
-  'admin': 4,
-  'manager': 3,
-  'supervisor': 2,
-  'technician': 1,
-  'contractor': 0,
-};
-
 const allRoles: UserProfile['role'][] = ['admin', 'manager', 'supervisor', 'technician', 'contractor'];
 
 const CreateAccount: React.FC = () => {
@@ -36,12 +27,23 @@ const CreateAccount: React.FC = () => {
   const [role, setRole] = useState<UserProfile['role']>("technician");
   const [loading, setLoading] = useState(false);
 
-  // Determine which roles the current user can create
+  // Determine which roles the current user can create based on the new hierarchy
   const availableRoles = useMemo(() => {
     if (!profile) return [];
-    const currentUserLevel = roleHierarchy[profile.role];
-    // A user can only create users with a role level lower than their own
-    return allRoles.filter(roleOption => currentUserLevel > roleHierarchy[roleOption]);
+    switch (profile.role) {
+      case 'admin':
+        // Admins can create any role
+        return allRoles;
+      case 'manager':
+        // Managers can only create supervisors
+        return ['supervisor'];
+      case 'supervisor':
+        // Supervisors can only create technicians
+        return ['technician'];
+      default:
+        // Other roles cannot create users
+        return [];
+    }
   }, [profile]);
 
   // Adjust the selected role if it's not available
