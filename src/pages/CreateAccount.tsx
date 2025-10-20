@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
-import { useSession } from "@/context/SessionContext";
+import { useSession, UserProfile } from "@/context/SessionContext"; // Import UserProfile
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,11 +22,11 @@ const CreateAccount: React.FC = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<"technician" | "contractor">("technician");
+  const [role, setRole] = useState<UserProfile['role']>("technician"); // Use UserProfile['role'] for all possible roles
   const [loading, setLoading] = useState(false);
 
-  const allowedRoles = ['admin', 'manager', 'supervisor'];
-  const isAuthorized = profile && allowedRoles.includes(profile.role);
+  const allowedRolesToAccessPage = ['admin', 'manager', 'supervisor'];
+  const isAuthorized = profile && allowedRolesToAccessPage.includes(profile.role);
 
   if (sessionLoading) {
     return (
@@ -62,7 +62,7 @@ const CreateAccount: React.FC = () => {
       setPassword("");
       setFirstName("");
       setLastName("");
-      setRole("technician");
+      setRole("technician"); // Reset to default
     } catch (error: any) {
       console.error("Error creating account:", error.message);
       toast.error(`${t('failed_to_create_account')} ${error.message}`);
@@ -125,11 +125,14 @@ const CreateAccount: React.FC = () => {
             </div>
             <div>
               <Label htmlFor="role">{t('role')}</Label>
-              <Select onValueChange={(value: "technician" | "contractor") => setRole(value)} value={role}>
+              <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder={t('select_role')} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="admin">{t('admin')}</SelectItem>
+                  <SelectItem value="manager">{t('manager')}</SelectItem>
+                  <SelectItem value="supervisor">{t('supervisor')}</SelectItem>
                   <SelectItem value="technician">{t('technician')}</SelectItem>
                   <SelectItem value="contractor">{t('contractor')}</SelectItem>
                 </SelectContent>

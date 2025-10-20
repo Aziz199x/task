@@ -7,12 +7,12 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 // Define the structure for a user profile
-interface UserProfile {
+export interface UserProfile { // Exporting for use in other files like useProfiles
   id: string;
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
-  role: 'admin' | 'manager' | 'supervisor' | 'technician';
+  role: 'admin' | 'manager' | 'supervisor' | 'technician' | 'contractor'; // Added 'contractor'
   updated_at: string | null;
 }
 
