@@ -22,6 +22,7 @@ const TaskForm: React.FC = () => {
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
+  const [equipmentNumber, setEquipmentNumber] = useState(""); // New state for equipment number
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +30,11 @@ const TaskForm: React.FC = () => {
       toast.error("Task title cannot be empty.");
       return;
     }
-    addTask(title, description, location, workOrderNumber, dueDate, assigneeId, typeOfWork);
+    if (equipmentNumber.trim() === "") {
+      toast.error("Equipment number is mandatory.");
+      return;
+    }
+    addTask(title, description, location, workOrderNumber, dueDate, assigneeId, typeOfWork, equipmentNumber);
     setTitle("");
     setDescription("");
     setLocation("");
@@ -37,6 +42,7 @@ const TaskForm: React.FC = () => {
     setDueDate("");
     setAssigneeId(null);
     setTypeOfWork(undefined);
+    setEquipmentNumber(""); // Clear equipment number after adding
     toast.success("Task added successfully!");
   };
 
@@ -107,6 +113,16 @@ const TaskForm: React.FC = () => {
                 <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label htmlFor="equipmentNumber">Equipment Number</Label>
+            <Input
+              id="equipmentNumber"
+              value={equipmentNumber}
+              onChange={(e) => setEquipmentNumber(e.target.value)}
+              placeholder="e.g., EQ-12345"
+              required
+            />
           </div>
           <div>
             <Label htmlFor="assignee">Assign Technician</Label>

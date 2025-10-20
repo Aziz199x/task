@@ -6,10 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork']) => void;
+  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => void;
   changeTaskStatus: (id: string, newStatus: Task['status']) => void;
   deleteTask: (id: string) => void;
-  updateTask: (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork']) => void;
+  updateTask: (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork'], newEquipmentNumber?: string) => void;
   assignTask: (id: string, assigneeId: string | null) => void;
 }
 
@@ -18,7 +18,12 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const addTask = (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork']) => {
+  const addTask = (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
+    if (!equipmentNumber) {
+      // This should ideally be caught by form validation, but as a fallback
+      console.error("Equipment number is mandatory.");
+      return;
+    }
     const newTask: Task = {
       id: uuidv4(),
       title,
@@ -30,6 +35,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       workOrderNumber,
       dueDate,
       typeOfWork,
+      equipmentNumber,
     };
     setTasks((prevTasks) => [...prevTasks, newTask]);
   };
@@ -46,10 +52,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   };
 
-  const updateTask = (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork']) => {
+  const updateTask = (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork'], newEquipmentNumber?: string) => {
+    if (!newEquipmentNumber) {
+      // This should ideally be caught by form validation, but as a fallback
+      console.error("Equipment number is mandatory for update.");
+      return;
+    }
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === id ? { ...task, title: newTitle, description: newDescription, location: newLocation, workOrderNumber: newWorkOrderNumber, dueDate: newDueDate, assigneeId: newAssigneeId, typeOfWork: newTypeOfWork } : task
+        task.id === id ? { ...task, title: newTitle, description: newDescription, location: newLocation, workOrderNumber: newWorkOrderNumber, dueDate: newDueDate, assigneeId: newAssigneeId, typeOfWork: newTypeOfWork, equipmentNumber: newEquipmentNumber } : task
       )
     );
   };
