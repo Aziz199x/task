@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { LogOut, LayoutDashboard, ListTodo, Users, UserPlus, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import LanguageSwitcher from "./LanguageSwitcher"; // Import LanguageSwitcher
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from 'react-i18next';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,9 +14,8 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { session, user, profile, signOut } = useSession();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
 
-  // 'admin', 'manager', and 'supervisor' can create new accounts
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
   const allowedToManageUsers = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
 
@@ -24,13 +23,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{t('task_manager')}</h1> {/* Use translation */}
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
+            {profile && (
+              <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded">
+                Role: {t(profile.role)}
+              </span>
+            )}
+          </div>
           {session && (
             <div className="flex items-center space-x-4">
               {profile && (
                 <div className="text-sm hidden md:block">
                   <p className="font-medium">{profile.first_name || user?.email}</p>
-                  <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p> {/* Translate role */}
+                  <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
                 </div>
               )}
               <Link to="/">
@@ -62,8 +68,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </Button>
                 </Link>
               )}
-              <LanguageSwitcher /> {/* Add LanguageSwitcher here */}
-              <Button variant="destructive" size="icon" onClick={signOut}> {/* Changed variant to 'destructive' */}
+              <LanguageSwitcher />
+              <Button variant="destructive" size="icon" onClick={signOut}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
