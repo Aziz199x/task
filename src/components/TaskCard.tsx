@@ -17,7 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTechnicians } from "@/hooks/use-technicians";
 import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+import { useAssignableUsers } from "@/hooks/use-assignable-users";
 
 interface TaskCardProps {
   task: Task;
@@ -27,9 +28,10 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const { changeTaskStatus, deleteTask, updateTask, assignTask } = useTasks();
-  const { user } = useSession();
-  const { technicians, loading: loadingTechnicians } = useTechnicians();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { user, profile: currentUserProfile } = useSession();
+  const { technicians } = useTechnicians(); // Keep for displaying assignee name
+  const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
+  const { t } = useTranslation();
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTitle, setEditedTitle] = React.useState(task.title);
@@ -40,6 +42,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const [editedAssigneeId, setEditedAssigneeId] = React.useState<string | null>(task.assigneeId || null);
   const [editedTypeOfWork, setEditedTypeOfWork] = React.useState<Task['typeOfWork'] | undefined>(task.typeOfWork);
   const [editedEquipmentNumber, setEditedEquipmentNumber] = React.useState(task.equipmentNumber);
+
+  const canEditOrDelete = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
 
   const handleSaveEdit = () => {
     if (editedTitle.trim() === "") {
@@ -110,86 +114,93 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
               task.status === 'cancelled' ? 'bg-red-100 text-red-800' :
               'bg-gray-100 text-gray-800'
             }`}>
-              {t(task.status.replace('-', '_'))} {/* Translate status */}
+              {t(task.status.replace('-', '_'))}
             </span>
             {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
           <div className="flex space-x-2">
-            <Dialog open={isEditing} onOpenChange={setIsEditing}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{t('edit_task')}</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">{t('task_title')}</Label>
-                    <Input id="title" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">{t('description_optional')}</Label>
-                    <Textarea id="description" value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location" className="text-right">{t('location')}</Label>
-                    <Input id="location" value={editedLocation} onChange={(e) => setEditedLocation(e.target.value)} className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="workOrderNumber" className="text-right">{t('work_order_number')}</Label>
-                    <Input id="workOrderNumber" value={editedWorkOrderNumber} onChange={(e) => setEditedWorkOrderNumber(e.target.value)} className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
-                    <Input id="dueDate" type="date" value={editedDueDate} onChange={(e) => setEditedDueDate(e.target.value)} className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>
-                    <Select onValueChange={(value: Task['typeOfWork']) => setEditedTypeOfWork(value)} value={editedTypeOfWork || ""}>
-                      <SelectTrigger id="typeOfWork" className="col-span-3">
-                        <SelectValue placeholder={t('select_type_of_work')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
-                        <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
-                        <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
-                        <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
-                        <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
-                    <Input id="equipmentNumber" value={editedEquipmentNumber} onChange={(e) => setEditedEquipmentNumber(e.target.value)} className="col-span-3" required />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="assignee" className="text-right">{t('assignee')}</Label>
-                    <Select onValueChange={(value) => setEditedAssigneeId(value === "unassigned" ? null : value)} value={editedAssigneeId || "unassigned"}>
-                      <SelectTrigger id="assignee" className="col-span-3">
-                        <SelectValue placeholder={t('select_a_technician')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-                        {loadingTechnicians ? (
-                          <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
-                        ) : (
-                          technicians.map((tech) => (
-                            <SelectItem key={tech.id} value={tech.id}>
-                              {tech.first_name} {tech.last_name}
+            {canEditOrDelete && (
+              <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>{t('edit_task')}</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="title" className="text-right">{t('task_title')}</Label>
+                      <Input id="title" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="description" className="text-right">{t('description_optional')}</Label>
+                      <Textarea id="description" value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="location" className="text-right">{t('location')}</Label>
+                      <Input id="location" value={editedLocation} onChange={(e) => setEditedLocation(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="workOrderNumber" className="text-right">{t('work_order_number')}</Label>
+                      <Input id="workOrderNumber" value={editedWorkOrderNumber} onChange={(e) => setEditedWorkOrderNumber(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
+                      <Input id="dueDate" type="date" value={editedDueDate} onChange={(e) => setEditedDueDate(e.target.value)} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>
+                      <Select onValueChange={(value: Task['typeOfWork']) => setEditedTypeOfWork(value)} value={editedTypeOfWork || ""}>
+                        <SelectTrigger id="typeOfWork" className="col-span-3">
+                          <SelectValue placeholder={t('select_type_of_work')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+                          <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+                          <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+                          <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+                          <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
+                      <Input id="equipmentNumber" value={editedEquipmentNumber} onChange={(e) => setEditedEquipmentNumber(e.target.value)} className="col-span-3" required />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="assignee" className="text-right">{t('assignee')}</Label>
+                      <Select onValueChange={(value) => setEditedAssigneeId(value === "unassigned" ? null : value)} value={editedAssigneeId || "unassigned"}>
+                        <SelectTrigger id="assignee" className="col-span-3">
+                          <SelectValue placeholder={t('select_a_user_to_assign')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
+                          {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
+                            <SelectItem value={currentUserProfile.id}>
+                              {t('assign_to_me')} ({currentUserProfile.first_name})
                             </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                          )}
+                          {loadingUsers ? (
+                            <SelectItem value="loading" disabled>{t('loading_users')}...</SelectItem>
+                          ) : (
+                            assignableUsers.map((user) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.first_name} {user.last_name} ({t(user.role)})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                <Button onClick={handleSaveEdit}>{t('save_changes')}</Button>
-              </DialogContent>
-            </Dialog>
+                  <Button onClick={handleSaveEdit}>{t('save_changes')}</Button>
+                </DialogContent>
+              </Dialog>
+            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -224,10 +235,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                     {t('unassign')}
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
-                </DropdownMenuItem>
+                {canEditOrDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                      <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

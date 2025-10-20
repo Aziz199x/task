@@ -125,5 +125,7 @@
   "user_identifier": "User ID",
   "password_label": "Password",
   "sign_in": "Sign In",
-  "user_not_found": "User not found"
+  "user_not_found": "User not found",
+  "loading_users": "Loading users...",
+  "select_a_user_to_assign": "Select a user to assign"
 }

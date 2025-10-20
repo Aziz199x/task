@@ -9,14 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTasks } from "@/context/TaskContext";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTechnicians } from "@/hooks/use-technicians";
 import { Task } from "@/types/task";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+import { useAssignableUsers } from "@/hooks/use-assignable-users";
+import { useSession } from "@/context/SessionContext";
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
-  const { technicians, loading: loadingTechnicians } = useTechnicians();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
+  const { profile: currentUserProfile } = useSession();
+  const { t } = useTranslation();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -128,19 +130,24 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="assignee">{t('assign_technician')}</Label>
+            <Label htmlFor="assignee">{t('assign_to')}</Label>
             <Select onValueChange={(value) => setAssigneeId(value === "unassigned" ? null : value)} value={assigneeId || "unassigned"}>
               <SelectTrigger id="assignee">
-                <SelectValue placeholder={t('select_a_technician')} />
+                <SelectValue placeholder={t('select_a_user_to_assign')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-                {loadingTechnicians ? (
-                  <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
+                {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
+                  <SelectItem value={currentUserProfile.id}>
+                    {t('assign_to_me')} ({currentUserProfile.first_name})
+                  </SelectItem>
+                )}
+                {loadingUsers ? (
+                  <SelectItem value="loading" disabled>{t('loading_users')}...</SelectItem>
                 ) : (
-                  technicians.map((tech) => (
-                    <SelectItem key={tech.id} value={tech.id}>
-                      {tech.first_name} {tech.last_name} ({t(tech.role)})
+                  assignableUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.first_name} {user.last_name} ({t(user.role)})
                     </SelectItem>
                   ))
                 )}

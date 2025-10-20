@@ -125,5 +125,7 @@
   "user_identifier": "معرف المستخدم",
   "password_label": "كلمة المرور",
   "sign_in": "تسجيل الدخول",
-  "user_not_found": "المستخدم غير موجود"
+  "user_not_found": "المستخدم غير موجود",
+  "loading_users": "جارٍ تحميل المستخدمين...",
+  "select_a_user_to_assign": "اختر مستخدمًا لتعيينه"
 }

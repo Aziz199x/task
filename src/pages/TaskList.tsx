@@ -8,21 +8,26 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Filter, Search, Trash2, User, BellRing } from "lucide-react";
+import { ChevronDown, Filter, Search, Trash2, User, BellRing, ListTodo } from "lucide-react";
 import { useTechnicians } from "@/hooks/use-technicians";
 import { Task } from "@/types/task";
 import { isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+import { useSession } from "@/context/SessionContext";
+import { useAssignableUsers } from "@/hooks/use-assignable-users";
+import { toast } from "sonner";
 
 interface TaskListProps {
-  hideForm?: boolean; // New prop
+  hideForm?: boolean;
 }
 
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
-  const { technicians, loading: loadingTechnicians } = useTechnicians();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { technicians } = useTechnicians(); // Keep for filter dropdown
+  const { profile: currentUserProfile } = useSession();
+  const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
+  const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<Task['status'] | "all">("all");
@@ -30,6 +35,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+
+  const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -58,21 +65,21 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       return;
     }
 
-    const tasksToActOn = tasks.filter(task => selectedTaskIds.has(task.id));
+    const tasksToActOn = Array.from(selectedTaskIds);
 
     switch (action) {
       case 'status':
         if (value) {
-          tasksToActOn.forEach(task => changeTaskStatus(task.id, value as Task['status']));
+          tasksToActOn.forEach(taskId => changeTaskStatus(taskId, value as Task['status']));
           toast.success(t('status_updated_for_tasks', { count: selectedTaskIds.size }));
         }
         break;
       case 'assign':
-        tasksToActOn.forEach(task => assignTask(task.id, value));
+        tasksToActOn.forEach(taskId => assignTask(taskId, value === undefined ? null : value));
         toast.success(t('assignee_updated_for_tasks', { count: selectedTaskIds.size }));
         break;
       case 'delete':
-        tasksToActOn.forEach(task => deleteTask(task.id));
+        tasksToActOn.forEach(taskId => deleteTask(taskId));
         toast.success(t('tasks_deleted', { count: selectedTaskIds.size }));
         break;
       default:
@@ -110,7 +117,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
   return (
     <div className="space-y-8">
-      {!hideForm && <TaskForm />} {/* Conditionally render TaskForm */}
+      {!hideForm && canAddTask && <TaskForm />}
 
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
         <div className="relative w-full md:w-1/3">
@@ -144,15 +151,11 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectContent>
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
             <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            {loadingTechnicians ? (
-              <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
-            ) : (
-              technicians.map((tech) => (
-                <SelectItem key={tech.id} value={tech.id}>
-                  {tech.first_name} {tech.last_name}
-                </SelectItem>
-              ))
-            )}
+            {technicians.map((tech) => (
+              <SelectItem key={tech.id} value={tech.id}>
+                {tech.first_name} {tech.last_name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -217,25 +220,23 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_cancelled')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <User className="mr-2 h-4 w-4" /> {t('assign_to')}
+                <DropdownMenuItem onClick={() => handleBulkAction('assign', null)}>
+                  <User className="mr-2 h-4 w-4" /> {t('unassign')}
+                </DropdownMenuItem>
+                {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
+                  <DropdownMenuItem onClick={() => handleBulkAction('assign', currentUserProfile.id)}>
+                    <User className="mr-2 h-4 w-4" /> {t('assign_to_me')}
                   </DropdownMenuItem>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="start">
-                  <DropdownMenuItem onClick={() => handleBulkAction('assign', null)}>
-                    {t('unassign')}
-                  </DropdownMenuItem>
-                  {loadingTechnicians ? (
-                    <DropdownMenuItem disabled>{t('loading_technicians')}...</DropdownMenuItem>
-                  ) : (
-                    technicians.map((tech) => (
-                      <DropdownMenuItem key={tech.id} onClick={() => handleBulkAction('assign', tech.id)}>
-                        {tech.first_name} {tech.last_name}
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
+                )}
+                {loadingUsers ? (
+                  <DropdownMenuItem disabled>{t('loading_users')}...</DropdownMenuItem>
+                ) : (
+                  assignableUsers.map((user) => (
+                    <DropdownMenuItem key={user.id} onClick={() => handleBulkAction('assign', user.id)}>
+                      <User className="mr-2 h-4 w-4" /> {user.first_name} {user.last_name}
+                    </DropdownMenuItem>
+                  ))
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" /> {t('delete_selected')}

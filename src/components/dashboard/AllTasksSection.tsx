@@ -12,11 +12,15 @@ import TaskStatusColumn from '@/components/TaskStatusColumn'; // Re-using the ex
 import { useTasks } from '@/context/TaskContext';
 import { Task } from '@/types/task';
 import { useTranslation } from 'react-i18next';
+import { useSession } from '@/context/SessionContext';
 
 const AllTasksSection: React.FC = () => {
   const { tasks } = useTasks();
   const { t } = useTranslation();
+  const { profile: currentUserProfile } = useSession();
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
+
+  const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
 
   const pendingTasks = useMemo(() => tasks.filter(task => task.status === 'unassigned' || task.status === 'assigned'), [tasks]);
   const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
@@ -26,19 +30,21 @@ const AllTasksSection: React.FC = () => {
     <Card className="col-span-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{t('all_tasks')}</CardTitle>
-        <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" /> {t('new_task')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{t('add_new_task')}</DialogTitle>
-            </DialogHeader>
-            <TaskForm />
-          </DialogContent>
-        </Dialog>
+        {canAddTask && (
+          <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" /> {t('new_task')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{t('add_new_task')}</DialogTitle>
+              </DialogHeader>
+              <TaskForm />
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="board" className="w-full">
