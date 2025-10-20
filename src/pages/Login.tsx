@@ -34,7 +34,7 @@ const Login = () => {
         <CardContent>
           <Auth
             supabaseClient={supabase}
-            providers={[]} // Keep this empty to only show email/phone based on enabled providers
+            providers={['phone']} // Explicitly set to only use 'phone' provider
             appearance={{
               theme: ThemeSupa,
               variables: {
@@ -51,24 +51,17 @@ const Login = () => {
             localization={{
               variables: {
                 sign_in: {
-                  email_label: t('user_identifier'),
+                  email_label: t('user_identifier'), // This will now be ignored as email is not a provider
                   phone_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
                 sign_up: {
-                  email_label: t('user_identifier'),
+                  email_label: t('user_identifier'), // This will now be ignored as email is not a provider
                   phone_label: t('user_identifier'),
                   password_label: t('password_label'),
                 },
               },
             }}
-            // Explicitly set only phone provider to be displayed
-            // Note: Supabase Auth UI will automatically show phone if it's the only enabled provider
-            // and 'providers' array is empty. If you have email enabled but want to hide it,
-            // you would need to specify `providers={['phone']}`.
-            // For now, I'll leave `providers={[]}` as it respects your Supabase settings.
-            // If you want to force phone-only even if email is enabled in Supabase,
-            // let me know and I'll change `providers={[]}` to `providers={['phone']}`.
           />
         </CardContent>
       </Card>
