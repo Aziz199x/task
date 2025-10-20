@@ -24,7 +24,7 @@ const ManageUsers: React.FC = () => {
   // Calculate performance rate for each profile
   const profilesWithPerformance = useMemo(() => {
     return profiles.map(profile => {
-      const assignedTasks = tasks.filter(task => task.assigneeId === profile.id);
+      const assignedTasks = tasks.filter(task => task.assignee_id === profile.id);
       const completedTasks = assignedTasks.filter(task => task.status === 'completed');
       const performanceRate = assignedTasks.length > 0
         ? ((completedTasks.length / assignedTasks.length) * 100).toFixed(0) + '%'

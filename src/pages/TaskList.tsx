@@ -32,7 +32,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<Task['status'] | "all">("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
-  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
+  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['type_of_work'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
@@ -93,14 +93,14 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const matchesSearch = searchTerm === "" ||
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.equipmentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.workOrderNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+        task.equipment_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.work_order_number?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus = filterStatus === "all" || task.status === filterStatus;
-      const matchesAssignee = filterAssignee === "all" || task.assigneeId === filterAssignee;
-      const matchesTypeOfWork = filterTypeOfWork === "all" || task.typeOfWork === filterTypeOfWork;
+      const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
+      const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
 
-      const dueDateObj = task.dueDate ? new Date(task.dueDate) : null;
+      const dueDateObj = task.due_date ? new Date(task.due_date) : null;
       const now = new Date();
       const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
       const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
@@ -159,7 +159,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
+        <Select onValueChange={(value: Task['type_of_work'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full md:w-[200px]">
             <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>

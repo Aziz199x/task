@@ -127,5 +127,16 @@
   "sign_in": "تسجيل الدخول",
   "user_not_found": "المستخدم غير موجود",
   "loading_users": "جارٍ تحميل المستخدمين...",
-  "select_a_user_to_assign": "اختر مستخدمًا لتعيينه"
+  "select_a_user_to_assign": "اختر مستخدمًا لتعيينه",
+  "after_work_photo_required": "مطلوب صورة 'بعد العمل' لإكمال المهمة.",
+  "before_work_photo": "صورة قبل العمل",
+  "after_work_photo": "صورة بعد العمل",
+  "permit_photo": "صورة التصريح",
+  "please_select_a_file_first": "الرجاء تحديد ملف أولاً",
+  "upload_failed": "فشل الرفع",
+  "photo_uploaded_successfully": "تم رفع الصورة بنجاح",
+  "could_not_get_photo_url": "تعذر الحصول على رابط الصورة",
+  "before": "قبل",
+  "after": "بعد",
+  "permit": "تصريح"
 }

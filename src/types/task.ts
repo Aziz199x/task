@@ -1,13 +1,17 @@
 export type Task = {
   id: string;
+  created_at: string;
   title: string;
-  description?: string;
+  description?: string | null;
   status: 'unassigned' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
-  createdAt: Date;
-  assigneeId?: string | null; // This will now refer to the user ID of the assigned technician
-  location?: string; // New field
-  workOrderNumber?: string; // New field
-  dueDate?: string; // New field (using string for simplicity with input type="date")
-  typeOfWork?: 'Correction Maintenance' | 'Civil Work' | 'Overhead Maintenance' | 'Termination Maintenance' | 'Replacing Equipment'; // New field for type of work
-  equipmentNumber: string; // New mandatory field
+  assignee_id?: string | null;
+  creator_id?: string | null;
+  location?: string | null;
+  work_order_number?: string | null;
+  due_date?: string | null;
+  type_of_work?: 'Correction Maintenance' | 'Civil Work' | 'Overhead Maintenance' | 'Termination Maintenance' | 'Replacing Equipment' | null;
+  equipment_number: string;
+  photo_before_url?: string | null;
+  photo_after_url?: string | null;
+  photo_permit_url?: string | null;
 };

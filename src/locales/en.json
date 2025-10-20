@@ -127,5 +127,16 @@
   "sign_in": "Sign In",
   "user_not_found": "User not found",
   "loading_users": "Loading users...",
-  "select_a_user_to_assign": "Select a user to assign"
+  "select_a_user_to_assign": "Select a user to assign",
+  "after_work_photo_required": "An 'After Work' photo is required to complete the task.",
+  "before_work_photo": "Before Work Photo",
+  "after_work_photo": "After Work Photo",
+  "permit_photo": "Permit Photo",
+  "please_select_a_file_first": "Please select a file first",
+  "upload_failed": "Upload failed",
+  "photo_uploaded_successfully": "Photo uploaded successfully",
+  "could_not_get_photo_url": "Could not get photo URL",
+  "before": "Before",
+  "after": "After",
+  "permit": "Permit"
 }

@@ -36,7 +36,7 @@ const TaskLoadByEmployeeChart: React.FC<TaskLoadByEmployeeChartProps> = ({ tasks
   };
 
   tasks.forEach(task => {
-    const assigneeId = task.assigneeId || 'unassigned';
+    const assigneeId = task.assignee_id || 'unassigned';
     if (!employeeTaskData[assigneeId]) {
       // This might happen if a task is assigned to a user not in the technicians list (e.g., admin/manager)
       // For simplicity, we'll add them as 'Other' or their name if available

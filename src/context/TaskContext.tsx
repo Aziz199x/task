@@ -1,80 +1,126 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from "react";
 import { Task } from "@/types/task";
-import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useSession } from "./SessionContext";
 
 interface TaskContextType {
   tasks: Task[];
-  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => void;
-  changeTaskStatus: (id: string, newStatus: Task['status']) => void;
-  deleteTask: (id: string) => void;
-  updateTask: (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork'], newEquipmentNumber?: string) => void;
-  assignTask: (id: string, assigneeId: string | null) => void;
+  loading: boolean;
+  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string) => Promise<void>;
+  changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  assignTask: (id: string, assigneeId: string | null) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useSession();
 
-  const addTask = (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching tasks:", error);
+      toast.error("Failed to load tasks: " + error.message);
+      setTasks([]);
+    } else {
+      setTasks(data as Task[]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user, fetchTasks]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:tasks')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        fetchTasks(); // Refetch all tasks on any change
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchTasks]);
+
+  const addTask = async (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string) => {
     if (!equipmentNumber) {
-      // This should ideally be caught by form validation, but as a fallback
-      console.error("Equipment number is mandatory.");
+      toast.error("Equipment number is mandatory.");
       return;
     }
-    const newTask: Task = {
-      id: uuidv4(),
+    const { error } = await supabase.from('tasks').insert({
       title,
       description,
-      status: 'unassigned',
-      createdAt: new Date(),
-      assigneeId: assigneeId || null,
       location,
-      workOrderNumber,
-      dueDate,
-      typeOfWork,
-      equipmentNumber,
-    };
-    setTasks((prevTasks) => [...prevTasks, newTask]);
-  };
+      work_order_number: workOrderNumber,
+      due_date: dueDate || null,
+      assignee_id: assigneeId,
+      type_of_work: typeOfWork,
+      equipment_number: equipmentNumber,
+      status: assigneeId ? 'assigned' : 'unassigned',
+    });
 
-  const changeTaskStatus = (id: string, newStatus: Task['status']) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, status: newStatus } : task
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-  };
-
-  const updateTask = (id: string, newTitle: string, newDescription?: string, newLocation?: string, newWorkOrderNumber?: string, newDueDate?: string, newAssigneeId?: string | null, newTypeOfWork?: Task['typeOfWork'], newEquipmentNumber?: string) => {
-    if (!newEquipmentNumber) {
-      // This should ideally be caught by form validation, but as a fallback
-      console.error("Equipment number is mandatory for update.");
-      return;
+    if (error) {
+      toast.error("Failed to add task: " + error.message);
     }
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, title: newTitle, description: newDescription, location: newLocation, workOrderNumber: newWorkOrderNumber, dueDate: newDueDate, assigneeId: newAssigneeId, typeOfWork: newTypeOfWork, equipmentNumber: newEquipmentNumber } : task
-      )
-    );
   };
 
-  const assignTask = (id: string, assigneeId: string | null) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, assigneeId: assigneeId, status: assigneeId ? 'assigned' : 'unassigned' } : task
-      )
-    );
+  const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus })
+      .eq('id', id);
+    if (error) {
+      toast.error("Failed to update status: " + error.message);
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (error) {
+      toast.error("Failed to delete task: " + error.message);
+    }
+  };
+
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update(updates)
+      .eq('id', id);
+    if (error) {
+      toast.error("Failed to update task: " + error.message);
+    }
+  };
+
+  const assignTask = async (id: string, assigneeId: string | null) => {
+    const newStatus = assigneeId ? 'assigned' : 'unassigned';
+    const { error } = await supabase
+      .from('tasks')
+      .update({ assignee_id: assigneeId, status: newStatus })
+      .eq('id', id);
+    if (error) {
+      toast.error("Failed to assign task: " + error.message);
+    }
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, changeTaskStatus, deleteTask, updateTask, assignTask }}>
+    <TaskContext.Provider value={{ tasks, loading, addTask, changeTaskStatus, deleteTask, updateTask, assignTask }}>
       {children}
     </TaskContext.Provider>
   );

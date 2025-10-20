@@ -32,10 +32,10 @@ const TechnicianTasks: React.FC = () => {
   }
 
   const tasksByTechnician: { [key: string]: typeof tasks } = {};
-  const unassignedTasks = tasks.filter(task => !task.assigneeId);
+  const unassignedTasks = tasks.filter(task => !task.assignee_id);
 
   technicians.forEach(tech => {
-    tasksByTechnician[tech.id] = tasks.filter(task => task.assigneeId === tech.id);
+    tasksByTechnician[tech.id] = tasks.filter(task => task.assignee_id === tech.id);
   });
 
   return (
