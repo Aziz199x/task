@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { LogOut, LayoutDashboard, ListTodo, Users, UserPlus, Settings } from "lucide-react";
@@ -73,7 +72,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-grow container mx-auto p-4">
         {children}
       </main>
-      <MadeWithDyad />
     </div>
   );
 };
