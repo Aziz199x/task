@@ -2,9 +2,9 @@
 
 import React from "react";
 import { Task } from "@/types/task";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
 
   const canEditOrDelete = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
+  const isAssignedToCurrentUser = user && task.assignee_id === user.id;
+
+  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
 
   const handleSaveEdit = () => {
     if (!editedTask.title || editedTask.title.trim() === "") {
@@ -85,7 +88,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     toast.success(t('task_unassigned'));
   };
 
-  const isAssignedToCurrentUser = user && task.assignee_id === user.id;
   const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
 
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
@@ -104,11 +106,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
         </div>
       )}
       <div className="flex-grow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="flex items-center space-x-2">
+        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-0">
+          <div>
             <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
               {task.title}
             </CardTitle>
+            {task.work_order_number && <p className="text-sm font-medium text-muted-foreground pt-1">WO: {task.work_order_number}</p>}
+          </div>
+          <div className="flex items-center space-x-2">
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${
               task.status === 'completed' ? 'bg-green-100 text-green-800' :
               task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
@@ -120,8 +125,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
             </span>
             {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
-          </div>
-          <div className="flex space-x-2">
             {(canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)) && (
               <Dialog open={isEditing} onOpenChange={setIsEditing}>
                 <DialogTrigger asChild>
@@ -204,7 +207,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-2 p-0 pt-2">
           {task.description && <p className={`text-sm text-muted-foreground ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
           {task.location && <div className="flex items-center text-sm text-muted-foreground"><MapPin className="h-4 w-4 mr-2" /> {task.location}</div>}
           {task.work_order_number && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {task.work_order_number}</div>}
@@ -215,6 +218,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
           {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('unassigned')}</div>}
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
         </CardContent>
+        {canComplete && (
+          <CardFooter className="p-0 pt-4 mt-4 border-t">
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleStatusChange('completed')}>
+              <CheckCircle className="mr-2 h-4 w-4" /> {t('complete_task')}
+            </Button>
+          </CardFooter>
+        )}
       </div>
     </Card>
   );

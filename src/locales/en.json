@@ -142,5 +142,6 @@
   "you_have": "You have",
   "tasks_assigned": "tasks assigned",
   "tasks_to_accomplish": "tasks to accomplish",
-  "view_my_tasks": "View My Tasks"
+  "view_my_tasks": "View My Tasks",
+  "complete_task": "Complete Task"
 }
