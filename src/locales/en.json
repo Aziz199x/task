@@ -122,5 +122,6 @@
   "list_view": "List View",
   "add": "Add",
   "performance_rate": "Performance Rate",
-  "user_identifier": "User"
+  "user_identifier": "User",
+  "password_label": "Password"
 }

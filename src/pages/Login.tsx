@@ -52,11 +52,13 @@ const Login = () => {
               variables: {
                 sign_in: {
                   email_label: t('user_identifier'),
-                  phone_label: t('user_identifier'), // Also update phone label for consistency
+                  phone_label: t('user_identifier'),
+                  password_label: t('password_label'), // Updated password label
                 },
                 sign_up: {
                   email_label: t('user_identifier'),
-                  phone_label: t('user_identifier'), // Also update phone label for consistency
+                  phone_label: t('user_identifier'),
+                  password_label: t('password_label'), // Updated password label
                 },
               },
             }}
