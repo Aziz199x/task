@@ -121,5 +121,6 @@
   "board_view": "عرض اللوحة",
   "list_view": "عرض القائمة",
   "add": "إضافة",
-  "performance_rate": "معدل الأداء"
+  "performance_rate": "معدل الأداء",
+  "user_identifier": "المستخدم"
 }

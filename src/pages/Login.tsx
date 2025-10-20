@@ -48,6 +48,18 @@ const Login = () => {
             }}
             theme="light"
             redirectTo={window.location.origin}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: t('user_identifier'),
+                  phone_label: t('user_identifier'), // Also update phone label for consistency
+                },
+                sign_up: {
+                  email_label: t('user_identifier'),
+                  phone_label: t('user_identifier'), // Also update phone label for consistency
+                },
+              },
+            }}
           />
         </CardContent>
       </Card>

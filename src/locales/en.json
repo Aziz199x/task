@@ -121,5 +121,6 @@
   "board_view": "Board View",
   "list_view": "List View",
   "add": "Add",
-  "performance_rate": "Performance Rate"
+  "performance_rate": "Performance Rate",
+  "user_identifier": "User"
 }
