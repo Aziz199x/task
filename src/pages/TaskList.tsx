@@ -15,7 +15,11 @@ import { isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from 'react-i18next'; // Import useTranslation
 
-const TaskList: React.FC = () => {
+interface TaskListProps {
+  hideForm?: boolean; // New prop
+}
+
+const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { technicians, loading: loadingTechnicians } = useTechnicians();
   const { t } = useTranslation(); // Initialize useTranslation
@@ -106,7 +110,7 @@ const TaskList: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <TaskForm />
+      {!hideForm && <TaskForm />} {/* Conditionally render TaskForm */}
 
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
         <div className="relative w-full md:w-1/3">

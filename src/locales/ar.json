@@ -108,5 +108,17 @@
   "loading_technicians": "جارٍ تحميل الفنيين...",
   "error_loading_technicians": "خطأ في تحميل الفنيين:",
   "oops_page_not_found": "عذراً! الصفحة غير موجودة",
-  "return_to_home": "العودة إلى الصفحة الرئيسية"
+  "return_to_home": "العودة إلى الصفحة الرئيسية",
+  "admin_dashboard": "لوحة تحكم المسؤول",
+  "total_tasks": "إجمالي المهام",
+  "pending": "معلقة",
+  "in_progress": "قيد التقدم",
+  "completion_rate": "معدل الإنجاز",
+  "task_status_overview": "نظرة عامة على حالة المهام",
+  "task_load_by_employee": "عبء المهام حسب الموظف",
+  "other": "أخرى",
+  "new_task": "مهمة جديدة",
+  "board_view": "عرض اللوحة",
+  "list_view": "عرض القائمة",
+  "add": "إضافة"
 }

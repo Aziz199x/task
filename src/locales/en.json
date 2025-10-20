@@ -108,5 +108,17 @@
   "loading_technicians": "Loading technicians...",
   "error_loading_technicians": "Error loading technicians:",
   "oops_page_not_found": "Oops! Page not found",
-  "return_to_home": "Return to Home"
+  "return_to_home": "Return to Home",
+  "admin_dashboard": "Admin Dashboard",
+  "total_tasks": "Total Tasks",
+  "pending": "Pending",
+  "in_progress": "In Progress",
+  "completion_rate": "Completion Rate",
+  "task_status_overview": "Task Status Overview",
+  "task_load_by_employee": "Task Load by Employee",
+  "other": "Other",
+  "new_task": "New Task",
+  "board_view": "Board View",
+  "list_view": "List View",
+  "add": "Add"
 }
