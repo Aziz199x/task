@@ -4,7 +4,7 @@ import React from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { LogOut, LayoutDashboard, ListTodo } from "lucide-react"; // Import new icons
+import { LogOut, LayoutDashboard, ListTodo, Users } from "lucide-react"; // Import new icons
 import { Link } from "react-router-dom"; // Import Link for navigation
 
 interface LayoutProps {
@@ -35,6 +35,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link to="/dashboard">
                 <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
                   <LayoutDashboard className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/technician-tasks"> {/* New navigation link */}
+                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                  <Users className="h-5 w-5" />
                 </Button>
               </Link>
               <Button variant="ghost" size="icon" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">

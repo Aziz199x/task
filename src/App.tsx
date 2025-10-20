@@ -7,8 +7,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import TechnicianTasks from "./pages/TechnicianTasks"; // Import the new page
 import { SessionProvider } from "./context/SessionContext";
-import { TaskProvider } from "./context/TaskContext"; // Import TaskProvider
+import { TaskProvider } from "./context/TaskContext";
 
 const queryClient = new QueryClient();
 
@@ -19,11 +20,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SessionProvider>
-          <TaskProvider> {/* TaskProvider now wraps all routes */}
+          <TaskProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/technician-tasks" element={<TechnicianTasks />} /> {/* New route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
