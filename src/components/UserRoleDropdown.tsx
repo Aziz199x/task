@@ -6,6 +6,7 @@ import { UserProfile } from '@/context/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSession } from '@/context/SessionContext';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 interface UserRoleDropdownProps {
   profile: UserProfile;
@@ -21,24 +22,25 @@ const roleHierarchy = {
 
 const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
   const { profile: currentUserProfile } = useSession();
+  const { t } = useTranslation(); // Initialize useTranslation
   const [currentRole, setCurrentRole] = React.useState<UserProfile['role']>(profile.role);
   const [isUpdating, setIsUpdating] = React.useState(false);
 
   const handleRoleChange = async (newRole: UserProfile['role']) => {
     if (!currentUserProfile) {
-      toast.error("You must be logged in to change roles.");
+      toast.error(t('you_must_be_logged_in_to_change_roles'));
       return;
     }
 
     // Prevent users from changing their own role
     if (profile.id === currentUserProfile.id) {
-      toast.error("You cannot change your own role.");
+      toast.error(t('you_cannot_change_your_own_role'));
       return;
     }
 
     // Prevent users from changing roles of users with higher or equal authority
     if (roleHierarchy[currentUserProfile.role] <= roleHierarchy[profile.role]) {
-      toast.error("You do not have sufficient authority to change this user's role.");
+      toast.error(t('insufficient_authority_change_role'));
       return;
     }
 
@@ -50,10 +52,10 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
 
     if (error) {
       console.error("Error updating user role:", error.message);
-      toast.error("Failed to update role: " + error.message);
+      toast.error(`${t('failed_to_update_role')} ${error.message}`);
     } else {
       setCurrentRole(newRole);
-      toast.success(`Role for ${profile.first_name || profile.id} updated to ${newRole}.`);
+      toast.success(t('role_updated_successfully', { name: profile.first_name || profile.id, role: t(newRole) }));
     }
     setIsUpdating(false);
   };
@@ -63,7 +65,7 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
   return (
     <Select onValueChange={handleRoleChange} value={currentRole} disabled={isUpdating || !currentUserProfile || profile.id === currentUserProfile.id || roleHierarchy[currentUserProfile.role] <= roleHierarchy[profile.role]}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select Role" />
+        <SelectValue placeholder={t('select_role_dropdown')} />
       </SelectTrigger>
       <SelectContent>
         {roles.map((roleOption) => (
@@ -71,13 +73,13 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
             key={roleOption}
             value={roleOption}
             disabled={
-              !currentUserProfile || // If no current user profile, disable all
-              profile.id === currentUserProfile.id || // Cannot change own role
-              roleHierarchy[currentUserProfile.role] <= roleHierarchy[roleOption] || // Cannot assign a role higher than or equal to current user's own role
-              (roleHierarchy[currentUserProfile.role] <= roleHierarchy[profile.role] && roleOption !== currentRole) // Cannot change role of someone with equal/higher authority
+              !currentUserProfile ||
+              profile.id === currentUserProfile.id ||
+              roleHierarchy[currentUserProfile.role] <= roleHierarchy[roleOption] ||
+              (roleHierarchy[currentUserProfile.role] <= roleHierarchy[profile.role] && roleOption !== currentRole)
             }
           >
-            {roleOption.charAt(0).toUpperCase() + roleOption.slice(1)}
+            {t(roleOption)} {/* Translate role option */}
           </SelectItem>
         ))}
       </SelectContent>

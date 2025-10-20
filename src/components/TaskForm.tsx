@@ -9,12 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTasks } from "@/context/TaskContext";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTechnicians } from "@/hooks/use-technicians"; // Import the new hook
-import { Task } from "@/types/task"; // Import Task type for typeOfWork
+import { useTechnicians } from "@/hooks/use-technicians";
+import { Task } from "@/types/task";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
   const { technicians, loading: loadingTechnicians } = useTechnicians();
+  const { t } = useTranslation(); // Initialize useTranslation
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -22,16 +25,16 @@ const TaskForm: React.FC = () => {
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
-  const [equipmentNumber, setEquipmentNumber] = useState(""); // New state for equipment number
+  const [equipmentNumber, setEquipmentNumber] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim() === "") {
-      toast.error("Task title cannot be empty.");
+      toast.error(t('task_title_cannot_be_empty'));
       return;
     }
     if (equipmentNumber.trim() === "") {
-      toast.error("Equipment number is mandatory.");
+      toast.error(t('equipment_number_mandatory'));
       return;
     }
     addTask(title, description, location, workOrderNumber, dueDate, assigneeId, typeOfWork, equipmentNumber);
@@ -42,19 +45,19 @@ const TaskForm: React.FC = () => {
     setDueDate("");
     setAssigneeId(null);
     setTypeOfWork(undefined);
-    setEquipmentNumber(""); // Clear equipment number after adding
-    toast.success("Task added successfully!");
+    setEquipmentNumber("");
+    toast.success(t('task_added_successfully'));
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Add New Task</CardTitle>
+        <CardTitle>{t('add_new_task')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Task Title</Label>
+            <Label htmlFor="title">{t('task_title')}</Label>
             <Input
               id="title"
               value={title}
@@ -64,7 +67,7 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="description">Description (Optional)</Label>
+            <Label htmlFor="description">{t('description_optional')}</Label>
             <Textarea
               id="description"
               value={description}
@@ -73,7 +76,7 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">{t('location')}</Label>
             <Input
               id="location"
               value={location}
@@ -82,7 +85,7 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="workOrderNumber">Work Order Number</Label>
+            <Label htmlFor="workOrderNumber">{t('work_order_number')}</Label>
             <Input
               id="workOrderNumber"
               value={workOrderNumber}
@@ -91,7 +94,7 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="dueDate">Due Date</Label>
+            <Label htmlFor="dueDate">{t('due_date')}</Label>
             <Input
               id="dueDate"
               type="date"
@@ -100,22 +103,22 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="typeOfWork">Type of Work</Label>
+            <Label htmlFor="typeOfWork">{t('type_of_work')}</Label>
             <Select onValueChange={(value: Task['typeOfWork']) => setTypeOfWork(value)} value={typeOfWork || ""}>
               <SelectTrigger id="typeOfWork">
-                <SelectValue placeholder="Select type of work" />
+                <SelectValue placeholder={t('select_type_of_work')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Correction Maintenance">Correction Maintenance</SelectItem>
-                <SelectItem value="Civil Work">Civil Work</SelectItem>
-                <SelectItem value="Overhead Maintenance">Overhead Maintenance</SelectItem>
-                <SelectItem value="Termination Maintenance">Termination Maintenance</SelectItem>
-                <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
+                <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+                <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+                <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+                <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+                <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="equipmentNumber">Equipment Number</Label>
+            <Label htmlFor="equipmentNumber">{t('equipment_number')}</Label>
             <Input
               id="equipmentNumber"
               value={equipmentNumber}
@@ -125,26 +128,26 @@ const TaskForm: React.FC = () => {
             />
           </div>
           <div>
-            <Label htmlFor="assignee">Assign Technician</Label>
+            <Label htmlFor="assignee">{t('assign_technician')}</Label>
             <Select onValueChange={(value) => setAssigneeId(value === "unassigned" ? null : value)} value={assigneeId || "unassigned"}>
               <SelectTrigger id="assignee">
-                <SelectValue placeholder="Select a technician" />
+                <SelectValue placeholder={t('select_a_technician')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
+                <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
                 {loadingTechnicians ? (
-                  <SelectItem value="loading" disabled>Loading technicians...</SelectItem>
+                  <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
                 ) : (
                   technicians.map((tech) => (
                     <SelectItem key={tech.id} value={tech.id}>
-                      {tech.first_name} {tech.last_name} ({tech.role})
+                      {tech.first_name} {tech.last_name} ({t(tech.role)})
                     </SelectItem>
                   ))
                 )}
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full">Add Task</Button>
+          <Button type="submit" className="w-full">{t('add_task')}</Button>
         </form>
       </CardContent>
     </Card>

@@ -16,18 +16,21 @@ import { useSession } from "@/context/SessionContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTechnicians } from "@/hooks/use-technicians";
 import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 interface TaskCardProps {
   task: Task;
-  onSelect?: (taskId: string, isSelected: boolean) => void; // New prop
-  isSelected?: boolean; // New prop
+  onSelect?: (taskId: string, isSelected: boolean) => void;
+  isSelected?: boolean;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const { changeTaskStatus, deleteTask, updateTask, assignTask } = useTasks();
   const { user } = useSession();
   const { technicians, loading: loadingTechnicians } = useTechnicians();
+  const { t } = useTranslation(); // Initialize useTranslation
+
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTitle, setEditedTitle] = React.useState(task.title);
   const [editedDescription, setEditedDescription] = React.useState(task.description || "");
@@ -40,40 +43,40 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
 
   const handleSaveEdit = () => {
     if (editedTitle.trim() === "") {
-      toast.error("Task title cannot be empty.");
+      toast.error(t('task_title_cannot_be_empty'));
       return;
     }
     if (editedEquipmentNumber.trim() === "") {
-      toast.error("Equipment number is mandatory.");
+      toast.error(t('equipment_number_mandatory'));
       return;
     }
     updateTask(task.id, editedTitle, editedDescription, editedLocation, editedWorkOrderNumber, editedDueDate, editedAssigneeId, editedTypeOfWork, editedEquipmentNumber);
     setIsEditing(false);
-    toast.success("Task updated successfully!");
+    toast.success(t('task_updated_successfully'));
   };
 
   const handleDelete = () => {
     deleteTask(task.id);
-    toast.success("Task deleted successfully!");
+    toast.success(t('task_deleted_successfully'));
   };
 
   const handleStatusChange = (newStatus: Task['status']) => {
     changeTaskStatus(task.id, newStatus);
-    toast.success(`Task status changed to ${newStatus}!`);
+    toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
   };
 
   const handleAssignToMe = () => {
     if (user?.id) {
       assignTask(task.id, user.id);
-      toast.success("Task assigned to you!");
+      toast.success(t('task_assigned_to_you'));
     } else {
-      toast.error("You must be logged in to assign tasks.");
+      toast.error(t('you_must_be_logged_in_to_assign_tasks'));
     }
   };
 
   const handleUnassign = () => {
     assignTask(task.id, null);
-    toast.success("Task unassigned!");
+    toast.success(t('task_unassigned'));
   };
 
   const isAssignedToCurrentUser = user && task.assigneeId === user.id;
@@ -107,7 +110,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
               task.status === 'cancelled' ? 'bg-red-100 text-red-800' :
               'bg-gray-100 text-gray-800'
             }`}>
-              {task.status.replace('-', ' ')}
+              {t(task.status.replace('-', '_'))} {/* Translate status */}
             </span>
             {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
@@ -121,58 +124,58 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Edit Task</DialogTitle>
+                  <DialogTitle>{t('edit_task')}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">Title</Label>
+                    <Label htmlFor="title" className="text-right">{t('task_title')}</Label>
                     <Input id="title" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">Description</Label>
+                    <Label htmlFor="description" className="text-right">{t('description_optional')}</Label>
                     <Textarea id="description" value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location" className="text-right">Location</Label>
+                    <Label htmlFor="location" className="text-right">{t('location')}</Label>
                     <Input id="location" value={editedLocation} onChange={(e) => setEditedLocation(e.target.value)} className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="workOrderNumber" className="text-right">Work Order #</Label>
+                    <Label htmlFor="workOrderNumber" className="text-right">{t('work_order_number')}</Label>
                     <Input id="workOrderNumber" value={editedWorkOrderNumber} onChange={(e) => setEditedWorkOrderNumber(e.target.value)} className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="dueDate" className="text-right">Due Date</Label>
+                    <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
                     <Input id="dueDate" type="date" value={editedDueDate} onChange={(e) => setEditedDueDate(e.target.value)} className="col-span-3" />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="typeOfWork" className="text-right">Type of Work</Label>
+                    <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>
                     <Select onValueChange={(value: Task['typeOfWork']) => setEditedTypeOfWork(value)} value={editedTypeOfWork || ""}>
                       <SelectTrigger id="typeOfWork" className="col-span-3">
-                        <SelectValue placeholder="Select type of work" />
+                        <SelectValue placeholder={t('select_type_of_work')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Correction Maintenance">Correction Maintenance</SelectItem>
-                        <SelectItem value="Civil Work">Civil Work</SelectItem>
-                        <SelectItem value="Overhead Maintenance">Overhead Maintenance</SelectItem>
-                        <SelectItem value="Termination Maintenance">Termination Maintenance</SelectItem>
-                        <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
+                        <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+                        <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+                        <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+                        <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+                        <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="equipmentNumber" className="text-right">Equipment #</Label>
+                    <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
                     <Input id="equipmentNumber" value={editedEquipmentNumber} onChange={(e) => setEditedEquipmentNumber(e.target.value)} className="col-span-3" required />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="assignee" className="text-right">Assignee</Label>
+                    <Label htmlFor="assignee" className="text-right">{t('assignee')}</Label>
                     <Select onValueChange={(value) => setEditedAssigneeId(value === "unassigned" ? null : value)} value={editedAssigneeId || "unassigned"}>
                       <SelectTrigger id="assignee" className="col-span-3">
-                        <SelectValue placeholder="Select a technician" />
+                        <SelectValue placeholder={t('select_a_technician')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
                         {loadingTechnicians ? (
-                          <SelectItem value="loading" disabled>Loading technicians...</SelectItem>
+                          <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
                         ) : (
                           technicians.map((tech) => (
                             <SelectItem key={tech.id} value={tech.id}>
@@ -184,7 +187,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                     </Select>
                   </div>
                 </div>
-                <Button onClick={handleSaveEdit}>Save changes</Button>
+                <Button onClick={handleSaveEdit}>{t('save_changes')}</Button>
               </DialogContent>
             </Dialog>
 
@@ -196,34 +199,34 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleStatusChange('unassigned')}>
-                  Mark as Unassigned
+                  {t('mark_as_unassigned')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('assigned')}>
-                  Mark as Assigned
+                  {t('mark_as_assigned')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('in-progress')}>
-                  Mark as In Progress
+                  {t('mark_as_in_progress')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
-                  Mark as Completed
+                  {t('mark_as_completed')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('cancelled')}>
-                  Mark as Cancelled
+                  {t('mark_as_cancelled')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {user && !isAssignedToCurrentUser && (
                   <DropdownMenuItem onClick={handleAssignToMe}>
-                    Assign to Me
+                    {t('assign_to_me')}
                   </DropdownMenuItem>
                 )}
                 {user && isAssignedToCurrentUser && (
                   <DropdownMenuItem onClick={handleUnassign}>
-                    Unassign
+                    {t('unassign')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -247,27 +250,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
           )}
           {task.dueDate && (
             <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}>
-              <CalendarDays className="h-4 w-4 mr-2" /> Due: {format(dueDateObj!, 'PPP')} {isOverdue && "(Overdue)"} {isDueSoon && !isOverdue && "(Due Soon)"}
+              <CalendarDays className="h-4 w-4 mr-2" /> {t('due')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}
             </div>
           )}
           {task.typeOfWork && (
             <div className="flex items-center text-sm text-muted-foreground">
-              <Wrench className="h-4 w-4 mr-2" /> Type: {task.typeOfWork}
+              <Wrench className="h-4 w-4 mr-2" /> {t('type')}: {t(task.typeOfWork.replace(' ', '_').toLowerCase())}
             </div>
           )}
           {task.equipmentNumber && (
             <div className="flex items-center text-sm text-muted-foreground">
-              <HardHat className="h-4 w-4 mr-2" /> Equipment #: {task.equipmentNumber}
+              <HardHat className="h-4 w-4 mr-2" /> {t('equipment_number')}: {task.equipmentNumber}
             </div>
           )}
           {assignedTechnician && (
             <div className="flex items-center text-sm text-muted-foreground">
-              <User className="h-4 w-4 mr-2" /> Assigned to: {assignedTechnician.first_name} {assignedTechnician.last_name}
+              <User className="h-4 w-4 mr-2" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}
             </div>
           )}
           {!task.assigneeId && task.status !== 'unassigned' && (
             <div className="flex items-center text-sm text-muted-foreground">
-              <User className="h-4 w-4 mr-2" /> Unassigned
+              <User className="h-4 w-4 mr-2" /> {t('unassigned')}
             </div>
           )}
         </CardContent>

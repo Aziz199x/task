@@ -5,10 +5,12 @@ import TaskList from "./TaskList";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const Index = () => {
   const { session, loading } = useSession();
   const navigate = useNavigate();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   useEffect(() => {
     if (!loading && !session) {
@@ -17,7 +19,7 @@ const Index = () => {
   }, [session, loading, navigate]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t('loading')}...</div>;
   }
 
   if (!session) {

@@ -11,10 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const CreateAccount: React.FC = () => {
   const { profile, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +31,7 @@ const CreateAccount: React.FC = () => {
   if (sessionLoading) {
     return (
       <Layout>
-        <div className="text-center py-8">Loading user session...</div>
+        <div className="text-center py-8">{t('loading_user_session')}</div>
       </Layout>
     );
   }
@@ -37,7 +39,7 @@ const CreateAccount: React.FC = () => {
   if (!isAuthorized) {
     return (
       <Layout>
-        <div className="text-center py-8 text-destructive">You do not have permission to create accounts.</div>
+        <div className="text-center py-8 text-destructive">{t('permission_denied_create_account')}</div>
       </Layout>
     );
   }
@@ -55,7 +57,7 @@ const CreateAccount: React.FC = () => {
         throw new Error(error.message);
       }
 
-      toast.success(`Account for ${firstName} ${lastName} (${role}) created successfully!`);
+      toast.success(t('account_created_successfully', { firstName, lastName, role: t(role) }));
       setEmail("");
       setPassword("");
       setFirstName("");
@@ -63,7 +65,7 @@ const CreateAccount: React.FC = () => {
       setRole("technician");
     } catch (error: any) {
       console.error("Error creating account:", error.message);
-      toast.error("Failed to create account: " + error.message);
+      toast.error(`${t('failed_to_create_account')} ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -73,12 +75,12 @@ const CreateAccount: React.FC = () => {
     <Layout>
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Create New User Account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">{t('create_new_user_account')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -89,7 +91,7 @@ const CreateAccount: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -100,7 +102,7 @@ const CreateAccount: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t('first_name')}</Label>
               <Input
                 id="firstName"
                 type="text"
@@ -111,7 +113,7 @@ const CreateAccount: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t('last_name')}</Label>
               <Input
                 id="lastName"
                 type="text"
@@ -122,19 +124,19 @@ const CreateAccount: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{t('role')}</Label>
               <Select onValueChange={(value: "technician" | "contractor") => setRole(value)} value={role}>
                 <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue placeholder={t('select_role')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="technician">Technician</SelectItem>
-                  <SelectItem value="contractor">Contractor</SelectItem>
+                  <SelectItem value="technician">{t('technician')}</SelectItem>
+                  <SelectItem value="contractor">{t('contractor')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Create Account"}
+              {loading ? t('creating') : t('create_account')}
             </Button>
           </form>
         </CardContent>

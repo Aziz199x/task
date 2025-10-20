@@ -13,10 +13,12 @@ import { useTechnicians } from "@/hooks/use-technicians";
 import { Task } from "@/types/task";
 import { isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const TaskList: React.FC = () => {
   const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { technicians, loading: loadingTechnicians } = useTechnicians();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<Task['status'] | "all">("all");
@@ -48,7 +50,7 @@ const TaskList: React.FC = () => {
 
   const handleBulkAction = (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
-      toast.error("No tasks selected for bulk action.");
+      toast.error(t('no_tasks_selected_for_bulk_action'));
       return;
     }
 
@@ -58,21 +60,21 @@ const TaskList: React.FC = () => {
       case 'status':
         if (value) {
           tasksToActOn.forEach(task => changeTaskStatus(task.id, value as Task['status']));
-          toast.success(`Status updated for ${selectedTaskIds.size} tasks.`);
+          toast.success(t('status_updated_for_tasks', { count: selectedTaskIds.size }));
         }
         break;
       case 'assign':
         tasksToActOn.forEach(task => assignTask(task.id, value));
-        toast.success(`Assignee updated for ${selectedTaskIds.size} tasks.`);
+        toast.success(t('assignee_updated_for_tasks', { count: selectedTaskIds.size }));
         break;
       case 'delete':
         tasksToActOn.forEach(task => deleteTask(task.id));
-        toast.success(`${selectedTaskIds.size} tasks deleted.`);
+        toast.success(t('tasks_deleted', { count: selectedTaskIds.size }));
         break;
       default:
         break;
     }
-    setSelectedTaskIds(new Set()); // Clear selection after action
+    setSelectedTaskIds(new Set());
   };
 
   const filteredTasks = useMemo(() => {
@@ -110,7 +112,7 @@ const TaskList: React.FC = () => {
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search tasks..."
+            placeholder={t('search_tasks')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -119,27 +121,27 @@ const TaskList: React.FC = () => {
 
         <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Filter by Status" />
+            <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="unassigned">Unassigned</SelectItem>
-            <SelectItem value="assigned">Assigned</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">{t('all_statuses')}</SelectItem>
+            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
+            <SelectItem value="assigned">{t('assigned')}</SelectItem>
+            <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
+            <SelectItem value="completed">{t('completed')}</SelectItem>
+            <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select onValueChange={(value: string | "all") => setFilterAssignee(value)} value={filterAssignee}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Filter by Assignee" />
+            <SelectValue placeholder={t('filter_by_assignee')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Assignees</SelectItem>
-            <SelectItem value="unassigned">Unassigned</SelectItem>
+            <SelectItem value="all">{t('all_assignees')}</SelectItem>
+            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
             {loadingTechnicians ? (
-              <SelectItem value="loading" disabled>Loading technicians...</SelectItem>
+              <SelectItem value="loading" disabled>{t('loading_technicians')}...</SelectItem>
             ) : (
               technicians.map((tech) => (
                 <SelectItem key={tech.id} value={tech.id}>
@@ -152,26 +154,26 @@ const TaskList: React.FC = () => {
 
         <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Filter by Type of Work" />
+            <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="Correction Maintenance">Correction Maintenance</SelectItem>
-            <SelectItem value="Civil Work">Civil Work</SelectItem>
-            <SelectItem value="Overhead Maintenance">Overhead Maintenance</SelectItem>
-            <SelectItem value="Termination Maintenance">Termination Maintenance</SelectItem>
-            <SelectItem value="Replacing Equipment">Replacing Equipment</SelectItem>
+            <SelectItem value="all">{t('all_types')}</SelectItem>
+            <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+            <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+            <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+            <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+            <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select onValueChange={(value: "all" | "overdue" | "due-soon") => setFilterReminder(value)} value={filterReminder}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Filter by Reminder" />
+            <SelectValue placeholder={t('filter_by_reminder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Tasks</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-            <SelectItem value="due-soon">Due Soon</SelectItem>
+            <SelectItem value="all">{t('all_tasks')}</SelectItem>
+            <SelectItem value="overdue">{t('overdue')}</SelectItem>
+            <SelectItem value="due-soon">{t('due_soon')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -184,44 +186,44 @@ const TaskList: React.FC = () => {
             id="select-all-tasks"
           />
           <Label htmlFor="select-all-tasks" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Select All ({selectedTaskIds.size} selected)
+            {t('select_all')} ({selectedTaskIds.size} {t('selected')})
           </Label>
 
           {selectedTaskIds.size > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
-                  Bulk Actions <ChevronDown className="ml-2 h-4 w-4" />
+                  {t('bulk_actions')} <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'unassigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> Mark as Unassigned
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_unassigned')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'assigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> Mark as Assigned
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_assigned')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'in-progress')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> Mark as In Progress
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'completed')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> Mark as Completed
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_completed')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'cancelled')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> Mark as Cancelled
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_cancelled')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}> {/* Prevent closing */}
-                    <User className="mr-2 h-4 w-4" /> Assign To
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <User className="mr-2 h-4 w-4" /> {t('assign_to')}
                   </DropdownMenuItem>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start">
                   <DropdownMenuItem onClick={() => handleBulkAction('assign', null)}>
-                    Unassign
+                    {t('unassign')}
                   </DropdownMenuItem>
                   {loadingTechnicians ? (
-                    <DropdownMenuItem disabled>Loading technicians...</DropdownMenuItem>
+                    <DropdownMenuItem disabled>{t('loading_technicians')}...</DropdownMenuItem>
                   ) : (
                     technicians.map((tech) => (
                       <DropdownMenuItem key={tech.id} onClick={() => handleBulkAction('assign', tech.id)}>
@@ -232,7 +234,7 @@ const TaskList: React.FC = () => {
                 </DropdownMenuContent>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+                  <Trash2 className="mr-2 h-4 w-4" /> {t('delete_selected')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -242,7 +244,7 @@ const TaskList: React.FC = () => {
 
       <div className="grid gap-4">
         {filteredTasks.length === 0 ? (
-          <p className="text-center text-muted-foreground">No tasks found matching your criteria.</p>
+          <p className="text-center text-muted-foreground">{t('no_tasks_found_matching_criteria')}</p>
         ) : (
           filteredTasks.map((task) => (
             <TaskCard
