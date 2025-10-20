@@ -22,7 +22,17 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // First, we need to get the user's email from the profiles table using the user ID
+      // Special case for admin user
+      if (userId === 'admin1122' && password === '102030102030') {
+        // For demo purposes, we'll simulate an admin login
+        // In a real application, this user would exist in the database
+        toast.success('Admin login successful!');
+        // We'll redirect to the dashboard
+        navigate('/dashboard');
+        return;
+      }
+
+      // Regular user authentication
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -88,6 +98,13 @@ const Login = () => {
               {loading ? t('loading') : t('sign_in')}
             </Button>
           </form>
+          
+          {/* Demo credentials for admin */}
+          <div className="mt-6 p-4 bg-muted rounded-lg">
+            <h3 className="font-medium mb-2">Demo Admin Credentials:</h3>
+            <p className="text-sm">User ID: <span className="font-mono">admin1122</span></p>
+            <p className="text-sm">Password: <span className="font-mono">102030102030</span></p>
+          </div>
         </CardContent>
       </Card>
     </div>
