@@ -7,6 +7,7 @@ import { LogOut, LayoutDashboard, ListTodo, Users, UserPlus, Settings } from "lu
 import { Link } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
+import UserTaskSummaryBar from "./UserTaskSummaryBar";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -76,6 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           )}
         </div>
       </header>
+      <UserTaskSummaryBar />
       <main className="flex-grow container mx-auto p-4">
         {children}
       </main>

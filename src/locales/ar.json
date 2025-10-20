@@ -138,5 +138,9 @@
   "could_not_get_photo_url": "تعذر الحصول على رابط الصورة",
   "before": "قبل",
   "after": "بعد",
-  "permit": "تصريح"
+  "permit": "تصريح",
+  "you_have": "لديك",
+  "tasks_assigned": "مهام معينة",
+  "tasks_to_accomplish": "مهام لإنجازها",
+  "view_my_tasks": "عرض مهامي"
 }

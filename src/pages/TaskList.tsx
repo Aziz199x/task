@@ -37,7 +37,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
-  const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+  const canAddTask = currentUserProfile && currentUserProfile.role === 'admin';
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {

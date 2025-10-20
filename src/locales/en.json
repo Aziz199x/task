@@ -138,5 +138,9 @@
   "could_not_get_photo_url": "Could not get photo URL",
   "before": "Before",
   "after": "After",
-  "permit": "Permit"
+  "permit": "Permit",
+  "you_have": "You have",
+  "tasks_assigned": "tasks assigned",
+  "tasks_to_accomplish": "tasks to accomplish",
+  "view_my_tasks": "View My Tasks"
 }

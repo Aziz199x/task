@@ -20,7 +20,7 @@ const AllTasksSection: React.FC = () => {
   const { profile: currentUserProfile } = useSession();
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
 
-  const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+  const canAddTask = currentUserProfile && currentUserProfile.role === 'admin';
 
   const pendingTasks = useMemo(() => tasks.filter(task => task.status === 'unassigned' || task.status === 'assigned'), [tasks]);
   const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
