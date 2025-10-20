@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/context/SessionContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTechnicians } from "@/hooks/use-technicians";
 
 interface TaskCardProps {
   task: Task;
@@ -21,16 +23,21 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const { changeTaskStatus, deleteTask, updateTask, assignTask } = useTasks();
   const { user } = useSession();
+  const { technicians, loading: loadingTechnicians } = useTechnicians();
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTitle, setEditedTitle] = React.useState(task.title);
   const [editedDescription, setEditedDescription] = React.useState(task.description || "");
+  const [editedLocation, setEditedLocation] = React.useState(task.location || "");
+  const [editedWorkOrderNumber, setEditedWorkOrderNumber] = React.useState(task.workOrderNumber || "");
+  const [editedDueDate, setEditedDueDate] = React.useState(task.dueDate || "");
+  const [editedAssigneeId, setEditedAssigneeId] = React.useState<string | null>(task.assigneeId || null);
 
   const handleSaveEdit = () => {
     if (editedTitle.trim() === "") {
       toast.error("Task title cannot be empty.");
       return;
     }
-    updateTask(task.id, editedTitle, editedDescription, task.assigneeId);
+    updateTask(task.id, editedTitle, editedDescription, editedLocation, editedWorkOrderNumber, editedDueDate, editedAssigneeId);
     setIsEditing(false);
     toast.success("Task updated successfully!");
   };
@@ -60,6 +67,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   };
 
   const isAssignedToCurrentUser = user && task.assigneeId === user.id;
+  const assignedTechnician = technicians.find(tech => tech.id === task.assigneeId);
 
   return (
     <Card className={`w-full ${task.status === 'completed' ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""}`}>
@@ -91,26 +99,44 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
-                    Title
-                  </Label>
-                  <Input
-                    id="title"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    className="col-span-3"
-                  />
+                  <Label htmlFor="title" className="text-right">Title</Label>
+                  <Input id="title" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={editedDescription}
-                    onChange={(e) => setEditedDescription(e.target.value)}
-                    className="col-span-3"
-                  />
+                  <Label htmlFor="description" className="text-right">Description</Label>
+                  <Textarea id="description" value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="location" className="text-right">Location</Label>
+                  <Input id="location" value={editedLocation} onChange={(e) => setEditedLocation(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="workOrderNumber" className="text-right">Work Order #</Label>
+                  <Input id="workOrderNumber" value={editedWorkOrderNumber} onChange={(e) => setEditedWorkOrderNumber(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="dueDate" className="text-right">Due Date</Label>
+                  <Input id="dueDate" type="date" value={editedDueDate} onChange={(e) => setEditedDueDate(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="assignee" className="text-right">Assignee</Label>
+                  <Select onValueChange={(value) => setEditedAssigneeId(value === "unassigned" ? null : value)} value={editedAssigneeId || "unassigned"}>
+                    <SelectTrigger id="assignee" className="col-span-3">
+                      <SelectValue placeholder="Select a technician" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {loadingTechnicians ? (
+                        <SelectItem value="loading" disabled>Loading technicians...</SelectItem>
+                      ) : (
+                        technicians.map((tech) => (
+                          <SelectItem key={tech.id} value={tech.id}>
+                            {tech.first_name} {tech.last_name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <Button onClick={handleSaveEdit}>Save changes</Button>
@@ -158,13 +184,38 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           </DropdownMenu>
         </div>
       </CardHeader>
-      {task.description && (
-        <CardContent>
+      <CardContent className="space-y-2">
+        {task.description && (
           <p className={`text-sm text-muted-foreground ${task.status === 'completed' ? "line-through" : ""}`}>
             {task.description}
           </p>
-        </CardContent>
-      )}
+        )}
+        {task.location && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 mr-2" /> {task.location}
+          </div>
+        )}
+        {task.workOrderNumber && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Hash className="h-4 w-4 mr-2" /> {task.workOrderNumber}
+          </div>
+        )}
+        {task.dueDate && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <CalendarDays className="h-4 w-4 mr-2" /> Due: {task.dueDate}
+          </div>
+        )}
+        {assignedTechnician && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <User className="h-4 w-4 mr-2" /> Assigned to: {assignedTechnician.first_name} {assignedTechnician.last_name}
+          </div>
+        )}
+        {!task.assigneeId && task.status !== 'unassigned' && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <User className="h-4 w-4 mr-2" /> Unassigned
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
