@@ -94,8 +94,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.error("Failed to sign out: " + error.message);
     } else {
       toast.success("Signed out successfully!");
-      setProfile(null); // Clear profile on sign out
-      navigate('/login');
+      // The onAuthStateChange listener will handle clearing the profile and navigating to /login
     }
   };
 
