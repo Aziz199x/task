@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const Login = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState(''); // Changed from userId to email
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,39 +22,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Special case for admin user
-      if (userId === 'admin1122' && password === '102030102030') {
-        // For demo purposes, we'll simulate an admin login
-        // In a real application, this user would exist in the database
-        toast.success('Admin login successful!');
-        // We'll redirect to the dashboard
-        navigate('/dashboard');
-        return;
-      }
-
-      // Regular user authentication
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      if (profileError || !profileData) {
-        toast.error(t('user_not_found'));
-        setLoading(false);
-        return;
-      }
-
-      // Sign in with the user ID (which is the same as the auth user ID)
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: profileData.id, // Using the user ID as email
+        email, // Use email directly
         password,
       });
 
       if (error) {
         toast.error(error.message);
       } else if (data.user) {
-        navigate('/');
+        // The SessionProvider will handle navigation to '/' on successful sign-in
+        // No need to navigate here directly
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -73,13 +50,13 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userId">{t('user_identifier')}</Label>
+              <Label htmlFor="email">{t('email')}</Label> {/* Changed label to Email */}
               <Input
-                id="userId"
-                type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                placeholder="Enter your User ID"
+                id="email"
+                type="email" // Changed type to email
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -102,7 +79,7 @@ const Login = () => {
           {/* Demo credentials for admin */}
           <div className="mt-6 p-4 bg-muted rounded-lg">
             <h3 className="font-medium mb-2">Demo Admin Credentials:</h3>
-            <p className="text-sm">User ID: <span className="font-mono">admin1122</span></p>
+            <p className="text-sm">Email: <span className="font-mono">admin@example.com</span></p>
             <p className="text-sm">Password: <span className="font-mono">102030102030</span></p>
           </div>
         </CardContent>
