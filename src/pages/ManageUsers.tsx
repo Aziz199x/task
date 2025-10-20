@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Layout from "@/components/Layout";
 import { useSession } from "@/context/SessionContext";
 import { useProfiles } from "@/hooks/use-profiles";
@@ -9,15 +9,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import UserRoleDropdown from "@/components/UserRoleDropdown";
 import { User, Loader2 } from "lucide-react";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
+import { useTasks } from "@/context/TaskContext"; // Import useTasks
 
 const ManageUsers: React.FC = () => {
   const { profile: currentUserProfile, loading: sessionLoading } = useSession();
   const { profiles, loading: profilesLoading, error: profilesError } = useProfiles();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { tasks } = useTasks(); // Get tasks from TaskContext
+  const { t } = useTranslation();
 
   const allowedRoles = ['admin', 'manager', 'supervisor'];
   const isAuthorized = currentUserProfile && allowedRoles.includes(currentUserProfile.role);
+
+  // Calculate performance rate for each profile
+  const profilesWithPerformance = useMemo(() => {
+    return profiles.map(profile => {
+      const assignedTasks = tasks.filter(task => task.assigneeId === profile.id);
+      const completedTasks = assignedTasks.filter(task => task.status === 'completed');
+      const performanceRate = assignedTasks.length > 0
+        ? ((completedTasks.length / assignedTasks.length) * 100).toFixed(0) + '%'
+        : 'N/A';
+      return { ...profile, performanceRate };
+    });
+  }, [profiles, tasks]);
 
   if (sessionLoading || profilesLoading) {
     return (
@@ -69,15 +83,17 @@ const ManageUsers: React.FC = () => {
                 <TableHead>{t('name')}</TableHead>
                 <TableHead>{t('id')}</TableHead>
                 <TableHead>{t('current_role')}</TableHead>
+                <TableHead>{t('performance_rate')}</TableHead> {/* New Table Head */}
                 <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {profiles.map((profile) => (
+              {profilesWithPerformance.map((profile) => (
                 <TableRow key={profile.id}>
                   <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{profile.id}</TableCell>
-                  <TableCell className="capitalize">{t(profile.role)}</TableCell> {/* Translate role */}
+                  <TableCell className="capitalize">{t(profile.role)}</TableCell>
+                  <TableCell>{profile.performanceRate}</TableCell> {/* New Table Cell */}
                   <TableCell className="text-right">
                     <UserRoleDropdown profile={profile} />
                   </TableCell>
