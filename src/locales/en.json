@@ -178,5 +178,6 @@
   "excel_header_type_of_work": "Type of Work",
   "excel_header_equipment_number": "Equipment Number",
   "excel_header_status": "Status",
-  "work_order_required_to_complete": "Work Order Number is required to complete this task."
+  "work_order_required_to_complete": "Work Order Number is required to complete this task.",
+  "error_generating_unique_work_order": "Failed to generate a unique work order number. Please try again."
 }

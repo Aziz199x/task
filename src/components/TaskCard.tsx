@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import PhotoUploader from "./PhotoUploader";
 import TaskPhotoGallery from "./TaskPhotoGallery";
+// Removed supabase import as it's no longer needed for client-side work order validation
 
 interface TaskCardProps {
   task: Task;
@@ -37,9 +38,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTask, setEditedTask] = React.useState<Partial<Task>>(task);
+  // Removed workOrderNumberError state
+  const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
     setEditedTask(task);
+    // Removed workOrderNumberError reset
   }, [task, isEditing]);
 
   const isAdmin = currentUserProfile?.role === 'admin';
@@ -52,18 +56,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
 
-  const handleSaveEdit = () => {
+  // Removed validateWorkOrderNumber function
+  // Removed handleWorkOrderNumberChange function
+
+  const handleSaveEdit = async () => {
+    setIsSaving(true);
     if (!editedTask.title || editedTask.title.trim() === "") {
       toast.error(t('task_title_cannot_be_empty'));
+      setIsSaving(false);
       return;
     }
     if (!editedTask.equipment_number || editedTask.equipment_number.trim() === "") {
       toast.error(t('equipment_number_mandatory'));
+      setIsSaving(false);
       return;
     }
-    updateTask(task.id, editedTask);
+
+    // No need for work order number validation here, as it's auto-generated and read-only
+    await updateTask(task.id, editedTask);
     setIsEditing(false);
     toast.success(t('task_updated_successfully'));
+    setIsSaving(false);
   };
 
   const handleDelete = () => {
@@ -145,13 +158,75 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                   <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="title" className="text-right">{t('task_title')}</Label>
-                      <Input id="title" value={editedTask.title} onChange={(e) => setEditedTask({...editedTask, title: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                      <Input id="title" value={editedTask.title || ''} onChange={(e) => setEditedTask({...editedTask, title: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="description" className="text-right">{t('description_optional')}</Label>
                       <Textarea id="description" value={editedTask.description || ""} onChange={(e) => setEditedTask({...editedTask, description: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
                     </div>
-                    {/* Other fields */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="location" className="text-right">{t('location')}</Label>
+                      <Input id="location" value={editedTask.location || ''} onChange={(e) => setEditedTask({...editedTask, location: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="workOrderNumber" className="text-right">{t('work_order_number')}</Label>
+                      <Input
+                        id="workOrderNumber"
+                        value={editedTask.work_order_number || ''}
+                        className="col-span-3"
+                        readOnly // Made read-only
+                        disabled={true} // Explicitly disabled
+                      />
+                      {/* Removed workOrderNumberError display */}
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
+                      <Input id="dueDate" type="date" value={editedTask.due_date || ''} onChange={(e) => setEditedTask({...editedTask, due_date: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>
+                      <Select onValueChange={(value: Task['typeOfWork']) => setEditedTask({...editedTask, type_of_work: value})} value={editedTask.type_of_work || ""} disabled={!canEditOrDelete}>
+                        <SelectTrigger id="typeOfWork" className="col-span-3">
+                          <SelectValue placeholder={t('select_type_of_work')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+                          <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+                          <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+                          <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+                          <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
+                      <Input id="equipmentNumber" value={editedTask.equipment_number || ''} onChange={(e) => setEditedTask({...editedTask, equipment_number: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="assignee" className="text-right">{t('assign_to')}</Label>
+                      <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={!canEditOrDelete}>
+                        <SelectTrigger id="assignee" className="col-span-3">
+                          <SelectValue placeholder={t('select_a_user_to_assign')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
+                          {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
+                            <SelectItem value={currentUserProfile.id}>
+                              {t('assign_to_me')} ({currentUserProfile.first_name})
+                            </SelectItem>
+                          )}
+                          {loadingUsers ? (
+                            <SelectItem value="loading" disabled>{t('loading_users')}...</SelectItem>
+                          ) : (
+                            assignableUsers.map((user) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.first_name} {user.last_name} ({t(user.role)})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {isTechOrContractor && (
                       <>
                         <PhotoUploader
@@ -181,7 +256,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                       </>
                     )}
                   </div>
-                  <Button onClick={handleSaveEdit}>{t('save_changes')}</Button>
+                  <Button onClick={handleSaveEdit} disabled={isSaving}>{t('save_changes')}</Button>
                 </DialogContent>
               </Dialog>
             )}
@@ -237,7 +312,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
         </CardContent>
         {canComplete && (
           <CardFooter className="p-0 pt-4 mt-4 border-t">
-            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleStatusChange('completed')}>
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleStatusChange('completed')} disabled={isSaving}>
               <CheckCircle className="mr-2 h-4 w-4" /> {t('complete_task')}
             </Button>
           </CardFooter>

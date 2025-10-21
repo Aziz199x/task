@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => Promise<void>;
+  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => Promise<void>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>; // New bulk add function
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
@@ -62,11 +62,46 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [fetchTasks]);
 
-  const addTask = async (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
+  const generateUniqueWorkOrderNumber = async (): Promise<string> => {
+    let unique = false;
+    let newWorkOrderNumber = '';
+    while (!unique) {
+      // Generate a random 15-digit number
+      // Ensure it starts with a non-zero digit to be exactly 15 digits
+      newWorkOrderNumber = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('work_order_number')
+        .eq('work_order_number', newWorkOrderNumber)
+        .limit(1);
+
+      if (error) {
+        console.error("Error checking work order number uniqueness during generation:", error.message);
+        throw new Error(t('error_generating_unique_work_order'));
+      }
+
+      if (!data || data.length === 0) {
+        unique = true;
+      }
+    }
+    return newWorkOrderNumber;
+  };
+
+  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return;
     }
+
+    let workOrderNumber: string | undefined;
+    try {
+      workOrderNumber = await generateUniqueWorkOrderNumber();
+    } catch (error: any) {
+      toast.error(error.message);
+      return;
+    }
+
     const { error } = await supabase.from('tasks').insert({
       title,
       description,
@@ -85,11 +120,33 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addTasksBulk = async (newTasks: Partial<Task>[]) => {
-    const tasksToInsert = newTasks.map(task => ({
-      ...task,
-      status: task.assignee_id ? 'assigned' : 'unassigned',
-      creator_id: user?.id, // Assign current user as creator
-    }));
+    const tasksToInsert = [];
+    for (const task of newTasks) {
+      if (!task.equipment_number) {
+        // Skip tasks missing mandatory equipment number
+        console.warn("Skipping task in bulk import due to missing equipment number:", task);
+        continue;
+      }
+      let workOrderNumber: string | undefined;
+      try {
+        workOrderNumber = await generateUniqueWorkOrderNumber();
+      } catch (error: any) {
+        toast.error(error.message);
+        return; // Stop bulk import if generation fails
+      }
+
+      tasksToInsert.push({
+        ...task,
+        work_order_number: workOrderNumber, // Override or set generated work order number
+        status: task.assignee_id ? 'assigned' : 'unassigned',
+        creator_id: user?.id, // Assign current user as creator
+      });
+    }
+
+    if (tasksToInsert.length === 0) {
+      toast.warning(t('no_valid_tasks_found_in_excel'));
+      return;
+    }
 
     const { error } = await supabase.from('tasks').insert(tasksToInsert);
 
@@ -112,7 +169,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // New validation: Require work_order_number for completion
+    // Validation: Require work_order_number for completion (it should always be present now)
     if (newStatus === 'completed' && !taskToUpdate.work_order_number) {
       toast.error(t("work_order_required_to_complete"));
       return false;

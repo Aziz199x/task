@@ -23,32 +23,39 @@ const TaskForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [workOrderNumber, setWorkOrderNumber] = useState("");
+  // Removed workOrderNumber state
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     if (title.trim() === "") {
       toast.error(t('task_title_cannot_be_empty'));
+      setLoading(false);
       return;
     }
     if (equipmentNumber.trim() === "") {
       toast.error(t('equipment_number_mandatory'));
+      setLoading(false);
       return;
     }
-    addTask(title, description, location, workOrderNumber, dueDate, assigneeId, typeOfWork, equipmentNumber);
+
+    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber);
     setTitle("");
     setDescription("");
     setLocation("");
-    setWorkOrderNumber("");
+    // Removed workOrderNumber reset
     setDueDate("");
     setAssigneeId(null);
     setTypeOfWork(undefined);
     setEquipmentNumber("");
     toast.success(t('task_added_successfully'));
+    setLoading(false);
   };
 
   return (
@@ -86,15 +93,7 @@ const TaskForm: React.FC = () => {
               placeholder="e.g., Apartment 3B"
             />
           </div>
-          <div>
-            <Label htmlFor="workOrderNumber">{t('work_order_number')}</Label>
-            <Input
-              id="workOrderNumber"
-              value={workOrderNumber}
-              onChange={(e) => setWorkOrderNumber(e.target.value)}
-              placeholder="e.g., WO-2024-001"
-            />
-          </div>
+          {/* Removed Work Order Number Input */}
           <div>
             <Label htmlFor="dueDate">{t('due_date')}</Label>
             <Input
@@ -154,7 +153,9 @@ const TaskForm: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full">{t('add_task')}</Button>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? t('loading') : t('add_task')}
+          </Button>
         </form>
       </CardContent>
     </Card>
