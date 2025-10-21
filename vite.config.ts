@@ -6,12 +6,15 @@ import path from "path";
 export default defineConfig(() => ({
   server: {
     host: "0.0.0.0",
-    port: 3000, // Changed port from 8080 to 3000
+    port: 3000,
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    chunkSizeWarningLimit: 1500,
   },
 }));
