@@ -193,5 +193,6 @@
   "excel_header_status": "Status",
   "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
   "notification_num_required_to_complete": "رقم الإشعار مطلوب لإكمال هذه المهمة.",
-  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى."
+  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى.",
+  "notification_num_not_unique": "يجب أن يكون رقم الإشعار فريدًا. توجد مهمة بهذا الرقم بالفعل."
 }

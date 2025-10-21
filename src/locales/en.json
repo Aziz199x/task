@@ -193,5 +193,6 @@
   "excel_header_status": "Status",
   "task_id_required_to_complete": "Task ID is required to complete this task.",
   "notification_num_required_to_complete": "Notification Num is required to complete this task.",
-  "error_generating_unique_task_id": "Failed to generate a unique task ID. Please try again."
+  "error_generating_unique_task_id": "Failed to generate a unique task ID. Please try again.",
+  "notification_num_not_unique": "Notification Number must be unique. A task with this number already exists."
 }
