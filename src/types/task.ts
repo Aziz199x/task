@@ -7,7 +7,7 @@ export type Task = {
   assignee_id?: string | null;
   creator_id?: string | null;
   location?: string | null;
-  work_order_number?: string | null;
+  task_id?: string | null; // Renamed from work_order_number
   due_date?: string | null;
   type_of_work?: 'Correction Maintenance' | 'Civil Work' | 'Overhead Maintenance' | 'Termination Maintenance' | 'Replacing Equipment' | null;
   equipment_number: string;

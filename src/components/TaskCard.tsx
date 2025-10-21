@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import PhotoUploader from "./PhotoUploader";
 import TaskPhotoGallery from "./TaskPhotoGallery";
-// Removed supabase import as it's no longer needed for client-side work order validation
 
 interface TaskCardProps {
   task: Task;
@@ -38,12 +37,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTask, setEditedTask] = React.useState<Partial<Task>>(task);
-  // Removed workOrderNumberError state
   const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
     setEditedTask(task);
-    // Removed workOrderNumberError reset
   }, [task, isEditing]);
 
   const isAdmin = currentUserProfile?.role === 'admin';
@@ -55,9 +52,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
   const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
-
-  // Removed validateWorkOrderNumber function
-  // Removed handleWorkOrderNumberChange function
 
   const handleSaveEdit = async () => {
     setIsSaving(true);
@@ -72,7 +66,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
       return;
     }
 
-    // No need for work order number validation here, as it's auto-generated and read-only
     await updateTask(task.id, editedTask);
     setIsEditing(false);
     toast.success(t('task_updated_successfully'));
@@ -130,7 +123,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
             <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
               {task.title}
             </CardTitle>
-            {task.work_order_number && <p className="text-sm font-medium text-muted-foreground pt-1">WO: {task.work_order_number}</p>}
+            {task.task_id && <p className="text-sm font-medium text-muted-foreground pt-1">ID: {task.task_id}</p>}
           </div>
           <div className="flex items-center space-x-2">
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${
@@ -169,15 +162,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                       <Input id="location" value={editedTask.location || ''} onChange={(e) => setEditedTask({...editedTask, location: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="workOrderNumber" className="text-right">{t('work_order_number')}</Label>
+                      <Label htmlFor="taskId" className="text-right">{t('task_id')}</Label>
                       <Input
-                        id="workOrderNumber"
-                        value={editedTask.work_order_number || ''}
+                        id="taskId"
+                        value={editedTask.task_id || ''}
                         className="col-span-3"
                         readOnly // Made read-only
                         disabled={true} // Explicitly disabled
                       />
-                      {/* Removed workOrderNumberError display */}
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
@@ -302,7 +294,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
               )}
             </div>
           )}
-          {task.work_order_number && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {task.work_order_number}</div>}
+          {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {t('task_id')}: {task.task_id}</div>}
           {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2" /> {t('due')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
           {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
           {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2" /> {t('equipment_number')}: {task.equipment_number}</div>}

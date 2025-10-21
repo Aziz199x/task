@@ -23,7 +23,6 @@ const TaskForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  // Removed workOrderNumber state
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
@@ -49,7 +48,6 @@ const TaskForm: React.FC = () => {
     setTitle("");
     setDescription("");
     setLocation("");
-    // Removed workOrderNumber reset
     setDueDate("");
     setAssigneeId(null);
     setTypeOfWork(undefined);
@@ -93,7 +91,7 @@ const TaskForm: React.FC = () => {
               placeholder="e.g., Apartment 3B"
             />
           </div>
-          {/* Removed Work Order Number Input */}
+          {/* Work Order Number input removed as it's now auto-generated */}
           <div>
             <Label htmlFor="dueDate">{t('due_date')}</Label>
             <Input

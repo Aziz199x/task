@@ -42,7 +42,7 @@
   "task_title": "عنوان المهمة",
   "description_optional": "الوصف (اختياري)",
   "location": "الموقع",
-  "work_order_number": "رقم أمر العمل",
+  "task_id": "معرف المهمة",
   "due_date": "تاريخ الاستحقاق",
   "type_of_work": "نوع العمل",
   "select_type_of_work": "اختر نوع العمل",
@@ -158,7 +158,7 @@
   "failed_to_add_task": "فشل إضافة المهمة: ",
   "import_from_excel": "استيراد من Excel",
   "upload_excel_file": "رفع ملف Excel",
-  "excel_upload_instructions": "يرجى التأكد من أن ملف Excel الخاص بك يحتوي على أعمدة بأسماء 'Title', 'Description', 'Location', 'Work Order Number', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', و 'Status'. 'Title' و 'Equipment Number' إلزاميان.",
+  "excel_upload_instructions": "يرجى التأكد من أن ملف Excel الخاص بك يحتوي على أعمدة بأسماء 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', و 'Status'. 'Title' و 'Equipment Number' إلزاميان.",
   "select_file": "اختر ملف",
   "processing": "جارٍ المعالجة...",
   "upload": "رفع",
@@ -172,12 +172,12 @@
   "excel_header_title": "Title",
   "excel_header_description": "Description",
   "excel_header_location": "Location",
-  "excel_header_work_order_number": "Work Order Number",
+  "excel_header_task_id": "Task ID",
   "excel_header_due_date": "Due Date",
   "excel_header_assignee_id": "Assignee ID",
   "excel_header_type_of_work": "Type of Work",
   "excel_header_equipment_number": "Equipment Number",
   "excel_header_status": "Status",
-  "work_order_required_to_complete": "رقم أمر العمل مطلوب لإكمال هذه المهمة.",
-  "error_generating_unique_work_order": "فشل في إنشاء رقم أمر عمل فريد. الرجاء المحاولة مرة أخرى."
+  "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
+  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى."
 }

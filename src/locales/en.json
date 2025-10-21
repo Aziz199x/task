@@ -42,7 +42,7 @@
   "task_title": "Task Title",
   "description_optional": "Description (Optional)",
   "location": "Location",
-  "work_order_number": "Work Order Number",
+  "task_id": "Task ID",
   "due_date": "Due Date",
   "type_of_work": "Type of Work",
   "select_type_of_work": "Select type of work",
@@ -158,7 +158,7 @@
   "failed_to_add_task": "Failed to add task: ",
   "import_from_excel": "Import from Excel",
   "upload_excel_file": "Upload Excel File",
-  "excel_upload_instructions": "Please ensure your Excel file has columns named 'Title', 'Description', 'Location', 'Work Order Number', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', and 'Status'. 'Title' and 'Equipment Number' are mandatory.",
+  "excel_upload_instructions": "Please ensure your Excel file has columns named 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', and 'Status'. 'Title' and 'Equipment Number' are mandatory.",
   "select_file": "Select File",
   "processing": "Processing...",
   "upload": "Upload",
@@ -172,12 +172,12 @@
   "excel_header_title": "Title",
   "excel_header_description": "Description",
   "excel_header_location": "Location",
-  "excel_header_work_order_number": "Work Order Number",
+  "excel_header_task_id": "Task ID",
   "excel_header_due_date": "Due Date",
   "excel_header_assignee_id": "Assignee ID",
   "excel_header_type_of_work": "Type of Work",
   "excel_header_equipment_number": "Equipment Number",
   "excel_header_status": "Status",
-  "work_order_required_to_complete": "Work Order Number is required to complete this task.",
-  "error_generating_unique_work_order": "Failed to generate a unique work order number. Please try again."
+  "task_id_required_to_complete": "Task ID is required to complete this task.",
+  "error_generating_unique_task_id": "Failed to generate a unique task ID. Please try again."
 }

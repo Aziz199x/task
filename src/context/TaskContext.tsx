@@ -62,30 +62,30 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [fetchTasks]);
 
-  const generateUniqueWorkOrderNumber = async (): Promise<string> => {
+  const generateUniqueTaskId = async (): Promise<string> => {
     let unique = false;
-    let newWorkOrderNumber = '';
+    let newTaskId = '';
     while (!unique) {
       // Generate a random 15-digit number
       // Ensure it starts with a non-zero digit to be exactly 15 digits
-      newWorkOrderNumber = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
+      newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
 
       const { data, error } = await supabase
         .from('tasks')
-        .select('work_order_number')
-        .eq('work_order_number', newWorkOrderNumber)
+        .select('task_id') // Changed to task_id
+        .eq('task_id', newTaskId) // Changed to task_id
         .limit(1);
 
       if (error) {
-        console.error("Error checking work order number uniqueness during generation:", error.message);
-        throw new Error(t('error_generating_unique_work_order'));
+        console.error("Error checking task ID uniqueness during generation:", error.message);
+        throw new Error(t('error_generating_unique_task_id')); // Updated translation key
       }
 
       if (!data || data.length === 0) {
         unique = true;
       }
     }
-    return newWorkOrderNumber;
+    return newTaskId;
   };
 
   const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
@@ -94,9 +94,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    let workOrderNumber: string | undefined;
+    let taskId: string | undefined; // Changed to taskId
     try {
-      workOrderNumber = await generateUniqueWorkOrderNumber();
+      taskId = await generateUniqueTaskId(); // Changed to generateUniqueTaskId
     } catch (error: any) {
       toast.error(error.message);
       return;
@@ -106,7 +106,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       title,
       description,
       location,
-      work_order_number: workOrderNumber,
+      task_id: taskId, // Changed to task_id
       due_date: dueDate || null,
       assignee_id: assigneeId,
       type_of_work: typeOfWork,
@@ -127,9 +127,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.warn("Skipping task in bulk import due to missing equipment number:", task);
         continue;
       }
-      let workOrderNumber: string | undefined;
+      let taskId: string | undefined; // Changed to taskId
       try {
-        workOrderNumber = await generateUniqueWorkOrderNumber();
+        taskId = await generateUniqueTaskId(); // Changed to generateUniqueTaskId
       } catch (error: any) {
         toast.error(error.message);
         return; // Stop bulk import if generation fails
@@ -137,7 +137,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       tasksToInsert.push({
         ...task,
-        work_order_number: workOrderNumber, // Override or set generated work order number
+        task_id: taskId, // Changed to task_id
         status: task.assignee_id ? 'assigned' : 'unassigned',
         creator_id: user?.id, // Assign current user as creator
       });
@@ -169,9 +169,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // Validation: Require work_order_number for completion (it should always be present now)
-    if (newStatus === 'completed' && !taskToUpdate.work_order_number) {
-      toast.error(t("work_order_required_to_complete"));
+    // Validation: Require task_id for completion
+    if (newStatus === 'completed' && !taskToUpdate.task_id) { // Changed to task_id
+      toast.error(t("task_id_required_to_complete")); // Updated translation key
       return false;
     }
 
