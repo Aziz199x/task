@@ -238,7 +238,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                         onChange={handleNotificationNumChange}
                         className="col-span-3"
                         maxLength={10}
-                        disabled={!(canEditOrDelete || canComplete)} {/* Updated disabled prop */}
+                        disabled={!(canEditOrDelete || canComplete)}
                       />
                       {notificationNumError && <p className="col-span-4 text-right text-destructive text-sm">{notificationNumError}</p>}
                     </div>
