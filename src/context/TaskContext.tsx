@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string) => Promise<void>;
+  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<void>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>; // New bulk add function
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
@@ -88,7 +88,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newTaskId;
   };
 
-  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string) => {
+  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return;
@@ -111,7 +111,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       assignee_id: assigneeId,
       type_of_work: typeOfWork,
       equipment_number: equipmentNumber,
-      notification_num: notificationNum || null, // Include notification_num
+      notification_num: notificationNum || null,
+      priority: priority || 'medium', // Set default priority if not provided
       status: assigneeId ? 'assigned' : 'unassigned',
     });
 
@@ -139,7 +140,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       tasksToInsert.push({
         ...task,
         task_id: taskId,
-        notification_num: task.notification_num || null, // Include notification_num
+        notification_num: task.notification_num || null,
+        priority: task.priority || 'medium', // Set default priority if not provided
         status: task.assignee_id ? 'assigned' : 'unassigned',
         creator_id: user?.id, // Assign current user as creator
       });
@@ -178,7 +180,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
       if (!taskToUpdate.notification_num) {
-        toast.error(t("notification_num_required_to_complete")); // New validation
+        toast.error(t("notification_num_required_to_complete"));
         return false;
       }
     }

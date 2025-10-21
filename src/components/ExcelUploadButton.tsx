@@ -53,7 +53,8 @@ const ExcelUploadButton: React.FC = () => {
           assignee_id: row[t('excel_header_assignee_id')],
           type_of_work: row[t('excel_header_type_of_work')] as Task['typeOfWork'],
           equipment_number: row[t('excel_header_equipment_number')] || '', // Equipment number is mandatory
-          notification_num: row[t('excel_header_notification_num')] ? String(row[t('excel_header_notification_num')]) : null, // Include notification_num
+          notification_num: row[t('excel_header_notification_num')] ? String(row[t('excel_header_notification_num')]) : null,
+          priority: row[t('excel_header_priority')] ? (row[t('excel_header_priority')] as string).toLowerCase() as Task['priority'] : 'medium', // Include priority, default to medium
           status: row[t('excel_header_status')] || 'unassigned',
         }));
 

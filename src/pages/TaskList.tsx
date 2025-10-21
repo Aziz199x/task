@@ -35,7 +35,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all"); // New state for priority filter
+  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
 
   const canAddTask = currentUserProfile && currentUserProfile.role === 'admin';
 
@@ -128,11 +129,13 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.equipment_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.work_order_number?.toLowerCase().includes(searchTerm.toLowerCase());
+        task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus = filterStatus === "all" || task.status === filterStatus;
       const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
       const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
+      const matchesPriority = filterPriority === "all" || task.priority === filterPriority; // New filter for priority
 
       const dueDateObj = task.due_date ? new Date(task.due_date) : null;
       const now = new Date();
@@ -143,9 +146,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         (filterReminder === "overdue" && isOverdue) ||
         (filterReminder === "due-soon" && isDueSoon && !isOverdue);
 
-      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder;
+      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
     });
-  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder]);
+  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority]);
 
   const allTasksSelected = filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length;
 
@@ -215,6 +218,19 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
             <SelectItem value="all">{t('all_tasks')}</SelectItem>
             <SelectItem value="overdue">{t('overdue')}</SelectItem>
             <SelectItem value="due-soon">{t('due_soon')}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select onValueChange={(value: Task['priority'] | "all") => setFilterPriority(value)} value={filterPriority}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder={t('filter_by_priority')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('all_priorities')}</SelectItem>
+            <SelectItem value="low">{t('low')}</SelectItem>
+            <SelectItem value="medium">{t('medium')}</SelectItem>
+            <SelectItem value="high">{t('high')}</SelectItem>
+            <SelectItem value="urgent">{t('urgent')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

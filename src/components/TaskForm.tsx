@@ -27,7 +27,8 @@ const TaskForm: React.FC = () => {
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
-  const [notificationNum, setNotificationNum] = useState(""); // New state for notification number
+  const [notificationNum, setNotificationNum] = useState("");
+  const [priority, setPriority] = useState<Task['priority']>('medium'); // New state for priority
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,7 +52,7 @@ const TaskForm: React.FC = () => {
       return;
     }
 
-    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum);
+    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
     setTitle("");
     setDescription("");
     setLocation("");
@@ -59,7 +60,8 @@ const TaskForm: React.FC = () => {
     setAssigneeId(null);
     setTypeOfWork(undefined);
     setEquipmentNumber("");
-    setNotificationNum(""); // Reset notification number
+    setNotificationNum("");
+    setPriority('medium'); // Reset priority
     toast.success(t('task_added_successfully'));
     setLoading(false);
   };
@@ -142,6 +144,20 @@ const TaskForm: React.FC = () => {
               placeholder="e.g., 4100000000"
               maxLength={10}
             />
+          </div>
+          <div>
+            <Label htmlFor="priority">{t('priority')}</Label>
+            <Select onValueChange={(value: Task['priority']) => setPriority(value)} value={priority}>
+              <SelectTrigger id="priority">
+                <SelectValue placeholder={t('select_priority')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">{t('low')}</SelectItem>
+                <SelectItem value="medium">{t('medium')}</SelectItem>
+                <SelectItem value="high">{t('high')}</SelectItem>
+                <SelectItem value="urgent">{t('urgent')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="assignee">{t('assign_to')}</Label>
