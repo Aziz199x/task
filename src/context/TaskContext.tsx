@@ -187,7 +187,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
 
-    // Updated condition to include photo_permit_url
+    // New validation: Require photo_before_url, photo_after_url, and photo_permit_url for completion by technicians/contractors
     if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url)) {
         toast.error(t("photos_and_permit_required_to_complete"));
         return false;

@@ -155,7 +155,7 @@
   "tasks_to_accomplish": "مهام لإنجازها",
   "view_my_tasks": "عرض مهامي",
   "complete_task": "إكمال المهمة",
-  "skipped_completed_tasks_warning": "تم تخطي {{count}} مهمة مكتملة حيث لا يمكن تعديلها إلا بواسطة المسؤول.",
+  "skipped_completed_tasks_warning": "{{count}} مهمة مكتملة تم تخطيها حيث لا يمكن تعديلها إلا بواسطة المسؤول.",
   "no_eligible_tasks_for_action": "لا توجد مهام مؤهلة لتنفيذ الإجراء عليها.",
   "tasks_could_not_be_updated_warning": "تعذر تحديث {{count}} مهام. قد تكون الصور المطلوبة مفقودة.",
   "photos_and_permit_required_to_complete": "مطلوب صور 'قبل' و 'بعد' العمل وصورة 'التصريح' لإكمال المهمة.",
