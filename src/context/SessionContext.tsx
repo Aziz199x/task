@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react'; // Import a spinner icon
 
 export interface UserProfile {
   id: string;
@@ -18,7 +19,7 @@ interface SessionContextType {
   session: Session | null;
   user: User | null;
   profile: UserProfile | null;
-  loading: boolean;
+  loading: boolean; // This 'loading' will now always be false for consumers once children are rendered
   signOut: () => Promise<void>;
 }
 
@@ -28,7 +29,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true); // Start loading as true
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true); // Internal loading state for the provider itself
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -65,7 +66,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       } else {
         setProfile(null);
       }
-      setLoading(false); // Initial load complete
+      setIsLoadingInitial(false); // Initial load complete, now render children
 
       // 2. Then, set up the listener for subsequent changes
       const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -73,7 +74,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           if (!isMounted) return; // Check mount status again
 
           // Only update if the session actually changed or if it's a sign-out event
-          // This prevents unnecessary re-renders if the session is stable
           if (currentSession?.user?.id !== user?.id || event === 'SIGNED_OUT') {
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
@@ -110,8 +110,18 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  // If still loading, render a global loading screen
+  if (isLoadingInitial) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <span className="sr-only">Loading...</span>
+      </div>
+    );
+  }
+
   return (
-    <SessionContext.Provider value={{ session, user, profile, loading, signOut }}>
+    <SessionContext.Provider value={{ session, user, profile, loading: false, signOut }}>
       {children}
     </SessionContext.Provider>
   );
