@@ -1,4 +1,4 @@
-const CACHE_NAME = 'task-manager-cache-v3';
+const CACHE_NAME = 'task-manager-cache-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -15,7 +15,6 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
-  // Force the waiting service worker to become the active service worker.
   self.skipWaiting();
 });
 
@@ -35,22 +34,34 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       console.log('Service Worker: Claiming clients');
-      // Take control of all open clients
       return self.clients.claim();
     })
   );
 });
 
-// Fetch event: serve from cache first, then network
+// Fetch event: Network-first strategy
 self.addEventListener('fetch', (event) => {
+  // Ignore non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
+    caches.open(CACHE_NAME).then((cache) => {
+      return fetch(event.request)
+        .then((response) => {
+          // If the response was good, clone it and store it in the cache.
+          if (response.status === 200) {
+            cache.put(event.request.url, response.clone());
+          }
           return response;
-        }
-        return fetch(event.request);
-      })
+        })
+        .catch((err) => {
+          // Network request failed, try to get it from the cache.
+          return cache.match(event.request).then(response => {
+            return response || Promise.reject('no-match');
+          });
+        });
+    })
   );
 });
