@@ -49,56 +49,32 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    let isMounted = true;
+    setLoading(true);
 
-    const handleAuthStateChange = async (event: string, currentSession: Session | null) => {
-      if (!isMounted) return;
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
 
-      setSession(currentSession);
-      setUser(currentSession?.user || null);
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
 
-      if (currentSession?.user) {
-        await fetchUserProfile(currentSession.user.id);
-      } else {
-        setProfile(null);
+        // The initial loading is finished after the first "entry" event is handled.
+        // This covers page loads, sign-ins, sign-outs, and password recovery flows.
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
+          setLoading(false);
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          toast.info("You have been signed out.");
+        }
       }
-
-      if (event === 'SIGNED_OUT') {
-        toast.info("You have been signed out.");
-      }
-    };
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthStateChange);
-
-    const getInitialSession = async () => {
-      const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-
-      if (!isMounted) return;
-
-      if (error) {
-        console.error("Error getting session:", error.message);
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-        setLoading(false);
-        return;
-      }
-
-      setSession(initialSession);
-      setUser(initialSession?.user || null);
-
-      if (initialSession?.user) {
-        await fetchUserProfile(initialSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    };
-
-    getInitialSession();
+    );
 
     return () => {
-      isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
