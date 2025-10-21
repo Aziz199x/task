@@ -49,25 +49,13 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    const initializeSession = async () => {
-      // 1. Get the current session immediately on mount
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
+    let isMounted = true; // Flag to prevent state updates on unmounted component
+    let initialLoadHandled = false; // Flag to ensure setLoading(false) is called only once
 
-      if (initialSession?.user) {
-        await fetchUserProfile(initialSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false); // Set loading to false after initial session is processed
-    };
-
-    initializeSession();
-
-    // 2. Set up a listener for any subsequent auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!isMounted) return; // Prevent state updates if component unmounted
+
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
@@ -77,6 +65,13 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           setProfile(null);
         }
 
+        // Set loading to false only after the very first auth state change event
+        // This covers INITIAL_SESSION, SIGNED_IN, or SIGNED_OUT
+        if (!initialLoadHandled) {
+          setLoading(false);
+          initialLoadHandled = true;
+        }
+
         if (event === 'SIGNED_OUT') {
           toast.info("You have been signed out.");
         }
@@ -84,6 +79,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     );
 
     return () => {
+      isMounted = false; // Cleanup: component is unmounted
       authListener.subscription.unsubscribe();
     };
   }, []); // Empty dependency array to run only once on mount
