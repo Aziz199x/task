@@ -11,6 +11,7 @@ interface TaskContextType {
   tasks: Task[];
   loading: boolean;
   addTask: (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => Promise<void>;
+  addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>; // New bulk add function
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
@@ -83,6 +84,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const addTasksBulk = async (newTasks: Partial<Task>[]) => {
+    const tasksToInsert = newTasks.map(task => ({
+      ...task,
+      status: task.assignee_id ? 'assigned' : 'unassigned',
+      creator_id: user?.id, // Assign current user as creator
+    }));
+
+    const { error } = await supabase.from('tasks').insert(tasksToInsert);
+
+    if (error) {
+      toast.error(t("failed_to_add_tasks_bulk") + error.message);
+    } else {
+      fetchTasks(); // Refresh tasks after bulk insert
+    }
+  };
+
   const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
@@ -92,6 +109,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
+      return false;
+    }
+
+    // New validation: Require work_order_number for completion
+    if (newStatus === 'completed' && !taskToUpdate.work_order_number) {
+      toast.error(t("work_order_required_to_complete"));
       return false;
     }
 
@@ -158,7 +181,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, loading, addTask, changeTaskStatus, deleteTask, updateTask, assignTask }}>
+    <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask }}>
       {children}
     </TaskContext.Provider>
   );
