@@ -146,5 +146,14 @@
   "complete_task": "إكمال المهمة",
   "skipped_completed_tasks_warning": "تم تخطي {{count}} مهمة مكتملة حيث لا يمكن تعديلها إلا بواسطة المسؤول.",
   "no_eligible_tasks_for_action": "لا توجد مهام مؤهلة لتنفيذ الإجراء عليها.",
-  "tasks_could_not_be_updated_warning": "تعذر تحديث {{count}} مهام. قد تكون الصور المطلوبة مفقودة."
+  "tasks_could_not_be_updated_warning": "تعذر تحديث {{count}} مهام. قد تكون الصور المطلوبة مفقودة.",
+  "photos_and_permit_required_to_complete": "مطلوب صور 'قبل' و 'بعد' العمل وصورة 'التصريح' لإكمال المهمة.",
+  "task_not_found": "المهمة غير موجودة.",
+  "completed_tasks_admin_only": "لا يمكن تعديل المهام المكتملة إلا بواسطة المسؤول.",
+  "failed_to_update_status": "فشل تحديث الحالة: ",
+  "completed_tasks_admin_only_delete": "لا يمكن حذف المهام المكتملة إلا بواسطة المسؤول.",
+  "failed_to_delete_task": "فشل حذف المهمة: ",
+  "failed_to_update_task": "فشل تحديث المهمة: ",
+  "failed_to_assign_task": "فشل تعيين المهمة: ",
+  "failed_to_add_task": "فشل إضافة المهمة: "
 }

@@ -5,6 +5,7 @@ import { Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "./SessionContext";
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 interface TaskContextType {
   tasks: Task[];
@@ -22,6 +23,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, profile } = useSession();
+  const { t } = useTranslation(); // Initialize useTranslation
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -61,7 +63,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addTask = async (title: string, description?: string, location?: string, workOrderNumber?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
     if (!equipmentNumber) {
-      toast.error("Equipment number is mandatory.");
+      toast.error(t("equipment_number_mandatory"));
       return;
     }
     const { error } = await supabase.from('tasks').insert({
@@ -77,26 +79,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     if (error) {
-      toast.error("Failed to add task: " + error.message);
+      toast.error(t("failed_to_add_task") + error.message);
     }
   };
 
   const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
-        toast.error("Task not found.");
+        toast.error(t("task_not_found"));
         return false;
     }
 
     if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error("Completed tasks can only be modified by an admin.");
+      toast.error(t("completed_tasks_admin_only"));
       return false;
     }
 
     const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
 
-    if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url)) {
-        toast.error("Both 'Before' and 'After' work photos are required to complete the task.");
+    // Updated condition to include photo_permit_url
+    if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url)) {
+        toast.error(t("photos_and_permit_required_to_complete"));
         return false;
     }
 
@@ -105,7 +108,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .update({ status: newStatus })
       .eq('id', id);
     if (error) {
-      toast.error("Failed to update status: " + error.message);
+      toast.error(t("failed_to_update_status") + error.message);
       return false;
     }
     return true;
@@ -114,19 +117,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteTask = async (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete && taskToDelete.status === 'completed' && profile?.role !== 'admin') {
-      toast.error("Completed tasks can only be deleted by an admin.");
+      toast.error(t("completed_tasks_admin_only_delete"));
       return;
     }
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
-      toast.error("Failed to delete task: " + error.message);
+      toast.error(t("failed_to_delete_task") + error.message);
     }
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error("Completed tasks can only be modified by an admin.");
+      toast.error(t("completed_tasks_admin_only"));
       return;
     }
     const { error } = await supabase
@@ -134,14 +137,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .update(updates)
       .eq('id', id);
     if (error) {
-      toast.error("Failed to update task: " + error.message);
+      toast.error(t("failed_to_update_task") + error.message);
     }
   };
 
   const assignTask = async (id: string, assigneeId: string | null) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error("Completed tasks can only be modified by an admin.");
+      toast.error(t("completed_tasks_admin_only"));
       return;
     }
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
@@ -150,7 +153,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .update({ assignee_id: assigneeId, status: newStatus })
       .eq('id', id);
     if (error) {
-      toast.error("Failed to assign task: " + error.message);
+      toast.error(t("failed_to_assign_task") + error.message);
     }
   };
 

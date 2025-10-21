@@ -146,5 +146,14 @@
   "complete_task": "Complete Task",
   "skipped_completed_tasks_warning": "{{count}} completed task(s) were skipped as they can only be modified by an admin.",
   "no_eligible_tasks_for_action": "No eligible tasks to perform action on.",
-  "tasks_could_not_be_updated_warning": "{{count}} tasks could not be updated. They may be missing required photos."
+  "tasks_could_not_be_updated_warning": "{{count}} tasks could not be updated. They may be missing required photos.",
+  "photos_and_permit_required_to_complete": "Both 'Before' and 'After' work photos, and a 'Permit' photo are required to complete the task.",
+  "task_not_found": "Task not found.",
+  "completed_tasks_admin_only": "Completed tasks can only be modified by an admin.",
+  "failed_to_update_status": "Failed to update status: ",
+  "completed_tasks_admin_only_delete": "Completed tasks can only be deleted by an admin.",
+  "failed_to_delete_task": "Failed to delete task: ",
+  "failed_to_update_task": "Failed to update task: ",
+  "failed_to_assign_task": "Failed to assign task: ",
+  "failed_to_add_task": "Failed to add task: "
 }
