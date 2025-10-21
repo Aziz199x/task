@@ -75,13 +75,6 @@ const Login = () => {
               {loading ? t('loading') : t('sign_in')}
             </Button>
           </form>
-          
-          {/* Demo credentials for admin */}
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <h3 className="font-medium mb-2">Demo Admin Credentials:</h3>
-            <p className="text-sm">Email: <span className="font-mono">admin@example.com</span></p>
-            <p className="text-sm">Password: <span className="font-mono">102030102030</span></p>
-          </div>
         </CardContent>
       </Card>
     </div>
