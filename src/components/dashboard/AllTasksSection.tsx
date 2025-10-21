@@ -13,6 +13,8 @@ import { useTasks } from '@/context/TaskContext';
 import { Task } from '@/types/task';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/context/SessionContext';
+import ExcelUploadButton from '@/components/ExcelUploadButton'; // Import the ExcelUploadButton
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
 const AllTasksSection: React.FC = () => {
   const { tasks } = useTasks();
@@ -30,21 +32,35 @@ const AllTasksSection: React.FC = () => {
     <Card className="col-span-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{t('all_tasks')}</CardTitle>
-        {canAddTask && (
-          <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" /> {t('new_task')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{t('add_new_task')}</DialogTitle>
-              </DialogHeader>
-              <TaskForm />
-            </DialogContent>
-          </Dialog>
-        )}
+        <div className="flex items-center space-x-2"> {/* Group buttons */}
+          {canAddTask && (
+            <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" /> {t('new_task')}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>{t('add_new_task')}</DialogTitle>
+                </DialogHeader>
+                <TaskForm />
+              </DialogContent>
+            </Dialog>
+          )}
+          {canAddTask && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div> {/* Wrap button in a div for tooltip to work with disabled state */}
+                  <ExcelUploadButton />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('import_tasks_from_excel_tooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="board" className="w-full">

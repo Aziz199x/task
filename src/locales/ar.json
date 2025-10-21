@@ -91,7 +91,7 @@
   "mark_as_assigned": "وضع علامة معين",
   "mark_as_in_progress": "وضع علامة قيد التقدم",
   "mark_as_completed": "وضع علامة مكتمل",
-  "mark_as_ملغى": "وضع علامة ملغى",
+  "mark_as_cancelled": "وضع علامة ملغى",
   "assign_to": "تعيين إلى",
   "delete_selected": "حذف المحدد",
   "no_tasks_selected_for_bulk_action": "لم يتم تحديد أي مهام لإجراءات مجمعة.",
@@ -194,5 +194,6 @@
   "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
   "notification_num_required_to_complete": "رقم الإشعار مطلوب لإكمال هذه المهمة.",
   "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى.",
-  "notification_num_not_unique": "يجب أن يكون رقم الإشعار فريدًا. توجد مهمة بهذا الرقم بالفعل."
+  "notification_num_not_unique": "يجب أن يكون رقم الإشعار فريدًا. توجد مهمة بهذا الرقم بالفعل.",
+  "import_tasks_from_excel_tooltip": "رفع ملف Excel لإنشاء مهام متعددة دفعة واحدة."
 }
