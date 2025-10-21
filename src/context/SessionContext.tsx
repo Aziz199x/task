@@ -49,38 +49,57 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    let isMounted = true; // Flag to prevent state updates on unmounted component
-    let initialLoadHandled = false; // Flag to ensure setLoading(false) is called only once
+    let isMounted = true;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        if (!isMounted) return; // Prevent state updates if component unmounted
+    const initializeAuth = async () => {
+      // 1. Get the current session immediately on mount
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      
+      if (!isMounted) return;
 
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
 
-        if (currentSession?.user) {
-          await fetchUserProfile(currentSession.user.id);
-        } else {
-          setProfile(null);
-        }
-
-        // Set loading to false only after the very first auth state change event
-        // This covers INITIAL_SESSION, SIGNED_IN, or SIGNED_OUT
-        if (!initialLoadHandled) {
-          setLoading(false);
-          initialLoadHandled = true;
-        }
-
-        if (event === 'SIGNED_OUT') {
-          toast.info("You have been signed out.");
-        }
+      if (initialSession?.user) {
+        await fetchUserProfile(initialSession.user.id);
+      } else {
+        setProfile(null);
       }
-    );
+      setLoading(false); // Initial load complete
+
+      // 2. Then, set up the listener for subsequent changes
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (event, currentSession) => {
+          if (!isMounted) return; // Check mount status again
+
+          // Only update if the session actually changed or if it's a sign-out event
+          // This prevents unnecessary re-renders if the session is stable
+          if (currentSession?.user?.id !== user?.id || event === 'SIGNED_OUT') {
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+
+            if (currentSession?.user) {
+              await fetchUserProfile(currentSession.user.id);
+            } else {
+              setProfile(null);
+            }
+          }
+
+          if (event === 'SIGNED_OUT') {
+            toast.info("You have been signed out.");
+          }
+        }
+      );
+
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+
+    initializeAuth();
 
     return () => {
       isMounted = false; // Cleanup: component is unmounted
-      authListener.subscription.unsubscribe();
     };
   }, []); // Empty dependency array to run only once on mount
 
