@@ -23,18 +23,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="container mx-auto flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:gap-0">
           <div className="flex items-center gap-4">
             <img src="/logo.svg" alt="AZ Logo" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
             {profile && (
-              <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded">
+              <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded hidden md:inline-block">
                 Role: {t(profile.role)}
               </span>
             )}
           </div>
           {session && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4 flex-wrap justify-center">
               {profile && (
                 <div className="text-sm hidden md:block">
                   <p className="font-medium">{profile.first_name || user?.email}</p>
