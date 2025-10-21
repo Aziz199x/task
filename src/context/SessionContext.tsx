@@ -28,7 +28,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start loading as true
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -49,30 +49,26 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    const getInitialSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      if (initialSession?.user) {
-        await fetchUserProfile(initialSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false); // Crucially, set loading to false after initial check
-    };
-
-    getInitialSession();
+    // Use a flag to ensure setLoading(false) is called only once after the initial session is processed
+    let isInitialSessionProcessed = false;
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        // This listener handles *changes* after the initial load
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
+
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user.id);
         } else {
           setProfile(null);
         }
+
+        // Only set loading to false after the initial session (or lack thereof) has been processed
+        if (!isInitialSessionProcessed) {
+          setLoading(false);
+          isInitialSessionProcessed = true;
+        }
+
         if (event === 'SIGNED_OUT') {
           toast.info("You have been signed out.");
         }
