@@ -22,34 +22,38 @@ export const useAssignableUsers = () => {
       setLoading(true);
       setError(null);
 
-      let targetRoles: UserProfile['role'][] = [];
-      switch (currentUserProfile.role) {
-        case 'admin':
-          targetRoles = ['manager'];
-          break;
-        case 'manager':
-          targetRoles = ['supervisor', 'technician'];
-          break;
-        case 'supervisor':
-          targetRoles = ['technician', 'contractor'];
-          break;
-        case 'technician':
-          targetRoles = ['contractor'];
-          break;
-        default:
-          targetRoles = [];
-      }
-
-      if (targetRoles.length === 0) {
-        setAssignableUsers([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role')
-        .in('role', targetRoles);
+        .select('id, first_name, last_name, avatar_url, role');
+
+      if (currentUserProfile.role === 'admin') {
+        // Admins can assign to anyone, so fetch all profiles
+        // No additional .in('role', ...) filter needed
+      } else {
+        let targetRoles: UserProfile['role'][] = [];
+        switch (currentUserProfile.role) {
+          case 'manager':
+            targetRoles = ['supervisor', 'technician', 'contractor'];
+            break;
+          case 'supervisor':
+            targetRoles = ['technician', 'contractor'];
+            break;
+          case 'technician':
+            targetRoles = ['contractor'];
+            break;
+          default:
+            targetRoles = [];
+        }
+
+        if (targetRoles.length === 0) {
+          setAssignableUsers([]);
+          setLoading(false);
+          return;
+        }
+        query = query.in('role', targetRoles);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching assignable users:", error.message);
