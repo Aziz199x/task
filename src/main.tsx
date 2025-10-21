@@ -4,8 +4,8 @@ import "./globals.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Register the service worker
-if ("serviceWorker" in navigator) {
+// Register the service worker only in production
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js")
       .then((registration) => {
