@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const Login = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [email, setEmail] = useState(''); // Changed from userId to email
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ const Login = () => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email, // Use email directly
+        email,
         password,
       });
 
@@ -31,7 +31,6 @@ const Login = () => {
         toast.error(error.message);
       } else if (data.user) {
         // The SessionProvider will handle navigation to '/' on successful sign-in
-        // No need to navigate here directly
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -50,10 +49,10 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('email')}</Label> {/* Changed label to Email */}
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
-                type="email" // Changed type to email
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
@@ -70,6 +69,11 @@ const Login = () => {
                 placeholder="Enter your password"
                 required
               />
+            </div>
+            <div className="flex items-center justify-end">
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                {t('forgot_password')}
+              </Link>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t('loading') : t('sign_in')}

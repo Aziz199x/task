@@ -33,7 +33,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const navigate = useNavigate();
 
   const fetchUserProfile = async (userId: string) => {
-    console.log("SessionProvider: Attempting to fetch user profile for ID:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -45,7 +44,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       setProfile(null);
       return null;
     } else if (data) {
-      console.log("SessionProvider: Profile fetched successfully:", data);
       setProfile(data as UserProfile);
       return data as UserProfile;
     }
@@ -54,11 +52,9 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   useEffect(() => {
     let isMounted = true;
-    console.log("SessionProvider: useEffect mounted.");
 
     const handleAuthStateChange = async (event: string, currentSession: Session | null) => {
       if (!isMounted) return;
-      console.log("SessionProvider: Auth state changed. Event:", event, "Session:", currentSession);
 
       setSession(currentSession);
       setUser(currentSession?.user || null);
@@ -73,22 +69,22 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         toast.info("You have been signed out.");
         navigate('/login');
       } else if (event === 'SIGNED_IN') {
-        if (window.location.pathname === '/login') {
+        if (window.location.pathname === '/login' || window.location.pathname === '/forgot-password') {
           navigate('/');
         }
+      } else if (event === 'PASSWORD_RECOVERY') {
+        navigate('/reset-password');
       }
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
     const getInitialSession = async () => {
-      console.log("SessionProvider: Getting initial session...");
       const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
       if (!isMounted) return;
 
       if (error) {
-        console.error("SessionProvider: Error getting initial session:", error.message);
         setSession(null);
         setUser(null);
         setProfile(null);
@@ -101,19 +97,16 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       setUser(initialSession?.user || null);
 
       if (initialSession?.user) {
-        console.log("SessionProvider: Initial session found, user ID:", initialSession.user.id);
         await fetchUserProfile(initialSession.user.id);
-        if (window.location.pathname === '/login') {
+        if (window.location.pathname === '/login' || window.location.pathname === '/forgot-password') {
           navigate('/');
         }
       } else {
-        console.log("SessionProvider: No initial session found.");
         setProfile(null);
-        if (window.location.pathname !== '/login') {
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/forgot-password' && window.location.pathname !== '/reset-password') {
           navigate('/login');
         }
       }
-      console.log("SessionProvider: Setting loading to false.");
       setLoading(false);
     };
 
@@ -121,19 +114,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     return () => {
       isMounted = false;
-      console.log("SessionProvider: useEffect unmounted.");
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);
 
   const signOut = async () => {
-    console.log("SessionProvider: Attempting to sign out.");
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Failed to sign out: " + error.message);
-      console.error("SessionProvider: Sign out failed:", error.message);
-    } else {
-      console.log("SessionProvider: Sign out successful.");
     }
   };
 
