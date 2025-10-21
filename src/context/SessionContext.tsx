@@ -49,25 +49,30 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    setLoading(true);
+    const getInitialSession = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      if (initialSession?.user) {
+        await fetchUserProfile(initialSession.user.id);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false); // Crucially, set loading to false after initial check
+    };
+
+    getInitialSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
+      async (event, currentSession) => {
+        // This listener handles *changes* after the initial load
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
         } else {
           setProfile(null);
         }
-
-        // The initial loading is finished after the first "entry" event is handled.
-        // This covers page loads, sign-ins, sign-outs, and password recovery flows.
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
-          setLoading(false);
-        }
-        
         if (event === 'SIGNED_OUT') {
           toast.info("You have been signed out.");
         }
@@ -77,7 +82,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array to run only once on mount
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
