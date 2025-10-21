@@ -49,9 +49,23 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   useEffect(() => {
-    // Use a flag to ensure setLoading(false) is called only once after the initial session is processed
-    let isInitialSessionProcessed = false;
+    const initializeSession = async () => {
+      // 1. Get the current session immediately on mount
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
 
+      if (initialSession?.user) {
+        await fetchUserProfile(initialSession.user.id);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false); // Set loading to false after initial session is processed
+    };
+
+    initializeSession();
+
+    // 2. Set up a listener for any subsequent auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         setSession(currentSession);
@@ -61,12 +75,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           await fetchUserProfile(currentSession.user.id);
         } else {
           setProfile(null);
-        }
-
-        // Only set loading to false after the initial session (or lack thereof) has been processed
-        if (!isInitialSessionProcessed) {
-          setLoading(false);
-          isInitialSessionProcessed = true;
         }
 
         if (event === 'SIGNED_OUT') {
