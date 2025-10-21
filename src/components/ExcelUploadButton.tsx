@@ -53,6 +53,7 @@ const ExcelUploadButton: React.FC = () => {
           assignee_id: row[t('excel_header_assignee_id')],
           type_of_work: row[t('excel_header_type_of_work')] as Task['typeOfWork'],
           equipment_number: row[t('excel_header_equipment_number')] || '', // Equipment number is mandatory
+          notification_num: row[t('excel_header_notification_num')] ? String(row[t('excel_header_notification_num')]) : null, // Include notification_num
           status: row[t('excel_header_status')] || 'unassigned',
         }));
 

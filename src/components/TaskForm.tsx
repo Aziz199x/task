@@ -27,6 +27,7 @@ const TaskForm: React.FC = () => {
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
+  const [notificationNum, setNotificationNum] = useState(""); // New state for notification number
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,8 +44,14 @@ const TaskForm: React.FC = () => {
       setLoading(false);
       return;
     }
+    // Optional validation for notificationNum during creation
+    if (notificationNum.trim() !== "" && (!notificationNum.startsWith('41') || notificationNum.length !== 10 || !/^\d+$/.test(notificationNum))) {
+      toast.error(t('notification_num_invalid_format'));
+      setLoading(false);
+      return;
+    }
 
-    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber);
+    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum);
     setTitle("");
     setDescription("");
     setLocation("");
@@ -52,6 +59,7 @@ const TaskForm: React.FC = () => {
     setAssigneeId(null);
     setTypeOfWork(undefined);
     setEquipmentNumber("");
+    setNotificationNum(""); // Reset notification number
     toast.success(t('task_added_successfully'));
     setLoading(false);
   };
@@ -91,7 +99,6 @@ const TaskForm: React.FC = () => {
               placeholder="e.g., Apartment 3B"
             />
           </div>
-          {/* Work Order Number input removed as it's now auto-generated */}
           <div>
             <Label htmlFor="dueDate">{t('due_date')}</Label>
             <Input
@@ -124,6 +131,16 @@ const TaskForm: React.FC = () => {
               onChange={(e) => setEquipmentNumber(e.target.value)}
               placeholder="e.g., EQ-12345"
               required
+            />
+          </div>
+          <div>
+            <Label htmlFor="notificationNum">{t('notification_num_optional')}</Label>
+            <Input
+              id="notificationNum"
+              value={notificationNum}
+              onChange={(e) => setNotificationNum(e.target.value)}
+              placeholder="e.g., 4100000000"
+              maxLength={10}
             />
           </div>
           <div>

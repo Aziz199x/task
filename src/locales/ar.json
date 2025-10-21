@@ -52,6 +52,9 @@
   "termination_maintenance": "صيانة إنهاء",
   "replacing_equipment": "استبدال المعدات",
   "equipment_number": "رقم المعدة",
+  "notification_num": "رقم الإشعار",
+  "notification_num_optional": "رقم الإشعار (اختياري)",
+  "notification_num_invalid_format": "يجب أن يتكون رقم الإشعار من 10 أرقام ويبدأ بـ '41'.",
   "assign_technician": "تعيين فني",
   "unassigned": "غير معين",
   "add_task": "إضافة مهمة",
@@ -158,7 +161,7 @@
   "failed_to_add_task": "فشل إضافة المهمة: ",
   "import_from_excel": "استيراد من Excel",
   "upload_excel_file": "رفع ملف Excel",
-  "excel_upload_instructions": "يرجى التأكد من أن ملف Excel الخاص بك يحتوي على أعمدة بأسماء 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', و 'Status'. 'Title' و 'Equipment Number' إلزاميان.",
+  "excel_upload_instructions": "يرجى التأكد من أن ملف Excel الخاص بك يحتوي على أعمدة بأسماء 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', 'Notification Num', و 'Status'. 'Title' و 'Equipment Number' إلزاميان.",
   "select_file": "اختر ملف",
   "processing": "جارٍ المعالجة...",
   "upload": "رفع",
@@ -177,7 +180,9 @@
   "excel_header_assignee_id": "Assignee ID",
   "excel_header_type_of_work": "Type of Work",
   "excel_header_equipment_number": "Equipment Number",
+  "excel_header_notification_num": "Notification Num",
   "excel_header_status": "Status",
   "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
+  "notification_num_required_to_complete": "رقم الإشعار مطلوب لإكمال هذه المهمة.",
   "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى."
 }

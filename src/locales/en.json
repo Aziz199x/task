@@ -52,6 +52,9 @@
   "termination_maintenance": "Termination Maintenance",
   "replacing_equipment": "Replacing Equipment",
   "equipment_number": "Equipment Number",
+  "notification_num": "Notification Num",
+  "notification_num_optional": "Notification Num (Optional)",
+  "notification_num_invalid_format": "Notification Num must be 10 digits and start with '41'.",
   "assign_technician": "Assign Technician",
   "unassigned": "Unassigned",
   "add_task": "Add Task",
@@ -158,7 +161,7 @@
   "failed_to_add_task": "Failed to add task: ",
   "import_from_excel": "Import from Excel",
   "upload_excel_file": "Upload Excel File",
-  "excel_upload_instructions": "Please ensure your Excel file has columns named 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', and 'Status'. 'Title' and 'Equipment Number' are mandatory.",
+  "excel_upload_instructions": "Please ensure your Excel file has columns named 'Title', 'Description', 'Location', 'Task ID', 'Due Date', 'Assignee ID', 'Type of Work', 'Equipment Number', 'Notification Num', and 'Status'. 'Title' and 'Equipment Number' are mandatory.",
   "select_file": "Select File",
   "processing": "Processing...",
   "upload": "Upload",
@@ -177,7 +180,9 @@
   "excel_header_assignee_id": "Assignee ID",
   "excel_header_type_of_work": "Type of Work",
   "excel_header_equipment_number": "Equipment Number",
+  "excel_header_notification_num": "Notification Num",
   "excel_header_status": "Status",
   "task_id_required_to_complete": "Task ID is required to complete this task.",
+  "notification_num_required_to_complete": "Notification Num is required to complete this task.",
   "error_generating_unique_task_id": "Failed to generate a unique task ID. Please try again."
 }

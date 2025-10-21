@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -38,9 +38,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedTask, setEditedTask] = React.useState<Partial<Task>>(task);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [notificationNumError, setNotificationNumError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setEditedTask(task);
+    setNotificationNumError(null); // Reset error on task change
   }, [task, isEditing]);
 
   const isAdmin = currentUserProfile?.role === 'admin';
@@ -53,6 +55,22 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
 
+  const validateNotificationNum = (num: string | null | undefined): string | null => {
+    if (!num || num.trim() === "") {
+      return null; // It's optional during creation/editing, but required for completion
+    }
+    if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) {
+      return t('notification_num_invalid_format');
+    }
+    return null;
+  };
+
+  const handleNotificationNumChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEditedTask({...editedTask, notification_num: value});
+    setNotificationNumError(validateNotificationNum(value));
+  };
+
   const handleSaveEdit = async () => {
     setIsSaving(true);
     if (!editedTask.title || editedTask.title.trim() === "") {
@@ -62,6 +80,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     }
     if (!editedTask.equipment_number || editedTask.equipment_number.trim() === "") {
       toast.error(t('equipment_number_mandatory'));
+      setIsSaving(false);
+      return;
+    }
+
+    const numError = validateNotificationNum(editedTask.notification_num);
+    if (numError) {
+      setNotificationNumError(numError);
+      toast.error(numError);
       setIsSaving(false);
       return;
     }
@@ -167,8 +193,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                         id="taskId"
                         value={editedTask.task_id || ''}
                         className="col-span-3"
-                        readOnly // Made read-only
-                        disabled={true} // Explicitly disabled
+                        readOnly
+                        disabled={true}
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -193,6 +219,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
                       <Input id="equipmentNumber" value={editedTask.equipment_number || ''} onChange={(e) => setEditedTask({...editedTask, equipment_number: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="notificationNum" className="text-right">{t('notification_num')}</Label>
+                      <Input
+                        id="notificationNum"
+                        value={editedTask.notification_num || ''}
+                        onChange={handleNotificationNumChange}
+                        className="col-span-3"
+                        maxLength={10}
+                        disabled={!canEditOrDelete}
+                      />
+                      {notificationNumError && <p className="col-span-4 text-right text-destructive text-sm">{notificationNumError}</p>}
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="assignee" className="text-right">{t('assign_to')}</Label>
@@ -248,7 +286,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                       </>
                     )}
                   </div>
-                  <Button onClick={handleSaveEdit} disabled={isSaving}>{t('save_changes')}</Button>
+                  <Button onClick={handleSaveEdit} disabled={isSaving || !!notificationNumError}>{t('save_changes')}</Button>
                 </DialogContent>
               </Dialog>
             )}
@@ -295,6 +333,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
             </div>
           )}
           {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {t('task_id')}: {task.task_id}</div>}
+          {task.notification_num && <div className="flex items-center text-sm text-muted-foreground"><Bell className="h-4 w-4 mr-2" /> {t('notification_num')}: {task.notification_num}</div>}
           {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2" /> {t('due')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
           {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
           {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2" /> {t('equipment_number')}: {task.equipment_number}</div>}

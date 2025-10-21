@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => Promise<void>;
+  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string) => Promise<void>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>; // New bulk add function
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
@@ -72,13 +72,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const { data, error } = await supabase
         .from('tasks')
-        .select('task_id') // Changed to task_id
-        .eq('task_id', newTaskId) // Changed to task_id
+        .select('task_id')
+        .eq('task_id', newTaskId)
         .limit(1);
 
       if (error) {
         console.error("Error checking task ID uniqueness during generation:", error.message);
-        throw new Error(t('error_generating_unique_task_id')); // Updated translation key
+        throw new Error(t('error_generating_unique_task_id'));
       }
 
       if (!data || data.length === 0) {
@@ -88,15 +88,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newTaskId;
   };
 
-  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string) => {
+  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string) => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return;
     }
 
-    let taskId: string | undefined; // Changed to taskId
+    let taskId: string | undefined;
     try {
-      taskId = await generateUniqueTaskId(); // Changed to generateUniqueTaskId
+      taskId = await generateUniqueTaskId();
     } catch (error: any) {
       toast.error(error.message);
       return;
@@ -106,11 +106,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       title,
       description,
       location,
-      task_id: taskId, // Changed to task_id
+      task_id: taskId,
       due_date: dueDate || null,
       assignee_id: assigneeId,
       type_of_work: typeOfWork,
       equipment_number: equipmentNumber,
+      notification_num: notificationNum || null, // Include notification_num
       status: assigneeId ? 'assigned' : 'unassigned',
     });
 
@@ -127,9 +128,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.warn("Skipping task in bulk import due to missing equipment number:", task);
         continue;
       }
-      let taskId: string | undefined; // Changed to taskId
+      let taskId: string | undefined;
       try {
-        taskId = await generateUniqueTaskId(); // Changed to generateUniqueTaskId
+        taskId = await generateUniqueTaskId();
       } catch (error: any) {
         toast.error(error.message);
         return; // Stop bulk import if generation fails
@@ -137,7 +138,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       tasksToInsert.push({
         ...task,
-        task_id: taskId, // Changed to task_id
+        task_id: taskId,
+        notification_num: task.notification_num || null, // Include notification_num
         status: task.assignee_id ? 'assigned' : 'unassigned',
         creator_id: user?.id, // Assign current user as creator
       });
@@ -169,10 +171,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // Validation: Require task_id for completion
-    if (newStatus === 'completed' && !taskToUpdate.task_id) { // Changed to task_id
-      toast.error(t("task_id_required_to_complete")); // Updated translation key
-      return false;
+    // Validation: Require task_id and notification_num for completion
+    if (newStatus === 'completed') {
+      if (!taskToUpdate.task_id) {
+        toast.error(t("task_id_required_to_complete"));
+        return false;
+      }
+      if (!taskToUpdate.notification_num) {
+        toast.error(t("notification_num_required_to_complete")); // New validation
+        return false;
+      }
     }
 
     const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
