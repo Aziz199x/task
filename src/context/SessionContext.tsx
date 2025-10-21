@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export interface UserProfile {
@@ -30,7 +29,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -67,13 +65,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (event === 'SIGNED_OUT') {
         toast.info("You have been signed out.");
-        navigate('/login');
-      } else if (event === 'SIGNED_IN') {
-        if (window.location.pathname === '/login' || window.location.pathname === '/forgot-password') {
-          navigate('/');
-        }
-      } else if (event === 'PASSWORD_RECOVERY') {
-        navigate('/reset-password');
       }
     };
 
@@ -85,11 +76,11 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (!isMounted) return;
 
       if (error) {
+        console.error("Error getting session:", error.message);
         setSession(null);
         setUser(null);
         setProfile(null);
         setLoading(false);
-        navigate('/login');
         return;
       }
 
@@ -98,14 +89,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (initialSession?.user) {
         await fetchUserProfile(initialSession.user.id);
-        if (window.location.pathname === '/login' || window.location.pathname === '/forgot-password') {
-          navigate('/');
-        }
       } else {
         setProfile(null);
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/forgot-password' && window.location.pathname !== '/reset-password') {
-          navigate('/login');
-        }
       }
       setLoading(false);
     };
@@ -116,7 +101,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();

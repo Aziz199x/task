@@ -16,6 +16,8 @@ import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 
 const queryClient = new QueryClient();
 
@@ -29,14 +31,21 @@ const App = () => (
           <SessionProvider>
             <TaskProvider>
               <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route element={<PublicRoute />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                </Route>
+
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/technician-tasks" element={<TechnicianTasks />} />
-                <Route path="/create-account" element={<CreateAccount />} />
-                <Route path="/manage-users" element={<ManageUsers />} />
+
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/technician-tasks" element={<TechnicianTasks />} />
+                  <Route path="/create-account" element={<CreateAccount />} />
+                  <Route path="/manage-users" element={<ManageUsers />} />
+                </Route>
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </TaskProvider>
