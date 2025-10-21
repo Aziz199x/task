@@ -35,8 +35,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
-  const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all"); // New state for priority filter
-  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
+  const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set()); // Corrected initialization
 
   const canAddTask = currentUserProfile && currentUserProfile.role === 'admin';
 
