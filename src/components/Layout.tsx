@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { LogOut, LayoutDashboard, ListTodo, Users, UserPlus, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
 import UserTaskSummaryBar from "./UserTaskSummaryBar";
@@ -16,9 +16,13 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { session, user, profile, signOut } = useSession();
   const { t } = useTranslation();
+  const location = useLocation(); // Get current location
 
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
   const allowedToManageUsers = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
+
+  // Helper function to determine if a link is active
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -42,30 +46,50 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               )}
               <Link to="/">
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={isActive('/') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                >
                   <ListTodo className="h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/dashboard">
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={isActive('/dashboard') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                >
                   <LayoutDashboard className="h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/technician-tasks">
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={isActive('/technician-tasks') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                >
                   <Users className="h-5 w-5" />
                 </Button>
               </Link>
               {allowedToCreateAccounts && (
                 <Link to="/create-account">
-                  <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={isActive('/create-account') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                  >
                     <UserPlus className="h-5 w-5" />
                   </Button>
                 </Link>
               )}
               {allowedToManageUsers && (
                 <Link to="/manage-users">
-                  <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={isActive('/manage-users') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                  >
                     <Settings className="h-5 w-5" />
                   </Button>
                 </Link>
