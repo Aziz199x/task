@@ -25,6 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
+            <img src="/logo.svg" alt="AZ Logo" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
             {profile && (
               <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded">
