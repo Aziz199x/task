@@ -131,7 +131,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
   const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
 
-  const googleMapsUrl = task.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}` : null;
+  // Helper to check if a string is a valid URL
+  const isValidUrl = (str: string | null | undefined) => {
+    if (!str) return false;
+    try {
+      new URL(str);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const googleMapsSearchUrl = task.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}` : null;
 
   const getPriorityColor = (priority: Task['priority'] | undefined) => {
     switch (priority) {
@@ -347,8 +358,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
           {task.location && (
             <div className="flex items-center text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mr-2" />
-              {googleMapsUrl ? (
-                <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+              {isValidUrl(task.location) ? ( // Check if location is already a URL
+                <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                  {task.location}
+                </a>
+              ) : googleMapsSearchUrl ? ( // Otherwise, if a Google Maps search URL can be generated
+                <a href={googleMapsSearchUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
                   {task.location}
                 </a>
               ) : (
