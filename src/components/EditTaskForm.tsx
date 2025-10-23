@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,7 +112,13 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     onClose(); // Close the dialog after saving
   };
 
-  const handlePhotoRemove = async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
+  // Memoized callback for photo upload success
+  const handlePhotoUploadSuccess = useCallback((photoType: 'before' | 'after' | 'permit', url: string) => {
+    setEditedTask(prev => ({...prev, [`photo_${photoType}_url`]: url}));
+  }, []); // No dependencies needed as setEditedTask uses functional update
+
+  // Memoized callback for photo removal
+  const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
@@ -124,7 +130,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     // Also update the database immediately
     await updateTask(task.id, { [`photo_${photoType}_url`]: null });
     toast.success(t('photo_removed_successfully'));
-  };
+  }, [task.id, deleteTaskPhoto, updateTask, t]); // Dependencies: task.id, deleteTaskPhoto, updateTask, t
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -239,7 +245,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             taskId={task.id}
             photoType="before"
             currentUrl={editedTask.photo_before_url}
-            onUploadSuccess={(url) => setEditedTask(prev => ({...prev, photo_before_url: url}))}
+            onUploadSuccess={(url) => handlePhotoUploadSuccess('before', url)}
             onRemove={() => handlePhotoRemove('before', editedTask.photo_before_url)}
           />
           <PhotoUploader
@@ -247,7 +253,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             taskId={task.id}
             photoType="after"
             currentUrl={editedTask.photo_after_url}
-            onUploadSuccess={(url) => setEditedTask(prev => ({...prev, photo_after_url: url}))}
+            onUploadSuccess={(url) => handlePhotoUploadSuccess('after', url)}
             onRemove={() => handlePhotoRemove('after', editedTask.photo_after_url)}
           />
           <PhotoUploader
@@ -255,7 +261,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             taskId={task.id}
             photoType="permit"
             currentUrl={editedTask.photo_permit_url}
-            onUploadSuccess={(url) => setEditedTask(prev => ({...prev, photo_permit_url: url}))}
+            onUploadSuccess={(url) => handlePhotoUploadSuccess('permit', url)}
             onRemove={() => handlePhotoRemove('permit', editedTask.photo_permit_url)}
           />
         </>

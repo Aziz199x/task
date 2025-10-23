@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react'; // Import memo
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,7 +53,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       if (data.publicUrl) {
         onUploadSuccess(data.publicUrl);
         toast.success(t('photo_uploaded_successfully'));
-        setFile(null);
+        setFile(null); // Clear the file input after successful upload
       } else {
         toast.error(t('could_not_get_photo_url'));
       }
@@ -88,4 +88,4 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   );
 };
 
-export default PhotoUploader;
+export default memo(PhotoUploader); // Export the memoized component
