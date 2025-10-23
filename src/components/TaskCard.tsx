@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from 'react-i18next';
 import TaskPhotoGallery from "./TaskPhotoGallery";
 import EditTaskForm from "./EditTaskForm"; // Import the new component
+import { useProfiles } from "@/hooks/use-profiles"; // Import useProfiles to get all user profiles
 
 interface TaskCardProps {
   task: Task;
@@ -39,6 +40,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const { changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
+  const { profiles } = useProfiles(); // Use useProfiles to get all profiles
   const { t } = useTranslation();
 
   const [isEditing, setIsEditing] = React.useState(false);
@@ -99,6 +101,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   };
 
   const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
+  const closedByUser = profiles.find(p => p.id === task.closed_by_id); // Find the user who closed the task
 
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
   const now = new Date();
@@ -219,6 +222,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
           )}
           {assignedTechnician && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</div>}
           {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('unassigned')}</div>}
+          {task.status === 'completed' && closedByUser && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {closedByUser.first_name} {closedByUser.last_name}
+            </div>
+          )}
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
         </CardContent>
         {canComplete && (

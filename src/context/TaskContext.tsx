@@ -202,9 +202,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
+    const updates: Partial<Task> = { status: newStatus };
+    if (newStatus === 'completed' && user?.id) {
+      updates.closed_by_id = user.id; // Set who closed the task
+    } else if (newStatus !== 'completed') {
+      updates.closed_by_id = null; // Clear if status changes from completed
+    }
+
     const { error } = await supabase
       .from('tasks')
-      .update({ status: newStatus })
+      .update(updates)
       .eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);

@@ -228,5 +228,6 @@
   "failed_to_delete_photo_from_storage": "فشل حذف الصورة من التخزين",
   "location_url_invalid_format": "يجب أن يكون الموقع رابط خرائط جوجل بهذا التنسيق: https://www.google.com/maps?q=LATITUDE,LONGITUDE",
   "location_placeholder": "مثال: https://www.google.com/maps?q=21.494086,39.186785",
-  "permission_denied_complete_task": "ليس لديك إذن لإكمال هذه المهمة."
+  "permission_denied_complete_task": "ليس لديك إذن لإكمال هذه المهمة.",
+  "closed_by": "أغلق بواسطة"
 }
