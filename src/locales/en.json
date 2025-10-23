@@ -222,5 +222,7 @@
   "confirm_your_password": "Confirm your password",
   "enter_your_first_name": "Enter your first name",
   "enter_your_last_name": "Enter your last name",
-  "account_created_successfully_check_email": "Account created successfully! Please check your email to confirm your account."
+  "account_created_successfully_check_email": "Account created successfully! Please check your email to confirm your account.",
+  "photo_removed_successfully": "Photo removed successfully!",
+  "failed_to_delete_photo_from_storage": "Failed to delete photo from storage"
 }

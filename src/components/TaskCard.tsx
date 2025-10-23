@@ -29,7 +29,7 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
-  const { changeTaskStatus, deleteTask, updateTask, assignTask } = useTasks();
+  const { changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
@@ -122,6 +122,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const handleUnassign = () => {
     assignTask(task.id, null);
     toast.success(t('task_unassigned'));
+  };
+
+  const handlePhotoRemove = async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
+    if (currentUrl) {
+      await deleteTaskPhoto(currentUrl);
+    }
+    // Clear the URL in the task object
+    setEditedTask(prev => ({
+      ...prev,
+      [`photo_${photoType}_url`]: null
+    }));
+    await updateTask(task.id, { [`photo_${photoType}_url`]: null });
+    toast.success(t('photo_removed_successfully'));
   };
 
   const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
@@ -300,7 +313,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                           photoType="before"
                           currentUrl={editedTask.photo_before_url}
                           onUploadSuccess={(url) => setEditedTask({...editedTask, photo_before_url: url})}
-                          onRemove={() => setEditedTask({...editedTask, photo_before_url: null})}
+                          onRemove={() => handlePhotoRemove('before', editedTask.photo_before_url)}
                         />
                         <PhotoUploader
                           label={t('after_work_photo')}
@@ -308,7 +321,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                           photoType="after"
                           currentUrl={editedTask.photo_after_url}
                           onUploadSuccess={(url) => setEditedTask({...editedTask, photo_after_url: url})}
-                          onRemove={() => setEditedTask({...editedTask, photo_after_url: null})}
+                          onRemove={() => handlePhotoRemove('after', editedTask.photo_after_url)}
                         />
                         <PhotoUploader
                           label={t('permit_photo')}
@@ -316,7 +329,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                           photoType="permit"
                           currentUrl={editedTask.photo_permit_url}
                           onUploadSuccess={(url) => setEditedTask({...editedTask, photo_permit_url: url})}
-                          onRemove={() => setEditedTask({...editedTask, photo_permit_url: null})}
+                          onRemove={() => handlePhotoRemove('permit', editedTask.photo_permit_url)}
                         />
                       </>
                     )}

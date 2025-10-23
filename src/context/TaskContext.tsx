@@ -16,6 +16,7 @@ interface TaskContextType {
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   assignTask: (id: string, assigneeId: string | null) => Promise<void>;
+  deleteTaskPhoto: (photoUrl: string) => Promise<void>; // New function to delete a photo
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -210,6 +211,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("completed_tasks_admin_only_delete"));
       return;
     }
+    // Also delete associated photos from storage
+    if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
+    if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
+    if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
+
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
@@ -247,8 +253,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const deleteTaskPhoto = async (photoUrl: string) => {
+    try {
+      // Extract the path from the public URL
+      const urlParts = photoUrl.split('/public/task_photos/');
+      if (urlParts.length < 2) {
+        console.warn("Invalid photo URL for deletion:", photoUrl);
+        return;
+      }
+      const filePath = urlParts[1];
+
+      const { error } = await supabase.storage
+        .from('task_photos')
+        .remove([filePath]);
+
+      if (error) {
+        console.error("Error deleting photo from storage:", error.message);
+        toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+      } else {
+        console.log("Photo deleted from storage:", filePath);
+      }
+    } catch (error: any) {
+      console.error("Unexpected error during photo deletion:", error.message);
+      toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+    }
+  };
+
   return (
-    <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask }}>
+    <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto }}>
       {children}
     </TaskContext.Provider>
   );

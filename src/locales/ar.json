@@ -222,5 +222,7 @@
   "confirm_your_password": "تأكيد كلمة المرور الخاصة بك",
   "enter_your_first_name": "أدخل اسمك الأول",
   "enter_your_last_name": "أدخل اسمك الأخير",
-  "account_created_successfully_check_email": "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك."
+  "account_created_successfully_check_email": "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.",
+  "photo_removed_successfully": "تمت إزالة الصورة بنجاح!",
+  "failed_to_delete_photo_from_storage": "فشل حذف الصورة من التخزين"
 }
