@@ -36,7 +36,8 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
+  // The canComplete prop already determines if the current user can complete this specific task.
+  // We will use this to conditionally render the photo uploaders.
 
   console.log("[EditTaskForm] Current task prop:", task);
   console.log("[EditTaskForm] editedTask state:", editedTask);
@@ -251,7 +252,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
           </SelectContent>
         </Select>
       </div>
-      {isTechOrContractor && (
+      {canComplete && (
         <>
           <PhotoUploader
             label={t('before_work_photo')}

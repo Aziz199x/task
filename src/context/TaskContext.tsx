@@ -174,7 +174,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // Validation: Require task_id and notification_num for completion
+    // Validation: Require task_id and notification_num for completion by ALL users
     if (newStatus === 'completed') {
       if (!taskToUpdate.task_id) {
         toast.error(t("task_id_required_to_complete"));
@@ -184,14 +184,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("notification_num_required_to_complete"));
         return false;
       }
-    }
-
-    const isTechOrContractor = profile && ['technician', 'contractor'].includes(profile.role);
-
-    // New validation: Require photo_before_url, photo_after_url, and photo_permit_url for completion by technicians/contractors
-    if (isTechOrContractor && newStatus === 'completed' && (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url)) {
-        toast.error(t("photos_and_permit_required_to_complete"));
-        return false;
+      // Require photo_before_url, photo_after_url, and photo_permit_url for completion by ALL users
+      if (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
+          toast.error(t("photos_and_permit_required_to_complete"));
+          return false;
+      }
     }
 
     const { error } = await supabase
