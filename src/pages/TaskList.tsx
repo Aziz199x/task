@@ -38,8 +38,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set()); // Corrected initialization
 
-  // Allow 'admin' and 'manager' roles to add tasks
-  const canAddTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
+  // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
+  const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
