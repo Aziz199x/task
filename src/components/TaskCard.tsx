@@ -65,10 +65,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const canEditOrDelete = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
   const isAssignedToCurrentUser = user && task.assignee_id === user.id;
+  const isCreator = user && task.creator_id === user.id; // Check if current user is the creator
 
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
   const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
+  const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null; // Only admin or creator can unassign
 
   const validateNotificationNum = (num: string | null | undefined): string | null => {
     if (!num || num.trim() === "") {
@@ -377,7 +379,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                 <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin}>{t('mark_as_cancelled')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin}>{t('assign_to_me')}</DropdownMenuItem>}
-                {user && isAssignedToCurrentUser && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin}>{t('unassign')}</DropdownMenuItem>}
+                {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin}>{t('unassign')}</DropdownMenuItem>}
                 {canDeleteTask && (
                   <>
                     <DropdownMenuSeparator />
