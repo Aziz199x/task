@@ -13,6 +13,7 @@ import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { useSession } from "@/context/SessionContext";
+import { isPast, isToday } from 'date-fns'; // Import date-fns functions
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
@@ -23,7 +24,7 @@ const TaskForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [locationError, setLocationError] = useState<string | null>(null); // New state for location error
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
@@ -79,6 +80,19 @@ const TaskForm: React.FC = () => {
       return;
     }
 
+    // Due Date Validation
+    if (dueDate) {
+      const selectedDate = new Date(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize today to start of day
+
+      if (isPast(selectedDate) && !isToday(selectedDate)) {
+        toast.error(t('due_date_cannot_be_in_past'));
+        setLoading(false);
+        return;
+      }
+    }
+
     await addTask(title, description, location.trim() === "" ? undefined : location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
     setTitle("");
     setDescription("");
@@ -107,7 +121,7 @@ const TaskForm: React.FC = () => {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Fix leaky faucet"
+              placeholder="e.g., Maintenance Substation A"
               required
             />
           </div>
@@ -117,7 +131,7 @@ const TaskForm: React.FC = () => {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g., Kitchen sink, constant drip"
+              placeholder="e.g., Check wiring, replace faulty parts"
             />
           </div>
           <div>

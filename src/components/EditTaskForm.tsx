@@ -14,6 +14,7 @@ import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import PhotoUploader from "./PhotoUploader";
+import { isPast, isToday } from 'date-fns'; // Import date-fns functions
 
 interface EditTaskFormProps {
   task: Task;
@@ -35,9 +36,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-
-  // The canComplete prop already determines if the current user can complete this specific task.
-  // We will use this to conditionally render the photo uploaders.
 
   console.log("[EditTaskForm] Current task prop:", task);
   console.log("[EditTaskForm] editedTask state:", editedTask);
@@ -108,6 +106,19 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       toast.error(locError);
       setIsSaving(false);
       return;
+    }
+
+    // Due Date Validation
+    if (editedTask.due_date) {
+      const selectedDate = new Date(editedTask.due_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize today to start of day
+
+      if (isPast(selectedDate) && !isToday(selectedDate)) {
+        toast.error(t('due_date_cannot_be_in_past'));
+        setIsSaving(false);
+        return;
+      }
     }
 
     console.log("[EditTaskForm] Calling updateTask for main form save with:", editedTask);
