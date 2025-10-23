@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,9 +113,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   };
 
   // Memoized callback for photo upload success
-  const handlePhotoUploadSuccess = useCallback((photoType: 'before' | 'after' | 'permit', url: string) => {
+  const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
+    // Update local state
     setEditedTask(prev => ({...prev, [`photo_${photoType}_url`]: url}));
-  }, []); // No dependencies needed as setEditedTask uses functional update
+    // Immediately save to database
+    await updateTask(task.id, { [`photo_${photoType}_url`]: url });
+  }, [task.id, updateTask]); // Dependencies: task.id, updateTask
 
   // Memoized callback for photo removal
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
@@ -130,7 +133,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     // Also update the database immediately
     await updateTask(task.id, { [`photo_${photoType}_url`]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t]); // Dependencies: task.id, deleteTaskPhoto, updateTask, t
+  }, [task.id, deleteTaskPhoto, updateTask, t]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
