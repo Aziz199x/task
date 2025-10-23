@@ -201,6 +201,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
       return false;
+    } else {
+      fetchTasks(); // Force a refresh after successful status update
     }
     return true;
   };
@@ -219,6 +221,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
+    } else {
+      fetchTasks(); // Force a refresh after successful delete
     }
   };
 
@@ -234,6 +238,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
+    } else {
+      fetchTasks(); // Force a refresh after successful update
     }
   };
 
@@ -250,6 +256,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq('id', id);
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
+    } else {
+      fetchTasks(); // Force a refresh after successful assignment
     }
   };
 
