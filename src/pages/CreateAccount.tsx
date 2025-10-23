@@ -15,6 +15,15 @@ import { useTranslation } from 'react-i18next';
 
 const allRoles: UserProfile['role'][] = ['admin', 'manager', 'supervisor', 'technician', 'contractor'];
 
+// Define role hierarchy for permission checks
+const roleHierarchy = {
+  'admin': 4,
+  'manager': 3,
+  'supervisor': 2,
+  'technician': 1,
+  'contractor': 0,
+};
+
 const CreateAccount: React.FC = () => {
   const { profile, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
@@ -30,26 +39,32 @@ const CreateAccount: React.FC = () => {
   // Determine which roles the current user can create based on the new hierarchy
   const availableRoles = useMemo(() => {
     if (!profile) return [];
-    switch (profile.role) {
-      case 'admin':
-        // Admins can create any role
-        return allRoles;
-      case 'manager':
-        // Managers can only create supervisors
-        return ['supervisor'];
-      case 'supervisor':
-        // Supervisors can only create technicians
-        return ['technician'];
-      default:
-        // Other roles cannot create users
-        return [];
-    }
+    const currentUserRoleLevel = roleHierarchy[profile.role];
+
+    return allRoles.filter(roleOption => {
+      const targetRoleLevel = roleHierarchy[roleOption];
+      // A user can create accounts for roles that are strictly lower than their own,
+      // or equal if they are an admin (admin can create other admins).
+      // For this specific request, managers/supervisors can create technicians/contractors.
+      // Let's simplify: a user can create roles with a hierarchy level less than or equal to their own,
+      // but not 'admin' unless they are an admin.
+      if (profile.role === 'admin') {
+        return true; // Admin can create any role
+      } else if (profile.role === 'manager') {
+        return ['supervisor', 'technician', 'contractor'].includes(roleOption);
+      } else if (profile.role === 'supervisor') {
+        return ['technician', 'contractor'].includes(roleOption);
+      }
+      return false; // Other roles cannot create users
+    });
   }, [profile]);
 
   // Adjust the selected role if it's not available
   useEffect(() => {
     if (availableRoles.length > 0 && !availableRoles.includes(role)) {
       setRole(availableRoles[0]);
+    } else if (availableRoles.length === 0) {
+      setRole("technician"); // Default if no roles are available (shouldn't happen if authorized)
     }
   }, [availableRoles, role]);
 
