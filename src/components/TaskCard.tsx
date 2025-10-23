@@ -51,9 +51,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const isAssignedToCurrentUser = user && task.assignee_id === user.id;
   const isCreator = user && task.creator_id === user.id;
 
+  // New canComplete logic:
+  // 1. Task is not already completed or cancelled
+  // 2. Current user is the assignee OR
+  // 3. Current user is a supervisor AND is the creator of the task OR
+  // 4. Current user is an admin (admin override)
+  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (
+    isAssignedToCurrentUser || 
+    (currentUserProfile?.role === 'supervisor' && task.creator_id === user?.id) || 
+    isAdmin
+  );
+
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
   const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
-  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || (currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role)));
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
 
   const handleDelete = () => {
@@ -166,7 +176,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                 <DropdownMenuItem onClick={() => handleStatusChange('unassigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_unassigned')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('assigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_assigned')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('completed')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_completed')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusChange('completed')} disabled={!canComplete || isSaving}>{t('mark_as_completed')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}

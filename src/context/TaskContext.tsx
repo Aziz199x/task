@@ -174,8 +174,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // Validation: Require task_id and notification_num for completion by ALL users
+    // New permission check for completing a task
     if (newStatus === 'completed') {
+      const canCurrentUserComplete = 
+        (profile?.id === taskToUpdate.assignee_id) || // Is the assignee
+        (profile?.role === 'supervisor' && profile?.id === taskToUpdate.creator_id) || // Is the supervisor who created it
+        (profile?.role === 'admin'); // Is an admin (admin override)
+
+      if (!canCurrentUserComplete) {
+        toast.error(t("permission_denied_complete_task"));
+        return false;
+      }
+
+      // Existing validation: Require task_id and notification_num for completion by ALL users
       if (!taskToUpdate.task_id) {
         toast.error(t("task_id_required_to_complete"));
         return false;
