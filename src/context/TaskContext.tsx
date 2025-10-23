@@ -115,10 +115,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       notification_num: notificationNum || null,
       priority: priority || 'medium', // Set default priority if not provided
       status: assigneeId ? 'assigned' : 'unassigned',
+      creator_id: user?.id, // Ensure creator_id is set
     });
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
+    } else {
+      fetchTasks(); // Refresh tasks after successful single insert
     }
   };
 
