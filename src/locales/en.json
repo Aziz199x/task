@@ -213,5 +213,14 @@
   "passwords_do_not_match": "Passwords do not match.",
   "password_too_short": "Password must be at least 6 characters long.",
   "password_updated_successfully": "Your password has been updated successfully. Please log in again.",
-  "invalid_or_expired_reset_link": "Invalid or expired password reset link."
+  "invalid_or_expired_reset_link": "Invalid or expired password reset link.",
+  "sign_up": "Sign Up",
+  "sign_in_or_sign_up": "Sign in or sign up to continue",
+  "enter_your_email": "Enter your email",
+  "enter_your_password": "Enter your password",
+  "confirm_password": "Confirm Password",
+  "confirm_your_password": "Confirm your password",
+  "enter_your_first_name": "Enter your first name",
+  "enter_your_last_name": "Enter your last name",
+  "account_created_successfully_check_email": "Account created successfully! Please check your email to confirm your account."
 }

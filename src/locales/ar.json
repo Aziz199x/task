@@ -213,5 +213,14 @@
   "passwords_do_not_match": "كلمتا المرور غير متطابقتين.",
   "password_too_short": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
   "password_updated_successfully": "تم تحديث كلمة المرور بنجاح. يرجى تسجيل الدخول مرة أخرى.",
-  "invalid_or_expired_reset_link": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية."
+  "invalid_or_expired_reset_link": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.",
+  "sign_up": "إنشاء حساب",
+  "sign_in_or_sign_up": "تسجيل الدخول أو إنشاء حساب للمتابعة",
+  "enter_your_email": "أدخل بريدك الإلكتروني",
+  "enter_your_password": "أدخل كلمة المرور الخاصة بك",
+  "confirm_password": "تأكيد كلمة المرور",
+  "confirm_your_password": "تأكيد كلمة المرور الخاصة بك",
+  "enter_your_first_name": "أدخل اسمك الأول",
+  "enter_your_last_name": "أدخل اسمك الأخير",
+  "account_created_successfully_check_email": "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك."
 }
