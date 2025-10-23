@@ -38,8 +38,11 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
 
+  console.log("[EditTaskForm] Current task prop:", task);
+  console.log("[EditTaskForm] editedTask state:", editedTask);
+
   useEffect(() => {
-    // Initialize form state with the task prop when the component mounts or task prop changes
+    console.log("[EditTaskForm] useEffect triggered by task prop change. Updating local state.");
     setEditedTask(task);
     setNotificationNumError(validateNotificationNum(task.notification_num));
     setLocationError(validateLocationUrl(task.location));
@@ -106,6 +109,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       return;
     }
 
+    console.log("[EditTaskForm] Calling updateTask for main form save with:", editedTask);
     await updateTask(task.id, editedTask);
     toast.success(t('task_updated_successfully'));
     setIsSaving(false);
@@ -114,14 +118,18 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   // Memoized callback for photo upload success
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
+    console.log(`[EditTaskForm] handlePhotoUploadSuccess for ${photoType}: received URL`, url);
     // Update local state
     setEditedTask(prev => ({...prev, [`photo_${photoType}_url`]: url}));
     // Immediately save to database
-    await updateTask(task.id, { [`photo_${photoType}_url`]: url });
+    const updates = { [`photo_${photoType}_url`]: url };
+    console.log(`[EditTaskForm] Calling updateTask for photo upload (${photoType}) with updates:`, updates);
+    await updateTask(task.id, updates);
   }, [task.id, updateTask]); // Dependencies: task.id, updateTask
 
   // Memoized callback for photo removal
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
+    console.log(`[EditTaskForm] handlePhotoRemove for ${photoType}: current URL`, currentUrl);
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
@@ -131,7 +139,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       [`photo_${photoType}_url`]: null
     }));
     // Also update the database immediately
-    await updateTask(task.id, { [`photo_${photoType}_url`]: null });
+    const updates = { [`photo_${photoType}_url`]: null };
+    console.log(`[EditTaskForm] Calling updateTask for photo removal (${photoType}) with updates:`, updates);
+    await updateTask(task.id, updates);
     toast.success(t('photo_removed_successfully'));
   }, [task.id, deleteTaskPhoto, updateTask, t]);
 

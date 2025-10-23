@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo } from 'react'; // Import memo
+import React, { useState, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,9 +23,16 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const [file, setFile] = useState<File | null>(null);
   const { t } = useTranslation();
 
+  console.log(`[PhotoUploader - ${photoType}] currentUrl prop:`, currentUrl);
+  console.log(`[PhotoUploader - ${photoType}] file state:`, file?.name);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
+      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name);
+    } else {
+      setFile(null);
+      console.log(`[PhotoUploader - ${photoType}] File selection cleared.`);
     }
   };
 
@@ -35,6 +42,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       return;
     }
     setUploading(true);
+    console.log(`[PhotoUploader - ${photoType}] Starting upload for file:`, file.name);
+
     const fileExt = file.name.split('.').pop();
     const fileName = `${photoType}-${Date.now()}.${fileExt}`;
     const filePath = `${taskId}/${fileName}`;
@@ -44,6 +53,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       .upload(filePath, file);
 
     if (error) {
+      console.error(`[PhotoUploader - ${photoType}] Upload failed:`, error.message);
       toast.error(`${t('upload_failed')}: ${error.message}`);
     } else {
       const { data } = supabase.storage
@@ -51,10 +61,12 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         .getPublicUrl(filePath);
       
       if (data.publicUrl) {
+        console.log(`[PhotoUploader - ${photoType}] Upload successful, public URL:`, data.publicUrl);
         onUploadSuccess(data.publicUrl);
         toast.success(t('photo_uploaded_successfully'));
         setFile(null); // Clear the file input after successful upload
       } else {
+        console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath);
         toast.error(t('could_not_get_photo_url'));
       }
     }
@@ -88,4 +100,4 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   );
 };
 
-export default memo(PhotoUploader); // Export the memoized component
+export default memo(PhotoUploader);
