@@ -53,7 +53,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       .upload(filePath, file);
 
     if (error) {
-      console.error(`[PhotoUploader - ${photoType}] Upload failed:`, error.message);
+      console.error(`[PhotoUploader - ${photoType}] Upload failed:`, error); // Log the full error object
       toast.error(`${t('upload_failed')}: ${error.message}`);
     } else {
       const { data } = supabase.storage
