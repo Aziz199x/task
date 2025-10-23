@@ -32,6 +32,7 @@
   "role_updated_successfully": "تم تحديث دور {{name}} إلى {{role}}.",
   "admin": "مسؤول",
   "manager": "مدير",
+  "Manager": "مدير",
   "supervisor": "مشرف",
   "task_manager": "مدير المهام",
   "loading": "جارٍ التحميل...",
@@ -224,5 +225,7 @@
   "enter_your_last_name": "أدخل اسمك الأخير",
   "account_created_successfully_check_email": "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.",
   "photo_removed_successfully": "تمت إزالة الصورة بنجاح!",
-  "failed_to_delete_photo_from_storage": "فشل حذف الصورة من التخزين"
+  "failed_to_delete_photo_from_storage": "فشل حذف الصورة من التخزين",
+  "location_url_invalid_format": "يجب أن يكون الموقع رابط خرائط جوجل بهذا التنسيق: https://www.google.com/maps?q=LATITUDE,LONGITUDE",
+  "location_placeholder": "مثال: https://www.google.com/maps?q=21.494086,39.186785"
 }

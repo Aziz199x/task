@@ -23,13 +23,33 @@ const TaskForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [locationError, setLocationError] = useState<string | null>(null); // New state for location error
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
   const [notificationNum, setNotificationNum] = useState("");
-  const [priority, setPriority] = useState<Task['priority']>('medium'); // New state for priority
+  const [priority, setPriority] = useState<Task['priority']>('medium');
   const [loading, setLoading] = useState(false);
+
+  // Regex to validate Google Maps URL format: https://www.google.com/maps?q=LATITUDE,LONGITUDE
+  const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
+
+  const validateLocationUrl = (url: string): string | null => {
+    if (url.trim() === "") {
+      return null; // Location is optional
+    }
+    if (!googleMapsUrlRegex.test(url)) {
+      return t('location_url_invalid_format');
+    }
+    return null;
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocation(value);
+    setLocationError(validateLocationUrl(value));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,23 +65,31 @@ const TaskForm: React.FC = () => {
       setLoading(false);
       return;
     }
-    // Optional validation for notificationNum during creation
     if (notificationNum.trim() !== "" && (!notificationNum.startsWith('41') || notificationNum.length !== 10 || !/^\d+$/.test(notificationNum))) {
       toast.error(t('notification_num_invalid_format'));
       setLoading(false);
       return;
     }
 
-    await addTask(title, description, location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
+    const currentLocError = validateLocationUrl(location);
+    if (currentLocError) {
+      setLocationError(currentLocError);
+      toast.error(currentLocError);
+      setLoading(false);
+      return;
+    }
+
+    await addTask(title, description, location.trim() === "" ? undefined : location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
     setTitle("");
     setDescription("");
     setLocation("");
+    setLocationError(null);
     setDueDate("");
     setAssigneeId(null);
     setTypeOfWork(undefined);
     setEquipmentNumber("");
     setNotificationNum("");
-    setPriority('medium'); // Reset priority
+    setPriority('medium');
     toast.success(t('task_added_successfully'));
     setLoading(false);
   };
@@ -97,9 +125,10 @@ const TaskForm: React.FC = () => {
             <Input
               id="location"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g., Apartment 3B"
+              onChange={handleLocationChange}
+              placeholder={t('location_placeholder')}
             />
+            {locationError && <p className="text-destructive text-sm mt-1">{locationError}</p>}
           </div>
           <div>
             <Label htmlFor="dueDate">{t('due_date')}</Label>
@@ -184,7 +213,7 @@ const TaskForm: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !!locationError}>
             {loading ? t('loading') : t('add_task')}
           </Button>
         </form>

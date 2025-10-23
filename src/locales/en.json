@@ -32,6 +32,7 @@
   "role_updated_successfully": "Role for {{name}} updated to {{role}}.",
   "admin": "Admin",
   "manager": "Manager",
+  "Manager": "Manager",
   "supervisor": "Supervisor",
   "task_manager": "Task Manager",
   "loading": "Loading...",
@@ -224,5 +225,7 @@
   "enter_your_last_name": "Enter your last name",
   "account_created_successfully_check_email": "Account created successfully! Please check your email to confirm your account.",
   "photo_removed_successfully": "Photo removed successfully!",
-  "failed_to_delete_photo_from_storage": "Failed to delete photo from storage"
+  "failed_to_delete_photo_from_storage": "Failed to delete photo from storage",
+  "location_url_invalid_format": "Location must be a Google Maps URL in the format: https://www.google.com/maps?q=LATITUDE,LONGITUDE",
+  "location_placeholder": "e.g., https://www.google.com/maps?q=21.494086,39.186785"
 }

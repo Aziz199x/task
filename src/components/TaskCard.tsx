@@ -39,10 +39,25 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const [editedTask, setEditedTask] = React.useState<Partial<Task>>(task);
   const [isSaving, setIsSaving] = React.useState(false);
   const [notificationNumError, setNotificationNumError] = React.useState<string | null>(null);
+  const [locationError, setLocationError] = React.useState<string | null>(null); // New state for location error in edit dialog
+
+  // Regex to validate Google Maps URL format: https://www.google.com/maps?q=LATITUDE,LONGITUDE
+  const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
+
+  const validateLocationUrl = (url: string | null | undefined): string | null => {
+    if (!url || url.trim() === "") {
+      return null; // Location is optional
+    }
+    if (!googleMapsUrlRegex.test(url)) {
+      return t('location_url_invalid_format');
+    }
+    return null;
+  };
 
   React.useEffect(() => {
     setEditedTask(task);
-    setNotificationNumError(null); // Reset error on task change
+    setNotificationNumError(null);
+    setLocationError(validateLocationUrl(task.location)); // Validate initial location
   }, [task, isEditing]);
 
   const isAdmin = currentUserProfile?.role === 'admin';
@@ -71,6 +86,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     setNotificationNumError(validateNotificationNum(value));
   };
 
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEditedTask({...editedTask, location: value});
+    setLocationError(validateLocationUrl(value));
+  };
+
   const handleSaveEdit = async () => {
     setIsSaving(true);
     if (!editedTask.title || editedTask.title.trim() === "") {
@@ -88,6 +109,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
     if (numError) {
       setNotificationNumError(numError);
       toast.error(numError);
+      setIsSaving(false);
+      return;
+    }
+
+    const locError = validateLocationUrl(editedTask.location);
+    if (locError) {
+      setLocationError(locError);
+      toast.error(locError);
       setIsSaving(false);
       return;
     }
@@ -143,19 +172,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
   const now = new Date();
   const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
   const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
-
-  // Helper to check if a string is a valid URL
-  const isValidUrl = (str: string | null | undefined) => {
-    if (!str) return false;
-    try {
-      new URL(str);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  };
-
-  const googleMapsSearchUrl = task.location ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.location)}` : null;
 
   const getPriorityColor = (priority: Task['priority'] | undefined) => {
     switch (priority) {
@@ -219,7 +235,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="location" className="text-right">{t('location')}</Label>
-                      <Input id="location" value={editedTask.location || ''} onChange={(e) => setEditedTask({...editedTask, location: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+                      <Input
+                        id="location"
+                        value={editedTask.location || ''}
+                        onChange={handleLocationChange}
+                        placeholder={t('location_placeholder')}
+                        className="col-span-3"
+                        disabled={!canEditOrDelete}
+                      />
+                      {locationError && <p className="col-span-4 text-right text-destructive text-sm">{locationError}</p>}
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="taskId" className="text-right">{t('task_id')}</Label>
@@ -334,7 +358,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
                       </>
                     )}
                   </div>
-                  <Button onClick={handleSaveEdit} disabled={isSaving || !!notificationNumError}>{t('save_changes')}</Button>
+                  <Button onClick={handleSaveEdit} disabled={isSaving || !!notificationNumError || !!locationError}>{t('save_changes')}</Button>
                 </DialogContent>
               </Dialog>
             )}
@@ -371,16 +395,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
           {task.location && (
             <div className="flex items-center text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mr-2" />
-              {isValidUrl(task.location) ? ( // Check if location is already a URL
+              {validateLocationUrl(task.location) === null ? ( // Check if location is a valid URL
                 <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
                   {task.location}
                 </a>
-              ) : googleMapsSearchUrl ? ( // Otherwise, if a Google Maps search URL can be generated
-                <a href={googleMapsSearchUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                  {task.location}
-                </a>
               ) : (
-                task.location
+                task.location // Display as plain text if not a valid URL (shouldn't happen with validation)
               )}
             </div>
           )}
