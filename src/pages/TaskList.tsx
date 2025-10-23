@@ -38,7 +38,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set()); // Corrected initialization
 
-  const canAddTask = currentUserProfile && currentUserProfile.role === 'admin';
+  // Allow 'admin' and 'manager' roles to add tasks
+  const canAddTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -67,11 +68,11 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       return;
     }
 
-    const isAdmin = currentUserProfile?.role === 'admin';
+    const isAdminOrManager = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
     let tasksToActOn = Array.from(selectedTaskIds);
     const originalCount = tasksToActOn.length;
 
-    if (!isAdmin) {
+    if (!isAdminOrManager) {
       tasksToActOn = tasksToActOn.filter(taskId => {
         const task = tasks.find(t => t.id === taskId);
         return task && task.status !== 'completed';
@@ -226,7 +227,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
             <SelectValue placeholder={t('filter_by_priority')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('all_priorities')}</SelectItem>
             <SelectItem value="low">{t('low')}</SelectItem>
             <SelectItem value="medium">{t('medium')}</SelectItem>
             <SelectItem value="high">{t('high')}</SelectItem>
