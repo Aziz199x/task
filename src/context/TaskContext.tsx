@@ -189,8 +189,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const newTask: Task = {
-      id: 'temp-' + Date.now(), // Temporary ID for optimistic update
+    const taskPayload = { // Removed 'id' from here
       created_at: new Date().toISOString(),
       title,
       description: description || null,
@@ -206,24 +205,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       creator_id: user?.id || null,
     };
 
-    // Optimistic update
-    setTasks(currentTasks => [newTask, ...currentTasks]);
+    // Optimistic update with a temporary client-side ID
+    const tempId = 'temp-' + Date.now();
+    setTasks(currentTasks => [{ ...taskPayload, id: tempId } as Task, ...currentTasks]);
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert(newTask)
+      .insert(taskPayload) // Insert without client-generated ID
       .select()
       .single();
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.filter(task => task.id !== newTask.id));
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== tempId));
       return false;
     }
     
     // Replace temporary task with actual task from DB
-    setTasks(currentTasks => currentTasks.map(task => task.id === newTask.id ? data : task));
+    setTasks(currentTasks => currentTasks.map(task => task.id === tempId ? data : task));
     return true;
   }, [user, generateUniqueTaskId, t]);
 
@@ -255,7 +255,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    const tasksToInsert: Task[] = [];
+    const tasksToInsert: Omit<Task, 'id'>[] = []; // Omit 'id' from insert payload
     const optimisticTasks: Task[] = [];
 
     for (const task of newTasks) {
@@ -267,8 +267,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(error.message);
         return;
       }
-      const fullTask: Task = { 
-        id: 'temp-' + Date.now() + Math.random(), // Unique temporary ID
+      const fullTaskPayload: Omit<Task, 'id'> = { // Omit 'id' from payload
         created_at: new Date().toISOString(),
         title: task.title || '',
         description: task.description || null,
@@ -283,8 +282,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         status: task.assignee_id ? 'assigned' : 'unassigned',
         creator_id: user?.id || null,
       };
-      tasksToInsert.push(fullTask);
-      optimisticTasks.push(fullTask);
+      tasksToInsert.push(fullTaskPayload);
+
+      // For optimistic update, generate a temporary client-side ID
+      optimisticTasks.push({ ...fullTaskPayload, id: 'temp-' + Date.now() + Math.random() } as Task);
     }
     if (tasksToInsert.length === 0) {
       toast.warning(t('no_valid_tasks_found_in_excel'));
