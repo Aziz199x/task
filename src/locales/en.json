@@ -263,5 +263,9 @@
   "cancel": "Cancel",
   "revert_to_in_progress_action": "Revert to In Progress",
   "reverting": "Reverting...",
-  "revert_to_in_progress": "Revert to In Progress"
+  "revert_to_in_progress": "Revert to In Progress",
+  "confirm_cancel_task_title": "Confirm Task Cancellation",
+  "confirm_cancel_task_description": "Are you sure you want to cancel the task '{{title}}'? This action cannot be undone easily.",
+  "confirm_cancel_action": "Yes, Cancel Task",
+  "cancelling": "Cancelling..."
 }

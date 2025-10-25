@@ -60,6 +60,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false); // Keep for status change/assign actions
   const [showRevertConfirmation, setShowRevertConfirmation] = React.useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = React.useState(false); // New state for cancel confirmation
 
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
@@ -86,6 +87,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
       setShowRevertConfirmation(true);
       return;
     }
+    if (newStatus === 'cancelled') { // New check for cancellation
+      setShowCancelConfirmation(true);
+      return;
+    }
     setIsSaving(true); // Indicate saving for status changes
     const success = await changeTaskStatus(task.id, newStatus);
     if (success) {
@@ -102,6 +107,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
     }
     setIsSaving(false);
     setShowRevertConfirmation(false);
+  };
+
+  const confirmCancelTask = async () => { // New function for confirming cancellation
+    setIsSaving(true);
+    const success = await changeTaskStatus(task.id, 'cancelled');
+    if (success) {
+      toast.success(t('task_status_changed_to', { status: t('cancelled') }));
+    }
+    setIsSaving(false);
+    setShowCancelConfirmation(false);
   };
 
   const handleCompleteClick = async () => {
@@ -339,6 +354,23 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRevertToInProgress} disabled={isSaving}>
               {isSaving ? t('reverting') : t('revert_to_in_progress_action')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showCancelConfirmation} onOpenChange={setShowCancelConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirm_cancel_task_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirm_cancel_task_description', { title: task.title })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelTask} disabled={isSaving}>
+              {isSaving ? t('cancelling') : t('confirm_cancel_action')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

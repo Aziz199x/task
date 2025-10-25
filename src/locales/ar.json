@@ -263,5 +263,9 @@
   "cancel": "إلغاء",
   "revert_to_in_progress_action": "إعادة إلى قيد التقدم",
   "reverting": "جارٍ الإعادة...",
-  "revert_to_in_progress": "إعادة إلى قيد التقدم"
+  "revert_to_in_progress": "إعادة إلى قيد التقدم",
+  "confirm_cancel_task_title": "تأكيد إلغاء المهمة",
+  "confirm_cancel_task_description": "هل أنت متأكد أنك تريد إلغاء المهمة '{{title}}'؟ لا يمكن التراجع عن هذا الإجراء بسهولة.",
+  "confirm_cancel_action": "نعم، إلغاء المهمة",
+  "cancelling": "جارٍ الإلغاء..."
 }
