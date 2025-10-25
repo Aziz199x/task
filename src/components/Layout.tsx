@@ -97,10 +97,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 )}
                 <ThemeSwitcher />
                 <LanguageSwitcher />
-                <Button variant="destructive" size="icon" onClick={signOut}>
-                  <LogOut className="h-5 w-5" />
-                </Button>
               </div>
+              <Button variant="destructive" onClick={signOut} className="w-full md:w-auto flex items-center justify-center md:justify-start">
+                <LogOut className="h-5 w-5 mr-2" /> {t('logout')}
+              </Button>
             </div>
           )}
         </div>

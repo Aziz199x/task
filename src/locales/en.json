@@ -282,5 +282,6 @@
   "no_valid_tasks_found_in_chat": "No valid tasks found in the chat text. Please check the format.",
   "chat_import_success": "{{count}} tasks imported successfully from chat!",
   "chat_import_invalid_tasks_skipped": "{{count}} invalid task(s) were skipped (missing Title or Equipment Number).",
-  "error_importing_tasks_from_chat": "Error importing tasks from chat"
+  "error_importing_tasks_from_chat": "Error importing tasks from chat",
+  "logout": "Logout"
 }

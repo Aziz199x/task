@@ -282,5 +282,6 @@
   "no_valid_tasks_found_in_chat": "لم يتم العثور على مهام صالحة في نص الدردشة. يرجى التحقق من التنسيق.",
   "chat_import_success": "تم استيراد {{count}} مهام بنجاح من الدردشة!",
   "chat_import_invalid_tasks_skipped": "تم تخطي {{count}} مهمة غير صالحة (عنوان أو رقم معدة مفقود).",
-  "error_importing_tasks_from_chat": "خطأ في استيراد المهام من الدردشة"
+  "error_importing_tasks_from_chat": "خطأ في استيراد المهام من الدردشة",
+  "logout": "تسجيل الخروج"
 }
