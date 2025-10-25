@@ -171,14 +171,70 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
         </div>
       )}
       <div className="flex-grow">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-0">
-          <div>
-            <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
-              {task.title}
-            </CardTitle>
-            {task.task_id && <p className="text-sm font-medium text-muted-foreground pt-1">ID: {task.task_id}</p>}
+        <CardHeader className="p-0 pb-2">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-2">
+              <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
+                {task.title}
+              </CardTitle>
+              {task.task_id && <p className="text-sm font-medium text-muted-foreground pt-1">ID: {task.task_id}</p>}
+            </div>
+            <div className="flex items-center">
+              {canEditTask && (
+                <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>{t('edit_task')}</DialogTitle>
+                    </DialogHeader>
+                    <EditTaskForm
+                      task={task}
+                      onClose={() => setIsEditing(false)}
+                      canEditOrDelete={canEditOrDelete}
+                      canComplete={canComplete}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canStartProgress && (
+                    <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
+                  )}
+                  {canCancel && (
+                    <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
+                  )}
+                  {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
+                  {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
+                  {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  {canShare && (
+                    <DropdownMenuItem onClick={handleShare}>
+                      <Share2 className="h-4 w-4 mr-2" /> {t('share')}
+                    </DropdownMenuItem>
+                  )}
+                  {canDeleteTask && (
+                    <>
+                      {canShare && <DropdownMenuSeparator />}
+                      <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
+                        <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pt-2">
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${
               task.status === 'completed' ? 'bg-green-100 text-green-800' :
               task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
@@ -190,64 +246,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
             </span>
             {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
-            {canEditTask && (
-              <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>{t('edit_task')}</DialogTitle>
-                  </DialogHeader>
-                  <EditTaskForm
-                    task={task}
-                    onClose={() => setIsEditing(false)}
-                    canEditOrDelete={canEditOrDelete}
-                    canComplete={canComplete}
-                  />
-                </DialogContent>
-              </Dialog>
-            )}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canStartProgress && (
-                  <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
-                )}
-                {canCancel && (
-                  <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
-                )}
-
-                {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
-
-                {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
-                {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
-
-                {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
-
-                {canShare && (
-                  <DropdownMenuItem onClick={handleShare}>
-                    <Share2 className="h-4 w-4 mr-2" /> {t('share')}
-                  </DropdownMenuItem>
-                )}
-
-                {canDeleteTask && (
-                  <>
-                    {canShare && <DropdownMenuSeparator />}
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
-                      <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent className="space-y-2 p-0 pt-2">
