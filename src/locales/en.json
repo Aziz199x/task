@@ -68,7 +68,7 @@
   "task_title_cannot_be_empty": "Task title cannot be empty.",
   "equipment_number_mandatory": "Equipment number is mandatory.",
   "task_added_successfully": "Task added successfully!",
-  "search_tasks": "Search tasks...",
+  "search_tasks": "Search tasks (Title, Equipment No, Task ID, Notification No)",
   "filter_by_status": "Filter by Status",
   "all_statuses": "All Statuses",
   "assigned": "Assigned",
