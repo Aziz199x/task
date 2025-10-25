@@ -181,7 +181,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={t('search_tasks')}
+            placeholder={`${t('search_tasks')} (${t('equipment_number')}, ${t('task_id')}, ${t('notification_num')})`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
