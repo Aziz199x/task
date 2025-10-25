@@ -285,5 +285,6 @@
   "error_importing_tasks_from_chat": "Error importing tasks from chat",
   "logout": "Logout",
   "technician_cannot_delete_completed_or_cancelled_task": "Technicians cannot delete completed or cancelled tasks.",
-  "tasks_by_user": "Tasks by User"
+  "tasks_by_user": "Tasks by User",
+  "pick_a_date": "Pick a date"
 }

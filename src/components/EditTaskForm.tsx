@@ -14,6 +14,7 @@ import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import PhotoUploader from "./PhotoUploader";
 import { isPast, isToday } from 'date-fns';
+import { DatePicker } from "./DatePicker"; // Import the new DatePicker
 
 interface EditTaskFormProps {
   task: Task; // Initial task data, will be updated from context
@@ -37,6 +38,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   const currentTask = tasksByIdMap.get(initialTask.id) || initialTask;
   
   const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
+  const [dueDateObject, setDueDateObject] = useState<Date | undefined>(
+    currentTask.due_date ? new Date(currentTask.due_date) : undefined
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -44,6 +48,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   // Sync local state with global state when task updates
   useEffect(() => {
     setEditedTask(currentTask);
+    setDueDateObject(currentTask.due_date ? new Date(currentTask.due_date) : undefined);
   }, [currentTask]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
@@ -99,18 +104,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       return;
     }
 
-    if (editedTask.due_date) {
-      const selectedDate = new Date(editedTask.due_date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (isPast(selectedDate) && !isToday(selectedDate)) {
-        toast.error(t('due_date_cannot_be_in_past'));
-        setIsSaving(false);
-        return;
-      }
-    }
+    // Convert Date object to ISO string date part (YYYY-MM-DD) for Supabase
+    const dueDateString = dueDateObject ? dueDateObject.toISOString().split('T')[0] : null;
 
-    const success = await updateTask(currentTask.id, editedTask);
+    const updatesToSend: Partial<Task> = {
+        ...editedTask,
+        due_date: dueDateString,
+    };
+
+    // Note: The DatePicker already prevents past dates, so we remove the redundant date validation here.
+
+    const success = await updateTask(currentTask.id, updatesToSend);
     setIsSaving(false);
 
     if (success) {
@@ -175,7 +179,14 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
-        <Input id="dueDate" type="date" value={editedTask.due_date || ''} onChange={(e) => setEditedTask({...editedTask, due_date: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+        <div className="col-span-3">
+          <DatePicker 
+            date={dueDateObject} 
+            setDate={setDueDateObject} 
+            disabled={!canEditOrDelete} 
+            placeholder={t('pick_a_date')}
+          />
+        </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>

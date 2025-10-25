@@ -13,7 +13,8 @@ import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { useSession } from "@/context/SessionContext";
-import { isPast, isToday } from 'date-fns'; // Import date-fns functions
+import { isPast, isToday } from 'date-fns';
+import { DatePicker } from "./DatePicker"; // Import the new DatePicker
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
@@ -25,7 +26,7 @@ const TaskForm: React.FC = () => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined); // Change to Date object
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
@@ -82,20 +83,12 @@ const TaskForm: React.FC = () => {
       return;
     }
 
-    // Due Date Validation
-    if (dueDate) {
-      const selectedDate = new Date(dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Normalize today to start of day
+    // Convert Date object to ISO string date part (YYYY-MM-DD) for Supabase
+    const dueDateString = dueDate ? dueDate.toISOString().split('T')[0] : undefined;
 
-      if (isPast(selectedDate) && !isToday(selectedDate)) {
-        toast.error(t('due_date_cannot_be_in_past'));
-        setLoading(false);
-        return;
-      }
-    }
+    // Note: The DatePicker already prevents past dates, so we remove the redundant date validation here.
 
-    const success = await addTask(title, description, location.trim() === "" ? undefined : location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
+    const success = await addTask(title, description, location.trim() === "" ? undefined : location, dueDateString, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
     setLoading(false);
 
     if (success) {
@@ -103,7 +96,7 @@ const TaskForm: React.FC = () => {
       setDescription("");
       setLocation("");
       setLocationError(null);
-      setDueDate("");
+      setDueDate(undefined); // Reset to undefined
       setAssigneeId(null);
       setTypeOfWork(undefined);
       setEquipmentNumber("");
@@ -151,11 +144,10 @@ const TaskForm: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="dueDate">{t('due_date')}</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+            <DatePicker
+              date={dueDate}
+              setDate={setDueDate}
+              placeholder={t('pick_a_date')}
             />
           </div>
           <div>

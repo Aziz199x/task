@@ -285,5 +285,6 @@
   "error_importing_tasks_from_chat": "خطأ في استيراد المهام من الدردشة",
   "logout": "تسجيل الخروج",
   "technician_cannot_delete_completed_or_cancelled_task": "لا يمكن للفنيين حذف المهام المكتملة أو الملغاة.",
-  "tasks_by_user": "المهام حسب المستخدم"
+  "tasks_by_user": "المهام حسب المستخدم",
+  "pick_a_date": "اختر تاريخًا"
 }
