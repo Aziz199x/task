@@ -55,7 +55,7 @@ const ProfileSettingsForm: React.FC = () => {
     };
 
     try {
-      // 1. Update the public profile table
+      // 1. Update the public profile table (CRITICAL)
       console.log("[ProfileSettingsForm] Updating public.profiles table with:", updates);
       const { error: profileError } = await supabase
         .from('profiles')
@@ -68,22 +68,20 @@ const ProfileSettingsForm: React.FC = () => {
       }
       console.log("[ProfileSettingsForm] public.profiles updated successfully.");
 
-      // 2. Update auth user metadata
-      console.log("[ProfileSettingsForm] Updating auth.users metadata with:", { first_name: firstName.trim(), last_name: lastName.trim() });
-      const { error: userError } = await supabase.auth.updateUser({
+      // 2. Update auth user metadata (NON-BLOCKING - fire and forget)
+      // This is less critical for immediate UI update, so we don't await it.
+      supabase.auth.updateUser({
         data: {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
         }
+      }).then(({ error: userError }) => {
+        if (userError) {
+          console.warn("[ProfileSettingsForm] Failed to update user metadata:", userError.message);
+        }
       });
 
-      if (userError) {
-        console.warn("[ProfileSettingsForm] Failed to update user metadata:", userError.message);
-        // Do not throw here, as profile update might have succeeded
-      }
-      console.log("[ProfileSettingsForm] Auth user metadata update attempted.");
-
-      // Explicitly refetch profile to ensure UI updates
+      // 3. Explicitly refetch profile to ensure UI updates immediately
       await refetchProfile(user.id);
 
       toast.success(t('profile_updated_successfully'));
