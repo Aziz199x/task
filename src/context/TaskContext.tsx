@@ -54,26 +54,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           'postgres_changes',
           { event: '*', schema: 'public', table: 'tasks' },
           (payload) => {
-            console.log('[TaskContext] Realtime event received:', payload);
-            const newRecord = payload.new as Task;
-            const oldRecord = payload.old as Task;
-
-            if (payload.eventType === 'INSERT') {
-              setTasks((currentTasks) => {
-                if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
-                return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-              });
-            } else if (payload.eventType === 'UPDATE') {
-              setTasks((currentTasks) =>
-                currentTasks.map((task) =>
-                  task.id === newRecord.id ? newRecord : task
-                )
-              );
-            } else if (payload.eventType === 'DELETE') {
-              setTasks((currentTasks) =>
-                currentTasks.filter((task) => task.id !== oldRecord.id)
-              );
-            }
+            console.log('[TaskContext] Realtime event received, refetching tasks:', payload);
+            fetchTasks();
           }
         )
         .subscribe();
@@ -87,7 +69,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user, fetchTasks]);
 
-  const generateUniqueTaskId = async (): Promise<string> => {
+  const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;
     let newTaskId = '';
     while (!unique) {
@@ -105,9 +87,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
     return newTaskId;
-  };
+  }, [t]);
 
-  const addTask = async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => {
+  const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return;
@@ -123,9 +105,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id,
     });
     if (error) toast.error(t("failed_to_add_task") + error.message);
-  };
+  }, [user, generateUniqueTaskId, t]);
 
-  const addTasksBulk = async (newTasks: Partial<Task>[]) => {
+  const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
     const tasksToInsert = [];
     for (const task of newTasks) {
       if (!task.equipment_number) continue;
@@ -144,9 +126,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     const { error } = await supabase.from('tasks').insert(tasksToInsert);
     if (error) toast.error(t("failed_to_add_tasks_bulk") + error.message);
-  };
+  }, [user, generateUniqueTaskId, t]);
 
-  const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
+  const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
@@ -179,9 +161,21 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
     return true;
-  };
+  }, [tasks, profile, user, t]);
 
-  const deleteTask = async (id: string) => {
+  const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
+    try {
+      const urlParts = photoUrl.split('/public/task_photos/');
+      if (urlParts.length < 2) return;
+      const filePath = urlParts[1];
+      const { error } = await supabase.storage.from('task_photos').remove([filePath]);
+      if (error) toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+    } catch (error: any) {
+      toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+    }
+  }, [t]);
+
+  const deleteTask = useCallback(async (id: string) => {
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete && taskToDelete.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only_delete"));
@@ -192,9 +186,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) toast.error(t("failed_to_delete_task") + error.message);
-  };
+  }, [tasks, profile, t, deleteTaskPhoto]);
 
-  const updateTask = async (id: string, updates: Partial<Task>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
@@ -202,9 +196,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) toast.error(t("failed_to_update_task") + error.message);
-  };
+  }, [tasks, profile, t]);
 
-  const assignTask = async (id: string, assigneeId: string | null) => {
+  const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
@@ -213,19 +207,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
     const { error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id);
     if (error) toast.error(t("failed_to_assign_task") + error.message);
-  };
-
-  const deleteTaskPhoto = async (photoUrl: string) => {
-    try {
-      const urlParts = photoUrl.split('/public/task_photos/');
-      if (urlParts.length < 2) return;
-      const filePath = urlParts[1];
-      const { error } = await supabase.storage.from('task_photos').remove([filePath]);
-      if (error) toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
-    } catch (error: any) {
-      toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
-    }
-  };
+  }, [tasks, profile, t]);
 
   return (
     <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto }}>

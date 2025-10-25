@@ -79,7 +79,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="flex items-center gap-2">
-          <img src={currentUrl} alt={label} className="w-20 h-20 object-cover rounded-md" />
+          <img key={currentUrl} src={currentUrl} alt={label} className="w-20 h-20 object-cover rounded-md" />
           <Button variant="destructive" size="icon" onClick={onRemove} disabled={uploading}>
             <Trash2 className="h-4 w-4" />
           </Button>
