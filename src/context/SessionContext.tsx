@@ -168,17 +168,22 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const signOut = async () => {
     console.log("[SessionProvider] Attempting to sign out.");
     
-    // Check if a session exists before attempting to sign out
-    if (!session) {
-      console.warn("[SessionProvider] Sign out attempted but session is already missing.");
-      toast.info(t("you_have_been_signed_out"));
-      return;
-    }
-
     const { error } = await supabase.auth.signOut();
+    
     if (error) {
-      console.error("[SessionProvider] Failed to sign out:", error.message);
-      toast.error(t("failed_to_sign_out") + error.message);
+      // Check for the specific error message indicating the session is already missing
+      if (error.message.includes('Auth session missing')) {
+        console.warn("[SessionProvider] Sign out failed because session was already missing. Clearing local state manually.");
+        // Manually clear local state and trigger sign out notification
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        toast.info(t("you_have_been_signed_out"));
+        // Note: The onAuthStateChange listener should also catch this, but this ensures immediate feedback.
+      } else {
+        console.error("[SessionProvider] Failed to sign out:", error.message);
+        toast.error(t("failed_to_sign_out") + error.message);
+      }
     } else {
       console.log("[SessionProvider] Signed out successfully.");
       // The onAuthStateChange listener will handle state updates
