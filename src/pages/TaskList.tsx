@@ -113,7 +113,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
-        toast.warning(t('skipped_completed_tasks_warning', { count: skippedCount }));
+        // Ensure the message is always a string to prevent potential errors in toast library
+        const message = t('skipped_completed_tasks_warning', { count: skippedCount });
+        toast.warning(String(message));
       }
     }
     
