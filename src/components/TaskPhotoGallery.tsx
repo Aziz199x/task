@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface TaskPhotoGalleryProps {
   photoBeforeUrl?: string | null;
@@ -14,12 +14,15 @@ const PhotoThumbnail: React.FC<{ url: string; alt: string }> = ({ url, alt }) =>
   <Dialog>
     <DialogTrigger asChild>
       <div className="cursor-pointer">
-        <img key={url} src={url} alt={alt} className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity" />
+        <img src={url} alt={alt} className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity" />
         <p className="text-xs text-center text-muted-foreground mt-1">{alt}</p>
       </div>
     </DialogTrigger>
     <DialogContent className="max-w-3xl">
-      <img key={url} src={url} alt={alt} className="w-full h-auto rounded-lg" />
+      <DialogHeader>
+        <DialogTitle>{alt}</DialogTitle>
+      </DialogHeader>
+      <img src={url} alt={alt} className="w-full h-auto rounded-lg" />
     </DialogContent>
   </Dialog>
 );
