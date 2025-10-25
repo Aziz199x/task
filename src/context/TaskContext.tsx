@@ -148,6 +148,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("equipment_number_mandatory"));
       return;
     }
+
+    // Check for notification number uniqueness
+    if (notificationNum && notificationNum.trim() !== "") {
+      const { data, error: checkError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('notification_num', notificationNum.trim())
+        .limit(1);
+
+      if (checkError) {
+        toast.error(`Error checking notification number: ${checkError.message}`);
+        return;
+      }
+      if (data && data.length > 0) {
+        toast.error(t("notification_num_not_unique"));
+        return;
+      }
+    }
+
     let taskId: string | undefined;
     try {
       taskId = await generateUniqueTaskId();
@@ -160,6 +179,35 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [user, generateUniqueTaskId, t]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
+    const notificationNums = newTasks
+      .map(t => t.notification_num)
+      .filter((n): n is string => !!n && n.trim() !== "");
+
+    if (notificationNums.length > 0) {
+      // Check for duplicates within the uploaded list itself
+      const uniqueNums = new Set(notificationNums);
+      if (uniqueNums.size !== notificationNums.length) {
+        toast.error(t("upload_contains_duplicates"));
+        return;
+      }
+
+      // Check against the database for existing numbers
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('notification_num')
+        .in('notification_num', notificationNums);
+
+      if (error) {
+        toast.error(t("error_checking_notification_numbers", { message: error.message }));
+        return;
+      }
+      if (data && data.length > 0) {
+        const existingNums = data.map(d => d.notification_num).join(', ');
+        toast.error(t("upload_numbers_exist", { existingNums }));
+        return;
+      }
+    }
+
     const tasksToInsert = [];
     for (const task of newTasks) {
       if (!task.equipment_number) continue;
@@ -247,6 +295,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [tasks, profile, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
+    // Check for notification number uniqueness if it's being updated
+    if (updates.notification_num && updates.notification_num.trim() !== "") {
+      const { data: existingTask, error: checkError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('notification_num', updates.notification_num.trim())
+        .not('id', 'eq', id) // Exclude the current task from the check
+        .limit(1);
+
+      if (checkError) {
+        toast.error(`Error checking notification number: ${checkError.message}`);
+        return;
+      }
+      if (existingTask && existingTask.length > 0) {
+        toast.error(t("notification_num_not_unique"));
+        return;
+      }
+    }
+
     const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
