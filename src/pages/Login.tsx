@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserProfile } from '@/context/SessionContext'; // Import UserProfile type
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -99,7 +100,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center space-x-2">
+        <ThemeSwitcher />
         <LanguageSwitcher />
       </div>
       <Card className="w-full max-w-md p-6">
