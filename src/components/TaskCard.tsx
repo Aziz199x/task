@@ -172,12 +172,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
       )}
       <div className="flex-grow">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-0">
-          <div>
-            <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
-              {task.title}
-            </CardTitle>
-            {task.task_id && <p className="text-sm font-medium text-muted-foreground pt-1">ID: {task.task_id}</p>}
-          </div>
+          <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
+            {task.title}
+          </CardTitle>
           <div className="flex items-center space-x-2">
             <span className={`text-xs px-2 py-1 rounded-full capitalize ${
               task.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -250,40 +247,92 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 p-0 pt-2">
-          {task.description && <p className={`text-sm text-muted-foreground ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Clock className="h-4 w-4 mr-2" /> {t('created_on')}: {format(new Date(task.created_at), 'PPP p')}
+        <CardContent className="p-0 pt-2">
+          {task.description && <p className={`text-sm text-muted-foreground mb-2 ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 pt-2 border-t text-sm text-muted-foreground">
+            <div className="flex items-center min-w-0">
+              <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate" title={format(new Date(task.created_at), 'PPP p')}>{t('created_on')}: {format(new Date(task.created_at), 'P')}</span>
+            </div>
+
+            {task.due_date && 
+              <div className={`flex items-center min-w-0 ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : ""}`}>
+                <CalendarDays className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate" title={format(dueDateObj!, 'PPP')}>{t('due')}: {format(dueDateObj!, 'P')}</span>
+              </div>
+            }
+
+            {task.task_id && 
+              <div className="flex items-center min-w-0">
+                <Hash className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate" title={task.task_id}>{t('task_id')}: {task.task_id}</span>
+              </div>
+            }
+
+            {task.notification_num && 
+              <div className="flex items-center min-w-0">
+                <Bell className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate" title={task.notification_num}>{t('notification_num')}: {task.notification_num}</span>
+              </div>
+            }
+
+            {task.equipment_number && 
+              <div className="flex items-center min-w-0">
+                <HardHat className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate" title={task.equipment_number}>{t('equipment_number')}: {task.equipment_number}</span>
+              </div>
+            }
+
+            {task.type_of_work && 
+              <div className="flex items-center min-w-0">
+                <Wrench className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{t('type')}: {t(task.type_of_work.replace(/ /g, '_').toLowerCase())}</span>
+              </div>
+            }
+
+            {task.priority && (
+              <div className={`flex items-center min-w-0 ${getPriorityColor(task.priority)}`}>
+                <Flag className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{t('priority')}: {t(task.priority)}</span>
+              </div>
+            )}
+
+            {assignedTechnician && 
+              <div className="flex items-center min-w-0">
+                <User className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</span>
+              </div>
+            }
+
+            {!task.assignee_id && task.status !== 'unassigned' && 
+              <div className="flex items-center min-w-0">
+                <User className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{t('unassigned')}</span>
+              </div>
+            }
+
+            {task.status === 'completed' && closedByUser && (
+              <div className="flex items-center min-w-0">
+                <UserCheck className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}</span>
+              </div>
+            )}
           </div>
+
           {task.location && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-2" />
+            <div className="flex items-center text-sm text-muted-foreground pt-2 mt-2 border-t">
+              <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
               {validateLocationUrl(task.location) === null ? (
-                <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary truncate">
                   {task.location}
                 </a>
               ) : (
-                task.location
+                <span className="truncate">{task.location}</span>
               )}
             </div>
           )}
-          {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {t('task_id')}: {task.task_id}</div>}
-          {task.notification_num && <div className="flex items-center text-sm text-muted-foreground"><Bell className="h-4 w-4 mr-2" /> {t('notification_num')}: {task.notification_num}</div>}
-          {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2" /> {t('due')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
-          {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
-          {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2" /> {t('equipment_number')}: {task.equipment_number}</div>}
-          {task.priority && (
-            <div className={`flex items-center text-sm ${getPriorityColor(task.priority)}`}>
-              <Flag className="h-4 w-4 mr-2" /> {t('priority')}: {t(task.priority)}
-            </div>
-          )}
-          {assignedTechnician && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</div>}
-          {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('unassigned')}</div>}
-          {task.status === 'completed' && closedByUser && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
-            </div>
-          )}
+          
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
         </CardContent>
         {canComplete && (
