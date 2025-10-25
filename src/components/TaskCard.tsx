@@ -282,6 +282,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
               <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
             </div>
           )}
+          {task.status === 'completed' && task.closed_at && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <CalendarDays className="h-4 w-4 mr-2" /> {t('closed_on')}: {format(new Date(task.closed_at), 'PPP p')}
+            </div>
+          )}
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
         </CardContent>
         {canComplete && (

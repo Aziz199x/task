@@ -1,0 +1,2 @@
+ALTER TABLE public.tasks
+ADD COLUMN closed_at TIMESTAMP WITH TIME ZONE;

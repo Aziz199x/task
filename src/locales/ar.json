@@ -232,6 +232,7 @@
   "permission_denied_delete_task": "ليس لديك صلاحية لحذف المهام.",
   "permission_denied_cancel_task": "ليس لديك صلاحية لإلغاء هذه المهمة.",
   "closed_by": "أغلق بواسطة",
+  "closed_on": "أُغلقت في",
   "due_date_cannot_be_in_past": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي.",
   "created_on": "تاريخ الإنشاء",
   "file_too_large": "الملف كبير جداً. الحد الأقصى للحجم هو 10 ميجابايت.",

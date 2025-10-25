@@ -7,6 +7,7 @@ export type Task = {
   assignee_id?: string | null;
   creator_id?: string | null;
   closed_by_id?: string | null; // New field for who closed the task
+  closed_at?: string | null; // New field for when the task was closed
   location?: string | null;
   task_id?: string | null;
   due_date?: string | null;

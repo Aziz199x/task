@@ -232,6 +232,7 @@
   "permission_denied_delete_task": "You do not have permission to delete tasks.",
   "permission_denied_cancel_task": "You do not have permission to cancel this task.",
   "closed_by": "Closed by",
+  "closed_on": "Closed on",
   "due_date_cannot_be_in_past": "Due date cannot be in the past.",
   "created_on": "Created on",
   "file_too_large": "File is too large. Maximum size is 10MB.",

@@ -277,8 +277,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
     const updates: Partial<Task> = { status: newStatus };
-    if (newStatus === 'completed' && user?.id) updates.closed_by_id = user.id;
-    else if (newStatus !== 'completed') updates.closed_by_id = null;
+    if (newStatus === 'completed' && user?.id) {
+      updates.closed_by_id = user.id;
+      updates.closed_at = new Date().toISOString();
+    } else if (newStatus !== 'completed') {
+      updates.closed_by_id = null;
+      updates.closed_at = null;
+    }
     
     const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
