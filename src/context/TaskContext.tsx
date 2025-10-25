@@ -27,24 +27,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { user, profile } = useSession();
   const { t } = useTranslation();
 
-  // Function to play notification sound
   const playNotificationSound = useCallback(() => {
     try {
-      // Create a simple notification sound using Web Audio API
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-      
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
     } catch (error) {
@@ -79,7 +73,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           'postgres_changes',
           { event: '*', schema: 'public', table: 'tasks' },
           (payload) => {
-            console.log('[TaskContext] Realtime event received:', payload);
             const newRecord = payload.new as Task;
             const oldRecord = payload.old as { id: string };
 
@@ -87,83 +80,38 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               case 'INSERT':
                 setTasks((currentTasks) => {
                   if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
-                  
-                  // Show notification if task was created by someone else
-                  if (newRecord.creator_id !== user.id) {
-                    toast.info(t('new_task_created_notification', { title: newRecord.title }));
-                  }
-
-                  // Special notification if the new task is assigned to current user
+                  if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
                   if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
                     playNotificationSound();
-                    toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), {
-                      duration: 8000,
-                      style: {
-                        background: '#FEF3C7',
-                        border: '2px solid #F59E0B',
-                        color: '#92400E',
-                        fontWeight: 'bold',
-                      },
-                      icon: '⚠️',
-                    });
+                    toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
                   }
-                  
                   return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                 });
                 break;
               case 'UPDATE':
                 setTasks((currentTasks) => {
                   const oldTask = currentTasks.find(t => t.id === newRecord.id);
-                  
-                  // Show notifications for significant changes made by others
                   if (oldTask && newRecord.creator_id !== user.id) {
-                    if (oldTask.status !== newRecord.status) {
-                      toast.info(t('task_status_changed_notification', { 
-                        title: newRecord.title, 
-                        status: t(newRecord.status.replace('-', '_')) 
-                      }));
-                    }
+                    if (oldTask.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
                     if (oldTask.assignee_id !== newRecord.assignee_id) {
                       if (newRecord.assignee_id === user.id) {
-                        // Special warning notification for task assignment
                         playNotificationSound();
-                        toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), {
-                          duration: 8000,
-                          style: {
-                            background: '#FEF3C7',
-                            border: '2px solid #F59E0B',
-                            color: '#92400E',
-                            fontWeight: 'bold',
-                          },
-                          icon: '⚠️',
-                        });
+                        toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
                       } else if (oldTask.assignee_id === user.id) {
                         toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                       }
                     }
-                    // Photo upload notifications
-                    if (!oldTask.photo_before_url && newRecord.photo_before_url) {
-                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
-                    }
-                    if (!oldTask.photo_after_url && newRecord.photo_after_url) {
-                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
-                    }
-                    if (!oldTask.photo_permit_url && newRecord.photo_permit_url) {
-                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
-                    }
+                    if (!oldTask.photo_before_url && newRecord.photo_before_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
+                    if (!oldTask.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
+                    if (!oldTask.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
                   }
-                  
-                  return currentTasks.map((task) =>
-                    task.id === newRecord.id ? newRecord : task
-                  );
+                  return currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
                 });
                 break;
               case 'DELETE':
                 setTasks((currentTasks) => {
                   const deletedTask = currentTasks.find(t => t.id === oldRecord.id);
-                  if (deletedTask && deletedTask.creator_id !== user.id) {
-                    toast.info(t('task_deleted_notification', { title: deletedTask.title }));
-                  }
+                  if (deletedTask && deletedTask.creator_id !== user.id) toast.info(t('task_deleted_notification', { title: deletedTask.title }));
                   return currentTasks.filter((task) => task.id !== oldRecord.id);
                 });
                 break;
@@ -188,17 +136,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let newTaskId = '';
     while (!unique) {
       newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('task_id')
-        .eq('task_id', newTaskId)
-        .limit(1);
-      if (error) {
-        throw new Error(t('error_generating_unique_task_id'));
-      }
-      if (!data || data.length === 0) {
-        unique = true;
-      }
+      const { data, error } = await supabase.from('tasks').select('task_id').eq('task_id', newTaskId).limit(1);
+      if (error) throw new Error(t('error_generating_unique_task_id'));
+      if (!data || data.length === 0) unique = true;
     }
     return newTaskId;
   }, [t]);
@@ -215,9 +155,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(error.message);
       return;
     }
-    const { error } = await supabase.from('tasks').insert({
-      title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id,
-    });
+    const { error } = await supabase.from('tasks').insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id });
     if (error) toast.error(t("failed_to_add_task") + error.message);
   }, [user, generateUniqueTaskId, t]);
 
@@ -264,15 +202,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
     const updates: Partial<Task> = { status: newStatus };
-    if (newStatus === 'completed' && user?.id) {
-      updates.closed_by_id = user.id;
-    } else if (newStatus !== 'completed') {
-      updates.closed_by_id = null;
-    }
-    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+    if (newStatus === 'completed' && user?.id) updates.closed_by_id = user.id;
+    else if (newStatus !== 'completed') updates.closed_by_id = null;
+    
+    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
       return false;
+    }
+    if (data) {
+      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
     }
     return true;
   }, [tasks, profile, user, t]);
@@ -298,21 +237,32 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
     if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
+    
     const { error } = await supabase.from('tasks').delete().eq('id', id);
-    if (error) toast.error(t("failed_to_delete_task") + error.message);
+    if (error) {
+      toast.error(t("failed_to_delete_task") + error.message);
+    } else {
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+    }
   }, [tasks, profile, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
-    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
+    } else if (data) {
+      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
     }
   }, [t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
-    const { error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id);
-    if (error) toast.error(t("failed_to_assign_task") + error.message);
+    const { data, error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id).select().single();
+    if (error) {
+      toast.error(t("failed_to_assign_task") + error.message);
+    } else if (data) {
+      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
+    }
   }, [t]);
 
   return (
