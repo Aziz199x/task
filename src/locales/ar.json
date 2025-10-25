@@ -159,7 +159,7 @@
   "skipped_completed_tasks_warning": "{{count}} مهمة مكتملة تم تخطيها حيث لا يمكن تعديلها إلا بواسطة المسؤول.",
   "no_eligible_tasks_for_action": "لا توجد مهام مؤهلة لتنفيذ الإجراء عليها.",
   "tasks_could_not_be_updated_warning": "تعذر تحديث {{count}} مهام. قد تكون الصور المطلوبة مفقودة.",
-  "photos_and_permit_required_to_complete": "مطلوب صور 'قبل' و 'بعد' العمل وصورة 'التصريح' لإكمال المهمة.",
+  "photos_and_permit_required_to_complete": "مطلوب صور 'قبل' و 'بعد' العمل وصورة 'التصريح' ورقم الإشعار لإكمال المهمة.",
   "task_not_found": "المهمة غير موجودة.",
   "completed_tasks_admin_only": "لا يمكن تعديل المهام المكتملة إلا بواسطة المسؤول.",
   "failed_to_update_status": "فشل تحديث الحالة: ",
@@ -243,5 +243,6 @@
   "task_deleted_notification": "تم حذف المهمة '{{title}}'",
   "type": "النوع",
   "new_task_assigned_warning": "⚠️ مهمة جديدة معينة: '{{title}}' - يرجى التحقق من مهامك فوراً!",
-  "task_assigned_to_you_warning": "⚠️ تم تعيين مهمة لك: '{{title}}' - مطلوب اتخاذ إجراء!"
+  "task_assigned_to_you_warning": "⚠️ تم تعيين مهمة لك: '{{title}}' - مطلوب اتخاذ إجراء!",
+  "please_fill_in_the_following_fields": "يرجى ملء الحقول المطلوبة التالية لإكمال المهمة"
 }

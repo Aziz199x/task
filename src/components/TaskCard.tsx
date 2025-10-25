@@ -56,11 +56,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const isAssignedToCurrentUser = user && task.assignee_id === user.id;
   const isCreator = user && task.creator_id === user.id;
 
-  // New canComplete logic:
-  // 1. Task is not already completed or cancelled
-  // 2. Current user is the assignee OR
-  // 3. Current user is a supervisor AND is the creator of the task OR
-  // 4. Current user is an admin (admin override)
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (
     isAssignedToCurrentUser || 
     (currentUserProfile?.role === 'supervisor' && task.creator_id === user?.id) || 
@@ -83,6 +78,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
       toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
     }
     setIsSaving(false);
+  };
+
+  const handleCompleteClick = async () => {
+    const missingFields = [];
+    if (!task.photo_before_url) missingFields.push(t('before_work_photo'));
+    if (!task.photo_after_url) missingFields.push(t('after_work_photo'));
+    if (!task.photo_permit_url) missingFields.push(t('permit_photo'));
+    if (!task.notification_num) missingFields.push(t('notification_num'));
+
+    if (missingFields.length > 0) {
+      toast.error(`${t('please_fill_in_the_following_fields')}: ${missingFields.join(', ')}`);
+      setIsEditing(true); // Open the edit dialog
+    } else {
+      await handleStatusChange('completed');
+    }
   };
 
   const handleAssignToMe = async () => {
@@ -182,7 +192,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                 <DropdownMenuItem onClick={() => handleStatusChange('unassigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_unassigned')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('assigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_assigned')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('completed')} disabled={!canComplete || isSaving}>{t('mark_as_completed')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
@@ -237,7 +246,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
         </CardContent>
         {canComplete && (
           <CardFooter className="p-0 pt-4 mt-4 border-t">
-            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleStatusChange('completed')} disabled={isSaving}>
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleCompleteClick} disabled={isSaving}>
               <CheckCircle className="mr-2 h-4 w-4" /> {t('complete_task')}
             </Button>
           </CardFooter>

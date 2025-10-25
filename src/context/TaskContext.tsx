@@ -196,7 +196,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("permission_denied_complete_task"));
         return false;
       }
-      if (!taskToUpdate.task_id || !taskToUpdate.notification_num || !taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
+      if (!taskToUpdate.notification_num || !taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
         toast.error(t("photos_and_permit_required_to_complete"));
         return false;
       }
