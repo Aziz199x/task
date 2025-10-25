@@ -382,30 +382,6 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, i
       </AlertDialog>
     </Card>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for memo
-  // Only re-render if the task ID changes, or if the task data from the map is different,
-  // or if selection state changes.
-  const currentTaskFromMap = nextProps.tasksByIdMap.get(nextProps.task.id) || nextProps.task;
-  const prevTaskFromMap = prevProps.tasksByIdMap.get(prevProps.task.id) || prevProps.task;
-
-  return (
-    prevProps.task.id === nextProps.task.id &&
-    prevProps.isSelected === nextProps.isSelected &&
-    // Deep compare relevant task properties from the map
-    currentTaskFromMap.status === prevTaskFromMap.status &&
-    currentTaskFromMap.title === prevTaskFromMap.title &&
-    currentTaskFromMap.description === prevTaskFromMap.description &&
-    currentTaskFromMap.assignee_id === prevTaskFromMap.assignee_id &&
-    currentTaskFromMap.photo_before_url === prevTaskFromMap.photo_before_url &&
-    currentTaskFromMap.photo_after_url === prevTaskFromMap.photo_after_url &&
-    currentTaskFromMap.photo_permit_url === prevTaskFromMap.photo_permit_url &&
-    currentTaskFromMap.notification_num === prevTaskFromMap.notification_num &&
-    currentTaskFromMap.priority === prevTaskFromMap.priority &&
-    currentTaskFromMap.due_date === prevTaskFromMap.due_date &&
-    currentTaskFromMap.location === prevTaskFromMap.location &&
-    currentTaskFromMap.equipment_number === prevTaskFromMap.equipment_number
-  );
 });
 
 TaskCard.displayName = 'TaskCard';
