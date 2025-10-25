@@ -241,5 +241,7 @@
   "task_unassigned_from_you_notification": "تم إلغاء تعيين المهمة '{{title}}' منك",
   "photo_added_notification": "تمت إضافة صورة {{type}} للمهمة '{{title}}'",
   "task_deleted_notification": "تم حذف المهمة '{{title}}'",
-  "type": "النوع"
+  "type": "النوع",
+  "new_task_assigned_warning": "⚠️ مهمة جديدة معينة: '{{title}}' - يرجى التحقق من مهامك فوراً!",
+  "task_assigned_to_you_warning": "⚠️ تم تعيين مهمة لك: '{{title}}' - مطلوب اتخاذ إجراء!"
 }

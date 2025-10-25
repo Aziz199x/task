@@ -27,6 +27,31 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { user, profile } = useSession();
   const { t } = useTranslation();
 
+  // Function to play notification sound
+  const playNotificationSound = useCallback(() => {
+    try {
+      // Create a simple notification sound using Web Audio API
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Could not play notification sound:', error);
+    }
+  }, []);
+
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -67,6 +92,21 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   if (newRecord.creator_id !== user.id) {
                     toast.info(t('new_task_created_notification', { title: newRecord.title }));
                   }
+
+                  // Special notification if the new task is assigned to current user
+                  if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
+                    playNotificationSound();
+                    toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), {
+                      duration: 8000,
+                      style: {
+                        background: '#FEF3C7',
+                        border: '2px solid #F59E0B',
+                        color: '#92400E',
+                        fontWeight: 'bold',
+                      },
+                      icon: '⚠️',
+                    });
+                  }
                   
                   return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                 });
@@ -85,7 +125,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
                     if (oldTask.assignee_id !== newRecord.assignee_id) {
                       if (newRecord.assignee_id === user.id) {
-                        toast.success(t('task_assigned_to_you_notification', { title: newRecord.title }));
+                        // Special warning notification for task assignment
+                        playNotificationSound();
+                        toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), {
+                          duration: 8000,
+                          style: {
+                            background: '#FEF3C7',
+                            border: '2px solid #F59E0B',
+                            color: '#92400E',
+                            fontWeight: 'bold',
+                          },
+                          icon: '⚠️',
+                        });
                       } else if (oldTask.assignee_id === user.id) {
                         toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                       }
@@ -130,7 +181,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTasks([]);
       setLoading(false);
     }
-  }, [user, fetchTasks, t]);
+  }, [user, fetchTasks, t, playNotificationSound]);
 
   const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;

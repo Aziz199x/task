@@ -241,5 +241,7 @@
   "task_unassigned_from_you_notification": "Task '{{title}}' has been unassigned from you",
   "photo_added_notification": "{{type}} photo added to task '{{title}}'",
   "task_deleted_notification": "Task '{{title}}' has been deleted",
-  "type": "Type"
+  "type": "Type",
+  "new_task_assigned_warning": "⚠️ NEW TASK ASSIGNED: '{{title}}' - Please check your tasks immediately!",
+  "task_assigned_to_you_warning": "⚠️ TASK ASSIGNED TO YOU: '{{title}}' - Action required!"
 }
