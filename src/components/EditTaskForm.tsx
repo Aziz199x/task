@@ -32,17 +32,14 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
-  const [editedTask, setEditedTask] = useState<Partial<Task>>(task);
+  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => task);
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Initialize state and errors only when the task ID changes (i.e., when a new task is opened)
   useEffect(() => {
     setEditedTask(task);
-    setNotificationNumError(validateNotificationNum(task.notification_num));
-    setLocationError(validateLocationUrl(task.location));
-  }, [task.id]);
+  }, [task]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
@@ -120,15 +117,16 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     await updateTask(task.id, { [photoUrlKey]: url });
   }, [task.id, updateTask]);
 
-  const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
+  const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
+    const currentUrl = editedTask[photoUrlKey] as string | null | undefined;
     setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
     await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t]);
+  }, [task.id, deleteTaskPhoto, updateTask, t, editedTask]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -244,7 +242,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             photoType="before"
             currentUrl={editedTask.photo_before_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('before', url)}
-            onRemove={() => handlePhotoRemove('before', editedTask.photo_before_url)}
+            onRemove={() => handlePhotoRemove('before')}
           />
           <PhotoUploader
             label={t('after_work_photo')}
@@ -252,7 +250,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             photoType="after"
             currentUrl={editedTask.photo_after_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('after', url)}
-            onRemove={() => handlePhotoRemove('after', editedTask.photo_after_url)}
+            onRemove={() => handlePhotoRemove('after')}
           />
           <PhotoUploader
             label={t('permit_photo')}
@@ -260,7 +258,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             photoType="permit"
             currentUrl={editedTask.photo_permit_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('permit', url)}
-            onRemove={() => handlePhotoRemove('permit', editedTask.photo_permit_url)}
+            onRemove={() => handlePhotoRemove('permit')}
           />
         </>
       )}
