@@ -36,7 +36,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
@@ -113,9 +113,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
-        const message = t('skipped_completed_tasks_warning', { count: skippedCount });
-        // Use a hardcoded fallback if translation fails
-        toast.warning(String(message || t('some_tasks_skipped_fallback') || 'Warning: Some tasks were skipped.'));
+        toast.warning(t('skipped_completed_tasks_warning', { count: skippedCount }));
       }
     }
     
@@ -140,9 +138,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            const message = t('tasks_could_not_be_updated_warning', { count: failCount });
-            // Use a hardcoded fallback if translation fails
-            toast.warning(String(message || t('tasks_update_failed_fallback') || 'Warning: Some tasks could not be updated.'));
+            toast.warning(t('tasks_could_not_be_updated_warning', { count: failCount }));
           }
         }
         break;
@@ -159,9 +155,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         const assignFailCount = tasksToActOn.length - assignSuccessCount;
         if (assignFailCount > 0) {
-          const message = t('tasks_could_not_be_assigned_warning', { count: assignFailCount });
-          // Use a hardcoded fallback if translation fails
-          toast.warning(String(message || t('tasks_assign_failed_fallback') || 'Warning: Some tasks could not be assigned.'));
+          toast.warning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
         }
         break;
       case 'delete':
@@ -195,10 +189,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       {/* Filters - Organized wrapping layout */}
-      <div className="flex flex-wrap gap-2"> {/* Changed gap-4 to gap-2 */}
+      <div className="flex flex-wrap gap-4">
         <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_status')} className="truncate" /> {/* Added truncate */}
+            <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_statuses')}</SelectItem>
@@ -212,7 +206,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: string | "all") => setFilterAssignee(value)} value={filterAssignee}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_assignee')} className="truncate" /> {/* Added truncate */}
+            <SelectValue placeholder={t('filter_by_assignee')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
@@ -227,7 +221,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t('filter_by_type_of_work')} className="truncate" /> {/* Added truncate */}
+            <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_types')}</SelectItem>
@@ -241,7 +235,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: "all" | "overdue" | "due-soon") => setFilterReminder(value)} value={filterReminder}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_reminder')} className="truncate" /> {/* Added truncate */}
+            <SelectValue placeholder={t('filter_by_reminder')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_tasks')}</SelectItem>
@@ -252,7 +246,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: Task['priority'] | "all") => setFilterPriority(value)} value={filterPriority}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_priority')} className="truncate" /> {/* Added truncate */}
+            <SelectValue placeholder={t('filter_by_priority')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="low">{t('low')}</SelectItem>
@@ -264,7 +258,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       {filteredTasks.length > 0 && (
-        <div className="flex items-center gap-2 mb-4"> {/* Changed gap-4 to gap-2 */}
+        <div className="flex items-center gap-4 mb-4">
           <Checkbox
             checked={allTasksSelected}
             onCheckedChange={(checked) => handleSelectAllTasks(checked === true)}

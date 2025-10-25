@@ -214,12 +214,11 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
   };
 
-  // Helper component for detail lines - MODIFIED
-  const DetailLine: React.FC<{ icon: React.ReactNode; label: string; value: React.ReactNode; className?: string }> = ({ icon, label, value, className = "text-muted-foreground" }) => (
+  // Helper component for detail lines
+  const DetailLine: React.FC<{ icon: React.ReactNode; text: React.ReactNode; className?: string }> = ({ icon, text, className = "text-muted-foreground" }) => (
     <div className={`flex items-start text-xs ${className}`}>
-      {React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5 mr-1 mt-0.5 flex-shrink-0" })}
-      <span className="font-medium mr-1">{label}:</span>
-      <span className="break-words min-w-0 flex-1">{value}</span>
+      {React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5 mr-2 mt-0.5 flex-shrink-0" })}
+      <span className="break-words min-w-0">{text}</span>
     </div>
   );
 
@@ -321,15 +320,13 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
           <div className="space-y-1 pt-1">
             <DetailLine 
               icon={<Clock />} 
-              label={t('created_on')}
-              value={format(new Date(task.created_at), 'PPP p')}
+              text={`${t('created_on')}: ${format(new Date(task.created_at), 'PPP p')}`}
             />
             
             {task.location && (
               <DetailLine 
                 icon={<MapPin />} 
-                label={t('location')}
-                value={validateLocationUrl(task.location) === null ? (
+                text={validateLocationUrl(task.location) === null ? (
                   <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
                     {task.location}
                   </a>
@@ -339,45 +336,41 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
               />
             )}
             
-            {task.task_id && <DetailLine icon={<Hash />} label={t('task_id')} value={task.task_id} />}
-            {task.notification_num && <DetailLine icon={<Bell />} label={t('notification_num')} value={task.notification_num} />}
+            {task.task_id && <DetailLine icon={<Hash />} text={`${t('task_id')}: ${task.task_id}`} />}
+            {task.notification_num && <DetailLine icon={<Bell />} text={`${t('notification_num')}: ${task.notification_num}`} />}
             
             {task.due_date && (
               <DetailLine 
                 icon={<CalendarDays />} 
-                label={t('due_date')}
-                value={`${format(dueDateObj!, 'PPP')} ${isOverdue ? `(${t('overdue')})` : ''} ${isDueSoon && !isOverdue ? `(${t('due_soon')})` : ''}`}
+                text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isOverdue ? `(${t('overdue')})` : ''} ${isDueSoon && !isOverdue ? `(${t('due_soon')})` : ''}`}
                 className={isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}
               />
             )}
             
-            {task.type_of_work && <DetailLine icon={<Wrench />} label={t('type')} value={t(task.type_of_work.replace(' ', '_').toLowerCase())} />}
-            {task.equipment_number && <DetailLine icon={<HardHat />} label={t('equipment_number')} value={task.equipment_number} />}
+            {task.type_of_work && <DetailLine icon={<Wrench />} text={`${t('type')}: ${t(task.type_of_work.replace(' ', '_').toLowerCase())}`} />}
+            {task.equipment_number && <DetailLine icon={<HardHat />} text={`${t('equipment_number')}: ${task.equipment_number}`} />}
             
             {task.priority && (
               <DetailLine 
                 icon={<Flag />} 
-                label={t('priority')}
-                value={t(task.priority)}
+                text={`${t('priority')}: ${t(task.priority)}`}
                 className={getPriorityColor(task.priority)}
               />
             )}
             
-            {assignedTechnician && <DetailLine icon={<User />} label={t('assigned_to')} value={`${assignedTechnician.first_name} ${assignedTechnician.last_name}`} />}
-            {!task.assignee_id && task.status !== 'unassigned' && <DetailLine icon={<User />} label={t('assigned_to')} value={t('unassigned')} />}
+            {assignedTechnician && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedTechnician.first_name} ${assignedTechnician.last_name}`} />}
+            {!task.assignee_id && task.status !== 'unassigned' && <DetailLine icon={<User />} text={t('unassigned')} />}
             
             {task.status === 'completed' && closedByUser && (
               <DetailLine 
                 icon={<UserCheck />} 
-                label={t('closed_by')}
-                value={`${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`}
+                text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`}
               />
             )}
             {task.status === 'completed' && task.closed_at && (
               <DetailLine 
                 icon={<CalendarDays />} 
-                label={t('closed_on')}
-                value={format(new Date(task.closed_at), 'PPP p')}
+                text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`}
               />
             )}
           </div>
