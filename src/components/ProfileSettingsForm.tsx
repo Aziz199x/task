@@ -39,13 +39,14 @@ const ProfileSettingsForm: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[ProfileSettingsForm] handleUpdateProfile called.");
     if (!user) {
       console.log("[ProfileSettingsForm] No user found, cannot update profile.");
       return;
     }
 
     setLoading(true);
-    console.log("[ProfileSettingsForm] Starting profile update for user:", user.id);
+    console.log("[ProfileSettingsForm] Loading state set to true.");
 
     const updates = {
       first_name: firstName.trim(),
@@ -56,7 +57,7 @@ const ProfileSettingsForm: React.FC = () => {
 
     try {
       // 1. Update the public profile table (CRITICAL)
-      console.log("[ProfileSettingsForm] Updating public.profiles table with:", updates);
+      console.log("[ProfileSettingsForm] Attempting to update public.profiles table with:", updates);
       const { error: profileError } = await supabase
         .from('profiles')
         .update(updates)
@@ -70,6 +71,7 @@ const ProfileSettingsForm: React.FC = () => {
 
       // 2. Update auth user metadata (NON-BLOCKING - fire and forget)
       // This is less critical for immediate UI update, so we don't await it.
+      console.log("[ProfileSettingsForm] Attempting to update auth user metadata (non-blocking).");
       supabase.auth.updateUser({
         data: {
           first_name: firstName.trim(),
@@ -78,13 +80,20 @@ const ProfileSettingsForm: React.FC = () => {
       }).then(({ error: userError }) => {
         if (userError) {
           console.warn("[ProfileSettingsForm] Failed to update user metadata:", userError.message);
+        } else {
+          console.log("[ProfileSettingsForm] Auth user metadata update initiated successfully.");
         }
+      }).catch((e) => {
+        console.error("[ProfileSettingsForm] Error during non-blocking auth user metadata update:", e.message);
       });
 
       // 3. Explicitly refetch profile to ensure UI updates immediately
+      console.log("[ProfileSettingsForm] Attempting to refetch profile.");
       await refetchProfile(user.id);
+      console.log("[ProfileSettingsForm] Profile refetched successfully.");
 
       toast.success(t('profile_updated_successfully'));
+      console.log("[ProfileSettingsForm] Success toast shown.");
     } catch (error: any) {
       console.error("[ProfileSettingsForm] Caught error during profile update:", error);
       toast.error(`${t('failed_to_update_profile')}: ${error.message}`);
