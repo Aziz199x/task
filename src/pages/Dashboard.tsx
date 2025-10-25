@@ -10,6 +10,7 @@ import TaskStatusOverviewChart from "@/components/dashboard/TaskStatusOverviewCh
 import TaskLoadByEmployeeChart from "@/components/dashboard/TaskLoadByEmployeeChart";
 import AllTasksSection from "@/components/dashboard/AllTasksSection";
 import UserManagementCard from "@/components/dashboard/UserManagementCard";
+import TasksByUserList from "@/components/dashboard/TasksByUserList"; // Import the new component
 import { useTechnicians } from "@/hooks/use-technicians";
 
 const Dashboard: React.FC = () => {
@@ -69,6 +70,9 @@ const Dashboard: React.FC = () => {
         <TaskLoadByEmployeeChart tasks={tasks} technicians={technicians} />
         <UserManagementCard />
       </div>
+
+      {/* Tasks by User List */}
+      <TasksByUserList />
 
       {/* All Tasks Section */}
       <AllTasksSection />

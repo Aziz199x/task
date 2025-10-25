@@ -309,16 +309,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [t]);
 
   const deleteTask = useCallback(async (id: string) => {
-    if (!profile || !['admin', 'manager'].includes(profile.role)) {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (!taskToDelete) {
+      toast.error(t("task_not_found"));
+      return;
+    }
+
+    const isCreator = user?.id === taskToDelete.creator_id;
+    const isAdminOrManager = profile && ['admin', 'manager'].includes(profile.role);
+    const isTechnician = profile?.role === 'technician';
+
+    // Admins/Managers can delete any task, but completed tasks require admin role
+    if (isAdminOrManager) {
+      if (taskToDelete.status === 'completed' && profile?.role !== 'admin') {
+        toast.error(t("completed_tasks_admin_only_delete"));
+        return;
+      }
+    } else if (isTechnician && isCreator) {
+      // Technicians can delete their own tasks if not completed or cancelled
+      if (taskToDelete.status === 'completed' || taskToDelete.status === 'cancelled') {
+        toast.error(t("technician_cannot_delete_completed_or_cancelled_task")); // New translation key
+        return;
+      }
+    } else {
+      // Any other role or unauthorized technician
       toast.error(t("permission_denied_delete_task"));
       return;
     }
 
-    const taskToDelete = tasks.find(t => t.id === id);
-    if (taskToDelete && taskToDelete.status === 'completed' && profile?.role !== 'admin') {
-      toast.error(t("completed_tasks_admin_only_delete"));
-      return;
-    }
     if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
     if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
@@ -329,7 +347,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
-  }, [tasks, profile, t, deleteTaskPhoto]);
+  }, [tasks, profile, user, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
