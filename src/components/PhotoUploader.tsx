@@ -39,6 +39,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   };
 
   const handleUpload = async () => {
+    console.log(`[PhotoUploader - ${photoType}] handleUpload function invoked.`); // New log
     if (!file) {
       toast.error(t('please_select_a_file_first'));
       return;

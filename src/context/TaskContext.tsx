@@ -35,7 +35,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("[TaskContext] Error fetching tasks:", error);
       toast.error("Failed to load tasks: " + error.message);
       setTasks([]);
     } else {
@@ -54,6 +54,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const channel = supabase
       .channel('public:tasks')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        console.log("[TaskContext] Realtime update received, refetching tasks:", payload); // New log
         fetchTasks(); // Refetch all tasks on any change
       })
       .subscribe();
@@ -78,7 +79,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .limit(1);
 
       if (error) {
-        console.error("Error checking task ID uniqueness during generation:", error.message);
+        console.error("[TaskContext] Error checking task ID uniqueness during generation:", error.message);
         throw new Error(t('error_generating_unique_task_id'));
       }
 
@@ -130,7 +131,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     for (const task of newTasks) {
       if (!task.equipment_number) {
         // Skip tasks missing mandatory equipment number
-        console.warn("Skipping task in bulk import due to missing equipment number:", task);
+        console.warn("[TaskContext] Skipping task in bulk import due to missing equipment number:", task);
         continue;
       }
       let taskId: string | undefined;
@@ -220,6 +221,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("failed_to_update_status") + error.message);
       return false;
     } else {
+      console.log(`[TaskContext] Status updated for task ${id}, refetching tasks.`); // New log
       fetchTasks(); // Force a refresh after successful status update
     }
     return true;
@@ -240,11 +242,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
     } else {
+      console.log(`[TaskContext] Task ${id} deleted, refetching tasks.`); // New log
       fetchTasks(); // Force a refresh after successful delete
     }
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
+    console.log(`[TaskContext] Attempting to update task ${id} with:`, updates); // New log
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
@@ -255,8 +259,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .update(updates)
       .eq('id', id);
     if (error) {
+      console.error(`[TaskContext] Failed to update task ${id}:`, error); // New log
       toast.error(t("failed_to_update_task") + error.message);
     } else {
+      console.log(`[TaskContext] Task ${id} updated successfully, refetching tasks.`); // New log
       fetchTasks(); // Force a refresh after successful update
     }
   };
@@ -275,6 +281,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
     } else {
+      console.log(`[TaskContext] Task ${id} assigned to ${assigneeId}, refetching tasks.`); // New log
       fetchTasks(); // Force a refresh after successful assignment
     }
   };
@@ -284,7 +291,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Extract the path from the public URL
       const urlParts = photoUrl.split('/public/task_photos/');
       if (urlParts.length < 2) {
-        console.warn("Invalid photo URL for deletion:", photoUrl);
+        console.warn("[TaskContext] Invalid photo URL for deletion:", photoUrl);
         return;
       }
       const filePath = urlParts[1];
@@ -294,13 +301,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .remove([filePath]);
 
       if (error) {
-        console.error("Error deleting photo from storage:", error.message);
+        console.error("[TaskContext] Error deleting photo from storage:", error.message);
         toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
       } else {
-        console.log("Photo deleted from storage:", filePath);
+        console.log("[TaskContext] Photo deleted from storage:", filePath);
       }
     } catch (error: any) {
-      console.error("Unexpected error during photo deletion:", error.message);
+      console.error("[TaskContext] Unexpected error during photo deletion:", error.message);
       toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     }
   };
