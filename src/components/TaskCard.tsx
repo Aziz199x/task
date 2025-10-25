@@ -239,8 +239,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
               <CardTitle className={`text-base font-semibold break-words ${task.status === 'completed' ? "line-through" : ""}`}>
                 {task.title}
               </CardTitle>
-              {/* Display the unique database ID (UUID) */}
-              <p className="text-xs font-medium text-muted-foreground pt-1 truncate">ID: {task.id}</p>
+              {/* Removed the long UUID (task.id) display here */}
             </div>
             <div className="flex items-center flex-shrink-0">
               {canEditTask && (
