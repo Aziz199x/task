@@ -1,5 +1,5 @@
 {
-  "welcome_to_task_manager": "مرحباً بك في مدير المهام",
+  "welcome_to_task_manager": "Abu Miral Work flow management",
   "sign_in_to_continue": "سجل الدخول للمتابعة",
   "loading_user_session": "جارٍ تحميل جلسة المستخدم...",
   "permission_denied_create_account": "ليس لديك إذن لإنشاء حسابات.",
@@ -34,7 +34,7 @@
   "manager": "مدير",
   "Manager": "مدير",
   "supervisor": "مشرف",
-  "task_manager": "مدير المهام",
+  "task_manager": "Abu Miral",
   "loading": "جارٍ التحميل...",
   "signed_out_successfully": "تم تسجيل الخروج بنجاح!",
   "failed_to_sign_out": "فشل تسجيل الخروج:",
