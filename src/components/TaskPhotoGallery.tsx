@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface TaskPhotoGalleryProps {
   photoBeforeUrl?: string | null;
@@ -47,6 +48,7 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
 
   useEffect(() => {
     const fetchSignedUrls = async () => {
+      setLoading(true);
       const urlsToFetch: { key: 'before' | 'after' | 'permit'; url: string }[] = [];
       if (photoBeforeUrl) urlsToFetch.push({ key: 'before', url: photoBeforeUrl });
       if (photoAfterUrl) urlsToFetch.push({ key: 'after', url: photoAfterUrl });
@@ -57,13 +59,22 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
         return;
       }
 
-      // Extract file paths from the full URLs
       const filePaths = urlsToFetch.map(item => {
-        const urlParts = item.url.split('/public/task_photos/');
-        return urlParts.length > 1 ? urlParts[1] : '';
+        try {
+          const url = new URL(item.url);
+          const pathParts = url.pathname.split('/task_photos/');
+          if (pathParts.length > 1) {
+            return pathParts[1];
+          }
+          return '';
+        } catch (e) {
+          console.error("Invalid URL stored in database:", item.url);
+          return '';
+        }
       }).filter(path => path);
 
       if (filePaths.length === 0) {
+        toast.error("Could not extract valid photo paths to generate secure links.");
         setLoading(false);
         return;
       }
@@ -73,18 +84,39 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
           body: { filePaths },
         });
 
-        if (error) throw error;
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        if (!data || data.length === 0) {
+          throw new Error("The security function returned no data.");
+        }
 
-        const newSignedUrls: any = {};
-        data.forEach((signed: { signedUrl: string; path: string }) => {
+        const newSignedUrls: any = { before: null, after: null, permit: null };
+        let urlsFound = 0;
+        data.forEach((signed: { signedUrl: string; path: string; error: string | null }) => {
+          if (signed.error) {
+            console.error(`Error generating signed URL for ${signed.path}:`, signed.error);
+            toast.error(`Failed to get secure link for one of the photos.`);
+            return;
+          }
+          
           const originalItem = urlsToFetch.find(item => item.url.includes(signed.path));
           if (originalItem) {
             newSignedUrls[originalItem.key] = signed.signedUrl;
+            urlsFound++;
           }
         });
+
+        if (urlsFound === 0) {
+            toast.error("Could not match any secure links back to the photos.");
+        }
+
         setSignedUrls(newSignedUrls);
-      } catch (error) {
+
+      } catch (error: any) {
         console.error("Error fetching signed URLs:", error);
+        toast.error(`Failed to get secure photo links: ${error.message}`);
       } finally {
         setLoading(false);
       }
