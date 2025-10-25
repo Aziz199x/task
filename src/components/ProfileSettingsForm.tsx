@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-// Extend UserProfile type to include phone_number
+// Extend UserProfile type locally to include phone_number for type safety
 interface ProfileWithPhone extends UserProfile {
   phone_number: string | null;
 }
@@ -20,31 +20,21 @@ const ProfileSettingsForm: React.FC = () => {
   const { profile, user, loading: sessionLoading } = useSession();
   const { t } = useTranslation();
 
+  // Cast profile to include phone_number for easier access
+  const currentProfile = profile as ProfileWithPhone | null;
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.first_name || '');
-      setLastName(profile.last_name || '');
-      // Fetch phone number explicitly since it's a new field and might not be in the initial context profile type
-      fetchPhoneNumber(profile.id);
+    if (currentProfile) {
+      setFirstName(currentProfile.first_name || '');
+      setLastName(currentProfile.last_name || '');
+      setPhoneNumber(currentProfile.phone_number || '');
     }
-  }, [profile]);
-
-  const fetchPhoneNumber = async (id: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('phone_number')
-      .eq('id', id)
-      .single();
-    
-    if (data) {
-      setPhoneNumber(data.phone_number || '');
-    }
-  };
+  }, [currentProfile]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +50,7 @@ const ProfileSettingsForm: React.FC = () => {
     };
 
     try {
-      // 1. Update the public profile table
+      // 1. Update the public profile table (AWAIT THIS)
       const { error: profileError } = await supabase
         .from('profiles')
         .update(updates)
@@ -70,7 +60,7 @@ const ProfileSettingsForm: React.FC = () => {
         throw profileError;
       }
 
-      // 2. Update auth user metadata (for first_name/last_name consistency, although profile table is primary source)
+      // 2. Update auth user metadata (AWAIT THIS)
       const { error: userError } = await supabase.auth.updateUser({
         data: {
           first_name: firstName.trim(),
@@ -88,11 +78,12 @@ const ProfileSettingsForm: React.FC = () => {
       console.error("Error updating profile:", error.message);
       toast.error(`${t('failed_to_update_profile')}: ${error.message}`);
     } finally {
+      // Ensure loading state is dismissed regardless of success/failure
       setLoading(false);
     }
   };
 
-  if (sessionLoading || !profile) {
+  if (sessionLoading || !currentProfile) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center h-[200px]">
