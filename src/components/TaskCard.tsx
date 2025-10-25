@@ -74,7 +74,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
   const canStartProgress = (isAssignedToCurrentUser || canEditOrDelete) && task.status === 'assigned';
-  const canCancel = isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role));
+  const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
+                    (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress'); // Only allow cancellation for active tasks
   const canShare = typeof navigator !== 'undefined' && navigator.share;
 
   const handleDelete = () => {
@@ -255,7 +256,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                     <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress')}</DropdownMenuItem>
                   )}
                   {canCancel && (
-                    <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                   )}
                   {(canStartProgress || canCancel || isCompleted) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
