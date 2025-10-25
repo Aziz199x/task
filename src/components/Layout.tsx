@@ -45,6 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
                 </div>
               )}
+              {/* Navigation Links */}
               <div className="flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1">
                 <Link to="/">
                   <Button 
@@ -95,9 +96,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Button>
                   </Link>
                 )}
+              </div>
+              {/* Theme and Language Switchers */}
+              <div className="flex items-center space-x-2">
                 <ThemeSwitcher />
                 <LanguageSwitcher />
               </div>
+              {/* Logout Button */}
               <Button variant="destructive" onClick={signOut} className="w-full md:w-auto flex items-center justify-center md:justify-start">
                 <LogOut className="h-5 w-5 mr-2" /> {t('logout')}
               </Button>
