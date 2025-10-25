@@ -60,37 +60,42 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] Initializing auth listener...");
 
     const initializeAuth = async () => {
+      let initialSession: Session | null = null;
+      let sessionError: any = null;
+
       try {
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (!isMounted) return;
-
-        if (sessionError) {
-          console.error("[SessionProvider] Error getting initial session:", sessionError.message);
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-        } else {
-          console.log("[SessionProvider] Initial session:", initialSession);
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-
-          if (initialSession?.user) {
-            await fetchUserProfile(initialSession.user.id);
-          } else {
-            setProfile(null);
-          }
-        }
+        const { data, error } = await supabase.auth.getSession();
+        initialSession = data.session;
+        sessionError = error;
       } catch (e: any) {
-        console.error("[SessionProvider] Unexpected error during initial auth setup:", e.message);
+        console.error("[SessionProvider] Error during getSession:", e.message);
+        sessionError = e;
+      }
+
+      if (!isMounted) return;
+
+      if (sessionError) {
+        console.error("[SessionProvider] Error getting initial session:", sessionError.message);
         setSession(null);
         setUser(null);
         setProfile(null);
-      } finally {
-        if (isMounted) {
-          setIsLoadingInitial(false);
-          console.log("[SessionProvider] Initial loading complete.");
+      } else {
+        console.log("[SessionProvider] Initial session:", initialSession);
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+
+        if (initialSession?.user) {
+          // Await profile fetch, but ensure we proceed to finally block regardless
+          await fetchUserProfile(initialSession.user.id);
+        } else {
+          setProfile(null);
         }
+      }
+      
+      // Ensure loading state is dismissed here
+      if (isMounted) {
+        setIsLoadingInitial(false);
+        console.log("[SessionProvider] Initial loading complete.");
       }
 
       const { data: authListener } = supabase.auth.onAuthStateChange(
