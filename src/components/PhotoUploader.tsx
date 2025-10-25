@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
+import imageCompression from 'browser-image-compression';
 
 interface PhotoUploaderProps {
   label: string;
@@ -28,12 +29,6 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const handleUpload = useCallback(async (file: File) => {
     if (!file) return;
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error(t('file_too_large'));
-      return;
-    }
-
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error(t('invalid_file_type'));
@@ -44,23 +39,27 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
     setUploadProgress(0);
 
     try {
-      const fileExt = file.name.split('.').pop();
+      // Options for image compression
+      const options = {
+        maxSizeMB: 1, // Max file size in MB
+        maxWidthOrHeight: 1024, // Max width or height in pixels
+        useWebWorker: true, // Use web worker for better performance
+        onProgress: (p: number) => setUploadProgress(p), // Progress callback
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      const fileExt = compressedFile.name.split('.').pop();
       const fileName = `${photoType}-${Date.now()}.${fileExt}`;
       const filePath = `${taskId}/${fileName}`;
 
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 100);
-
       const { error: uploadError } = await supabase.storage
         .from('task_photos')
-        .upload(filePath, file, {
+        .upload(filePath, compressedFile, {
           cacheControl: '3600',
           upsert: false
         });
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (uploadError) {
