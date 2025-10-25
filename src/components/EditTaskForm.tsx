@@ -37,11 +37,14 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // This effect now ONLY runs when the component is first mounted
+  // with a specific task. It will not re-run and overwrite user input
+  // if the parent's `task` object gets a new reference.
   useEffect(() => {
     setEditedTask(task);
     setNotificationNumError(validateNotificationNum(task.notification_num));
     setLocationError(validateLocationUrl(task.location));
-  }, [task]);
+  }, [task.id]); // Depend only on the task ID
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") {
@@ -125,13 +128,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
+    // Optimistically update local state for instant UI feedback
     setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
+    // Then, update the database in the background
     await updateTask(task.id, { [photoUrlKey]: url });
   }, [task.id, updateTask]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
+    // Optimistically update local state
     setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
+    // Then, update the database and storage
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
