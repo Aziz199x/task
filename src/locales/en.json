@@ -231,5 +231,15 @@
   "permission_denied_complete_task": "You do not have permission to complete this task.",
   "closed_by": "Closed by",
   "due_date_cannot_be_in_past": "Due date cannot be in the past.",
-  "created_on": "Created on"
+  "created_on": "Created on",
+  "file_too_large": "File is too large. Maximum size is 10MB.",
+  "invalid_file_type": "Invalid file type. Please select an image file.",
+  "uploading": "Uploading",
+  "new_task_created_notification": "New task created: {{title}}",
+  "task_status_changed_notification": "Task '{{title}}' status changed to {{status}}",
+  "task_assigned_to_you_notification": "Task '{{title}}' has been assigned to you",
+  "task_unassigned_from_you_notification": "Task '{{title}}' has been unassigned from you",
+  "photo_added_notification": "{{type}} photo added to task '{{title}}'",
+  "task_deleted_notification": "Task '{{title}}' has been deleted",
+  "type": "Type"
 }

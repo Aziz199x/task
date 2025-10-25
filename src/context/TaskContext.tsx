@@ -62,20 +62,59 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               case 'INSERT':
                 setTasks((currentTasks) => {
                   if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
+                  
+                  // Show notification if task was created by someone else
+                  if (newRecord.creator_id !== user.id) {
+                    toast.info(t('new_task_created_notification', { title: newRecord.title }));
+                  }
+                  
                   return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                 });
                 break;
               case 'UPDATE':
-                setTasks((currentTasks) =>
-                  currentTasks.map((task) =>
+                setTasks((currentTasks) => {
+                  const oldTask = currentTasks.find(t => t.id === newRecord.id);
+                  
+                  // Show notifications for significant changes made by others
+                  if (oldTask && newRecord.creator_id !== user.id) {
+                    if (oldTask.status !== newRecord.status) {
+                      toast.info(t('task_status_changed_notification', { 
+                        title: newRecord.title, 
+                        status: t(newRecord.status.replace('-', '_')) 
+                      }));
+                    }
+                    if (oldTask.assignee_id !== newRecord.assignee_id) {
+                      if (newRecord.assignee_id === user.id) {
+                        toast.success(t('task_assigned_to_you_notification', { title: newRecord.title }));
+                      } else if (oldTask.assignee_id === user.id) {
+                        toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
+                      }
+                    }
+                    // Photo upload notifications
+                    if (!oldTask.photo_before_url && newRecord.photo_before_url) {
+                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
+                    }
+                    if (!oldTask.photo_after_url && newRecord.photo_after_url) {
+                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
+                    }
+                    if (!oldTask.photo_permit_url && newRecord.photo_permit_url) {
+                      toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
+                    }
+                  }
+                  
+                  return currentTasks.map((task) =>
                     task.id === newRecord.id ? newRecord : task
-                  )
-                );
+                  );
+                });
                 break;
               case 'DELETE':
-                setTasks((currentTasks) =>
-                  currentTasks.filter((task) => task.id !== oldRecord.id)
-                );
+                setTasks((currentTasks) => {
+                  const deletedTask = currentTasks.find(t => t.id === oldRecord.id);
+                  if (deletedTask && deletedTask.creator_id !== user.id) {
+                    toast.info(t('task_deleted_notification', { title: deletedTask.title }));
+                  }
+                  return currentTasks.filter((task) => task.id !== oldRecord.id);
+                });
                 break;
               default:
                 break;
@@ -91,7 +130,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTasks([]);
       setLoading(false);
     }
-  }, [user, fetchTasks]);
+  }, [user, fetchTasks, t]);
 
   const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;
