@@ -59,7 +59,7 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
 
       // Extract file paths from the full URLs
       const filePaths = urlsToFetch.map(item => {
-        const urlParts = item.url.split('/task_photos/');
+        const urlParts = item.url.split('/public/task_photos/');
         return urlParts.length > 1 ? urlParts[1] : '';
       }).filter(path => path);
 
