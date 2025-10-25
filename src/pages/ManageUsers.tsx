@@ -13,13 +13,27 @@ import { useTranslation } from 'react-i18next';
 import { useTasks } from "@/context/TaskContext"; // Import useTasks
 
 const ManageUsers: React.FC = () => {
-  const { profile: currentUserProfile, loading: sessionLoading } = useSession();
+  const { profile: currentUserProfile, loading: sessionLoading, user: currentUser } = useSession();
   const { profiles, loading: profilesLoading, error: profilesError } = useProfiles();
   const { tasks } = useTasks(); // Get tasks from TaskContext
   const { t } = useTranslation();
 
   const allowedRoles = ['admin', 'manager', 'supervisor'];
   const isAuthorized = currentUserProfile && allowedRoles.includes(currentUserProfile.role);
+
+  // Helper function to get email prefix
+  const getEmailPrefix = (userId: string) => {
+    // We rely on the current user object for the email if available, otherwise we use the ID as a fallback
+    const profile = profiles.find(p => p.id === userId);
+    const email = profile?.email || currentUser?.email; // Note: profile object doesn't contain email directly, relying on session user or fetching if needed. For simplicity, we'll use the ID if email is unavailable, but format it.
+    
+    if (email) {
+      return email.split('@')[0];
+    }
+    
+    // Fallback: use a shortened version of the ID
+    return userId.substring(0, 8);
+  };
 
   // Calculate performance rate for each profile
   const profilesWithPerformance = useMemo(() => {
@@ -81,9 +95,9 @@ const ManageUsers: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('name')}</TableHead>
-                <TableHead>{t('id')}</TableHead>
+                <TableHead>{t('user_identifier')}</TableHead> {/* Renamed header */}
                 <TableHead>{t('current_role')}</TableHead>
-                <TableHead>{t('performance_rate')}</TableHead> {/* New Table Head */}
+                <TableHead>{t('performance_rate')}</TableHead>
                 <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -91,9 +105,11 @@ const ManageUsers: React.FC = () => {
               {profilesWithPerformance.map((profile) => (
                 <TableRow key={profile.id}>
                   <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{profile.id}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {getEmailPrefix(profile.id)}
+                  </TableCell>
                   <TableCell className="capitalize">{t(profile.role)}</TableCell>
-                  <TableCell>{profile.performanceRate}</TableCell> {/* New Table Cell */}
+                  <TableCell>{profile.performanceRate}</TableCell>
                   <TableCell className="text-right">
                     <UserRoleDropdown profile={profile} />
                   </TableCell>
