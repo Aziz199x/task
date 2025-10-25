@@ -21,15 +21,6 @@ const ManageUsers: React.FC = () => {
   const allowedRoles = ['admin', 'manager', 'supervisor'];
   const isAuthorized = currentUserProfile && allowedRoles.includes(currentUserProfile.role);
 
-  // Helper function to get email prefix
-  const getEmailPrefix = (profile: ProfileWithEmail) => {
-    if (profile.email) {
-      return profile.email.split('@')[0];
-    }
-    // Fallback: use a shortened version of the ID if email is null
-    return profile.id.substring(0, 8);
-  };
-
   // Calculate performance rate for each profile
   const profilesWithPerformance = useMemo(() => {
     return profiles.map(profile => {
@@ -90,7 +81,7 @@ const ManageUsers: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('name')}</TableHead>
-                <TableHead>{t('user_identifier')}</TableHead>
+                <TableHead>{t('email')}</TableHead> {/* Changed from user_identifier to email */}
                 <TableHead>{t('current_role')}</TableHead>
                 <TableHead>{t('performance_rate')}</TableHead>
                 <TableHead className="text-right">{t('actions')}</TableHead>
@@ -101,7 +92,7 @@ const ManageUsers: React.FC = () => {
                 <TableRow key={profile.id}>
                   <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {getEmailPrefix(profile)}
+                    {profile.email || profile.id} {/* Display email, fallback to full ID if email is null */}
                   </TableCell>
                   <TableCell className="capitalize">{t(profile.role)}</TableCell>
                   <TableCell>{profile.performanceRate}</TableCell>
