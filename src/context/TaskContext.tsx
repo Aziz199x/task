@@ -110,11 +110,29 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;
     let newTaskId = '';
-    while (!unique) {
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5; // Prevent infinite loops
+
+    while (!unique && attempts < MAX_ATTEMPTS) {
       newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
-      const { data, error } = await supabase.from('tasks').select('task_id').eq('task_id', newTaskId).limit(1);
-      if (error) throw new Error(t('error_generating_unique_task_id'));
-      if (!data || data.length === 0) unique = true;
+      try {
+        const { data, error } = await supabase.from('tasks').select('task_id').eq('task_id', newTaskId).limit(1);
+        if (error) {
+          console.error("Error checking for unique task ID:", error.message);
+          throw new Error(t('error_generating_unique_task_id') + ": " + error.message);
+        }
+        if (!data || data.length === 0) {
+          unique = true;
+        }
+      } catch (e: any) {
+        console.error("Exception during unique task ID generation:", e.message);
+        throw e; // Re-throw to be caught by addTask's try-catch
+      }
+      attempts++;
+    }
+
+    if (!unique) {
+      throw new Error(t('failed_to_generate_unique_task_id_after_attempts'));
     }
     return newTaskId;
   }, [t]);
@@ -126,18 +144,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (notificationNum && notificationNum.trim() !== "") {
-      const { data, error: checkError } = await supabase
-        .from('tasks')
-        .select('id')
-        .eq('notification_num', notificationNum.trim())
-        .limit(1);
+      try { // Added try-catch here
+        const { data, error: checkError } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('notification_num', notificationNum.trim())
+          .limit(1);
 
-      if (checkError) {
-        toast.error(`Error checking notification number: ${checkError.message}`);
-        return false;
-      }
-      if (data && data.length > 0) {
-        toast.error(t("notification_num_not_unique"));
+        if (checkError) {
+          toast.error(`Error checking notification number: ${checkError.message}`);
+          return false;
+        }
+        if (data && data.length > 0) {
+          toast.error(t("notification_num_not_unique"));
+          return false;
+        }
+      } catch (e: any) {
+        console.error("Exception during notification number uniqueness check:", e.message);
+        toast.error(`Error checking notification number: ${e.message}`);
         return false;
       }
     }
@@ -208,18 +232,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('notification_num')
-        .in('notification_num', notificationNums);
+      try { // Added try-catch here
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('notification_num')
+          .in('notification_num', notificationNums);
 
-      if (error) {
-        toast.error(t("error_checking_notification_numbers", { message: error.message }));
-        return;
-      }
-      if (data && data.length > 0) {
-        const existingNums = data.map(d => d.notification_num).join(', ');
-        toast.error(t("upload_numbers_exist", { existingNums }));
+        if (error) {
+          toast.error(t("error_checking_notification_numbers", { message: error.message }));
+          return;
+        }
+        if (data && data.length > 0) {
+          const existingNums = data.map(d => d.notification_num).join(', ');
+          toast.error(t("upload_numbers_exist", { existingNums }));
+          return;
+        }
+      } catch (e: any) {
+        console.error("Exception during bulk notification number uniqueness check:", e.message);
+        toast.error(`Error checking notification numbers: ${e.message}`);
         return;
       }
     }
@@ -420,19 +450,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (finalUpdates.notification_num && finalUpdates.notification_num.trim() !== "") {
-      const { data: existingTask, error: checkError } = await supabase
-        .from('tasks')
-        .select('id')
-        .eq('notification_num', finalUpdates.notification_num.trim())
-        .not('id', 'eq', id)
-        .limit(1);
+      try { // Added try-catch here
+        const { data: existingTask, error: checkError } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('notification_num', finalUpdates.notification_num.trim())
+          .not('id', 'eq', id)
+          .limit(1);
 
-      if (checkError) {
-        toast.error(`Error checking notification number: ${checkError.message}`);
-        return false;
-      }
-      if (existingTask && existingTask.length > 0) {
-        toast.error(t("notification_num_not_unique"));
+        if (checkError) {
+          toast.error(`Error checking notification number: ${checkError.message}`);
+          return false;
+        }
+        if (existingTask && existingTask.length > 0) {
+          toast.error(t("notification_num_not_unique"));
+          return false;
+        }
+      } catch (e: any) {
+        console.error("Exception during notification number uniqueness check (updateTask):", e.message);
+        toast.error(`Error checking notification number: ${e.message}`);
         return false;
       }
     }
