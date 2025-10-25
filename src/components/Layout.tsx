@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:gap-0">
           <div className="flex items-center gap-4">
-            <img src="/azizapp_logo.svg" alt="AzizApp Logo" className="h-8 w-8" />
+            <img src="/app_icon.png" alt="AzizApp Logo" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
             {profile && (
               <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded">
