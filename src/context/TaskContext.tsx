@@ -243,7 +243,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
     if (newStatus === 'completed') {
-      const canCurrentUserComplete = (profile?.id === taskToUpdate.assignee_id) || (profile?.role === 'supervisor' && profile?.id === taskToUpdate.creator_id) || (profile?.role === 'admin');
+      const canCurrentUserComplete = (profile?.id === taskToUpdate.assignee_id) || (profile?.role === 'admin');
       if (!canCurrentUserComplete) {
         toast.error(t("permission_denied_complete_task"));
         return false;

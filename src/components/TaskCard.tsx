@@ -56,11 +56,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const isAssignedToCurrentUser = user && task.assignee_id === user.id;
   const isCreator = user && task.creator_id === user.id;
 
-  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (
-    isAssignedToCurrentUser || 
-    (currentUserProfile?.role === 'supervisor' && task.creator_id === user?.id) || 
-    isAdmin
-  );
+  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || isAdmin);
 
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
