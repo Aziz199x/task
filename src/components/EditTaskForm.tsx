@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useTasks } from "@/context/TaskContext";
 import { useSession } from "@/context/SessionContext";
-import { useTechnicians } from "@/hooks/use-technicians";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
@@ -26,33 +25,15 @@ interface EditTaskFormProps {
 const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
 
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDelete, canComplete }) => {
-  const { tasks, updateTask, deleteTaskPhoto } = useTasks();
-  const { user, profile: currentUserProfile } = useSession();
-  const { technicians } = useTechnicians();
+  const { updateTask, deleteTaskPhoto } = useTasks();
+  const { profile: currentUserProfile } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
-  // Find the current task from the tasks array to get real-time updates
-  const currentTask = tasks.find(t => t.id === task.id) || task;
-
-  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
+  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => task);
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-
-  // Update local state when the task changes in the database
-  // But preserve user's unsaved edits for text fields
-  useEffect(() => {
-    setEditedTask(prev => ({
-      ...prev,
-      // Always sync photo URLs from database
-      photo_before_url: currentTask.photo_before_url,
-      photo_after_url: currentTask.photo_after_url,
-      photo_permit_url: currentTask.photo_permit_url,
-      // Sync other fields only if they haven't been edited
-      // (This is a simple approach - in production you might want more sophisticated change tracking)
-    }));
-  }, [currentTask.photo_before_url, currentTask.photo_after_url, currentTask.photo_permit_url]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
@@ -126,22 +107,29 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    // Update the database - the real-time listener will update our local state
+    
+    // Optimistic UI update
+    setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
+
+    // Update the database
     await updateTask(task.id, { [photoUrlKey]: url });
     toast.success(t('photo_uploaded_successfully'));
   }, [task.id, updateTask, t]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    const currentUrl = currentTask[photoUrlKey] as string | null | undefined;
+    const currentUrl = editedTask[photoUrlKey] as string | null | undefined;
     
+    // Optimistic UI update
+    setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
+
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
-    // Update the database - the real-time listener will update our local state
+    // Update the database
     await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t, currentTask]);
+  }, [task.id, deleteTaskPhoto, updateTask, t, editedTask]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
