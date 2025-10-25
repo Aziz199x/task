@@ -1,5 +1,5 @@
 {
-  "welcome_to_task_manager": "Abu Miral Work flow management",
+  "welcome_to_task_manager": "Aziz app Work flow management",
   "sign_in_to_continue": "Sign in to continue",
   "loading_user_session": "Loading user session...",
   "permission_denied_create_account": "You do not have permission to create accounts.",
@@ -34,7 +34,7 @@
   "manager": "Manager",
   "Manager": "Manager",
   "supervisor": "Supervisor",
-  "task_manager": "Abu Miral",
+  "task_manager": "Aziz app",
   "loading": "Loading...",
   "signed_out_successfully": "Signed out successfully!",
   "failed_to_sign_out": "Failed to sign out:",
