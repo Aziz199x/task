@@ -29,6 +29,7 @@ const ProfileSettingsForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log("[ProfileSettingsForm] currentProfile updated:", currentProfile);
     if (currentProfile) {
       setFirstName(currentProfile.first_name || '');
       setLastName(currentProfile.last_name || '');
@@ -38,9 +39,13 @@ const ProfileSettingsForm: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.log("[ProfileSettingsForm] No user found, cannot update profile.");
+      return;
+    }
 
     setLoading(true);
+    console.log("[ProfileSettingsForm] Starting profile update for user:", user.id);
 
     const updates = {
       first_name: firstName.trim(),
@@ -50,17 +55,21 @@ const ProfileSettingsForm: React.FC = () => {
     };
 
     try {
-      // 1. Update the public profile table (AWAIT THIS)
+      // 1. Update the public profile table
+      console.log("[ProfileSettingsForm] Updating public.profiles table with:", updates);
       const { error: profileError } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', user.id);
 
       if (profileError) {
+        console.error("[ProfileSettingsForm] Error updating public.profiles:", profileError);
         throw profileError;
       }
+      console.log("[ProfileSettingsForm] public.profiles updated successfully.");
 
-      // 2. Update auth user metadata (AWAIT THIS)
+      // 2. Update auth user metadata
+      console.log("[ProfileSettingsForm] Updating auth.users metadata with:", { first_name: firstName.trim(), last_name: lastName.trim() });
       const { error: userError } = await supabase.auth.updateUser({
         data: {
           first_name: firstName.trim(),
@@ -69,16 +78,17 @@ const ProfileSettingsForm: React.FC = () => {
       });
 
       if (userError) {
-        // Log warning but don't fail the whole operation if metadata update fails
-        console.warn("Failed to update user metadata:", userError.message);
+        console.warn("[ProfileSettingsForm] Failed to update user metadata:", userError.message);
+        // Do not throw here, as profile update might have succeeded
       }
+      console.log("[ProfileSettingsForm] Auth user metadata update attempted.");
 
       toast.success(t('profile_updated_successfully'));
     } catch (error: any) {
-      console.error("Error updating profile:", error.message);
+      console.error("[ProfileSettingsForm] Caught error during profile update:", error);
       toast.error(`${t('failed_to_update_profile')}: ${error.message}`);
     } finally {
-      // Ensure loading state is dismissed regardless of success/failure
+      console.log("[ProfileSettingsForm] Finally block executed, setting loading to false.");
       setLoading(false);
     }
   };
