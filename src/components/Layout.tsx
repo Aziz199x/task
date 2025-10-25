@@ -8,6 +8,7 @@ import { Link, useLocation } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
 import UserTaskSummaryBar from "./UserTaskSummaryBar";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -94,6 +95,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Button>
                   </Link>
                 )}
+                <ThemeSwitcher />
                 <LanguageSwitcher />
                 <Button variant="destructive" size="icon" onClick={signOut}>
                   <LogOut className="h-5 w-5" />

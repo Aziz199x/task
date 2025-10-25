@@ -249,5 +249,8 @@
   "please_fill_in_the_following_fields": "يرجى ملء الحقول المطلوبة التالية لإكمال المهمة",
   "upload_contains_duplicates": "الملف المرفوع يحتوي على أرقام إشعارات مكررة. يرجى تصحيح الملف والمحاولة مرة أخرى.",
   "upload_numbers_exist": "فشل الرفع. أرقام الإشعارات التالية موجودة بالفعل في قاعدة البيانات: {{existingNums}}",
-  "error_checking_notification_numbers": "خطأ في التحقق من أرقام الإشعارات الموجودة: {{message}}"
+  "error_checking_notification_numbers": "خطأ في التحقق من أرقام الإشعارات الموجودة: {{message}}",
+  "light": "فاتح",
+  "dark": "داكن",
+  "system": "النظام"
 }

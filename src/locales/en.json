@@ -1,5 +1,5 @@
 {
-  "welcome_to_task_manager": "Abu Miral",
+  "welcome_to_task_manager": "Abu Miral Work flow management",
   "sign_in_to_continue": "Sign in to continue",
   "loading_user_session": "Loading user session...",
   "permission_denied_create_account": "You do not have permission to create accounts.",
@@ -249,5 +249,8 @@
   "please_fill_in_the_following_fields": "Please fill in the following required fields to complete the task",
   "upload_contains_duplicates": "The uploaded file contains duplicate Notification Numbers. Please correct the file and try again.",
   "upload_numbers_exist": "Upload failed. The following Notification Numbers already exist in the database: {{existingNums}}",
-  "error_checking_notification_numbers": "Error checking for existing notification numbers: {{message}}"
+  "error_checking_notification_numbers": "Error checking for existing notification numbers: {{message}}",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System"
 }
