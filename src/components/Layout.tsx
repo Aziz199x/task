@@ -65,7 +65,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <LayoutDashboard className="h-5 w-5" />
                   </Button>
                 </Link>
-                {/* Removed Technician Tasks button */}
                 {allowedToCreateAccounts && (
                   <Link to="/create-account">
                     <Button 
@@ -89,15 +88,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </Link>
                 )}
               </div>
-              {/* Theme and Language Switchers */}
+              {/* Theme, Language, and Logout Buttons */}
               <div className="flex items-center space-x-2">
                 <ThemeSwitcher />
                 <LanguageSwitcher />
+                <Button variant="destructive" size="icon" onClick={signOut}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </div>
-              {/* Logout Button */}
-              <Button variant="destructive" onClick={signOut} className="w-full md:w-auto flex items-center justify-center md:justify-start">
-                <LogOut className="h-5 w-5 mr-2" /> {t('logout')}
-              </Button>
             </div>
           )}
         </div>
