@@ -257,5 +257,11 @@
   "share": "مشاركة",
   "share_not_supported": "المشاركة غير مدعومة في هذا المتصفح.",
   "task_details_title": "تفاصيل المهمة: {{title}}",
-  "share_failed": "تعذرت مشاركة المهمة."
+  "share_failed": "تعذرت مشاركة المهمة.",
+  "confirm_revert_task_title": "تأكيد إعادة حالة المهمة",
+  "confirm_revert_task_description": "هل أنت متأكد أنك تريد إعادة حالة المهمة '{{title}}' من 'مكتمل' إلى 'قيد التقدم'؟ سيؤدي هذا إلى إعادة فتح المهمة.",
+  "cancel": "إلغاء",
+  "revert_to_in_progress_action": "إعادة إلى قيد التقدم",
+  "reverting": "جارٍ الإعادة...",
+  "revert_to_in_progress": "إعادة إلى قيد التقدم"
 }

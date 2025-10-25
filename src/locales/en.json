@@ -257,5 +257,11 @@
   "share": "Share",
   "share_not_supported": "Sharing is not supported on this browser.",
   "task_details_title": "Task Details: {{title}}",
-  "share_failed": "Could not share the task."
+  "share_failed": "Could not share the task.",
+  "confirm_revert_task_title": "Confirm Revert Task Status",
+  "confirm_revert_task_description": "Are you sure you want to revert the status of task '{{title}}' from 'Completed' back to 'In Progress'? This will reopen the task.",
+  "cancel": "Cancel",
+  "revert_to_in_progress_action": "Revert to In Progress",
+  "reverting": "Reverting...",
+  "revert_to_in_progress": "Revert to In Progress"
 }

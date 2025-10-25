@@ -17,6 +17,17 @@ import { useTranslation } from 'react-i18next';
 import TaskPhotoGallery from "./TaskPhotoGallery";
 import EditTaskForm from "./EditTaskForm"; // Import the new component
 import { useProfiles } from "@/hooks/use-profiles"; // Import useProfiles to get all user profiles
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
   task: Task;
@@ -48,6 +59,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false); // Keep for status change/assign actions
+  const [showRevertConfirmation, setShowRevertConfirmation] = React.useState(false);
 
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
@@ -70,12 +82,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   };
 
   const handleStatusChange = async (newStatus: Task['status']) => {
+    if (task.status === 'completed' && newStatus === 'in-progress') {
+      setShowRevertConfirmation(true);
+      return;
+    }
     setIsSaving(true); // Indicate saving for status changes
     const success = await changeTaskStatus(task.id, newStatus);
     if (success) {
       toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
     }
     setIsSaving(false);
+  };
+
+  const confirmRevertToInProgress = async () => {
+    setIsSaving(true);
+    const success = await changeTaskStatus(task.id, 'in-progress');
+    if (success) {
+      toast.success(t('task_status_changed_to', { status: t('in_progress') }));
+    }
+    setIsSaving(false);
+    setShowRevertConfirmation(false);
   };
 
   const handleCompleteClick = async () => {
@@ -208,12 +234,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {canStartProgress && (
-                    <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
+                  )}
+                  {isCompleted && (
+                    <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress')}</DropdownMenuItem>
                   )}
                   {canCancel && (
                     <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                   )}
-                  {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  {(canStartProgress || canCancel || isCompleted) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
                   {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
                   {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
@@ -297,6 +326,23 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
           </CardFooter>
         )}
       </div>
+
+      <AlertDialog open={showRevertConfirmation} onOpenChange={setShowRevertConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirm_revert_task_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirm_revert_task_description', { title: task.title })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRevertToInProgress} disabled={isSaving}>
+              {isSaving ? t('reverting') : t('revert_to_in_progress_action')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
