@@ -38,7 +38,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("[EditTaskForm] useEffect triggered by task prop change. Updating local state.", task);
     setEditedTask(task);
     setNotificationNumError(validateNotificationNum(task.notification_num));
     setLocationError(validateLocationUrl(task.location));
@@ -124,22 +123,20 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     onClose(); // Close the dialog after saving
   };
 
-  // Callback for photo upload success
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
-    const updates = { [`photo_${photoType}_url`]: url };
-    await updateTask(task.id, updates);
-    // The UI will update automatically when the task prop changes via the context
+    const photoUrlKey = `photo_${photoType}_url` as keyof Task;
+    setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
+    await updateTask(task.id, { [photoUrlKey]: url });
   }, [task.id, updateTask]);
 
-  // Callback for photo removal
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
+    const photoUrlKey = `photo_${photoType}_url` as keyof Task;
+    setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
-    const updates = { [`photo_${photoType}_url`]: null };
-    await updateTask(task.id, updates);
+    await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-    // The UI will update automatically when the task prop changes via the context
   }, [task.id, deleteTaskPhoto, updateTask, t]);
 
   return (

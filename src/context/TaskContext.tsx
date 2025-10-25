@@ -28,7 +28,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { t } = useTranslation(); // Initialize useTranslation
 
   const fetchTasks = useCallback(async () => {
-    setLoading(true);
+    // Only set loading to true on the very first fetch
+    if (tasks.length === 0) {
+      setLoading(true);
+    }
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
@@ -42,7 +45,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTasks(data as Task[]);
     }
     setLoading(false);
-  }, []);
+  }, [tasks.length]); // Dependency on tasks.length to manage initial loading state
 
   useEffect(() => {
     if (user) {
@@ -54,7 +57,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const channel = supabase
       .channel('public:tasks')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
-        console.log("[TaskContext] Realtime update received, refetching tasks:", payload); // New log
+        console.log("[TaskContext] Realtime update received, refetching tasks:", payload);
         fetchTasks(); // Refetch all tasks on any change
       })
       .subscribe();
@@ -68,21 +71,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let unique = false;
     let newTaskId = '';
     while (!unique) {
-      // Generate a random 15-digit number
-      // Ensure it starts with a non-zero digit to be exactly 15 digits
       newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
-
       const { data, error } = await supabase
         .from('tasks')
         .select('task_id')
         .eq('task_id', newTaskId)
         .limit(1);
-
       if (error) {
-        console.error("[TaskContext] Error checking task ID uniqueness during generation:", error.message);
         throw new Error(t('error_generating_unique_task_id'));
       }
-
       if (!data || data.length === 0) {
         unique = true;
       }
@@ -95,7 +92,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("equipment_number_mandatory"));
       return;
     }
-
     let taskId: string | undefined;
     try {
       taskId = await generateUniqueTaskId();
@@ -103,126 +99,64 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(error.message);
       return;
     }
-
     const { error } = await supabase.from('tasks').insert({
-      title,
-      description,
-      location,
-      task_id: taskId,
-      due_date: dueDate || null,
-      assignee_id: assigneeId,
-      type_of_work: typeOfWork,
-      equipment_number: equipmentNumber,
-      notification_num: notificationNum || null,
-      priority: priority || 'medium', // Set default priority if not provided
-      status: assigneeId ? 'assigned' : 'unassigned',
-      creator_id: user?.id, // Ensure creator_id is set
+      title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id,
     });
-
-    if (error) {
-      toast.error(t("failed_to_add_task") + error.message);
-    } else {
-      fetchTasks(); // Refresh tasks after successful single insert
-    }
+    if (error) toast.error(t("failed_to_add_task") + error.message);
   };
 
   const addTasksBulk = async (newTasks: Partial<Task>[]) => {
     const tasksToInsert = [];
     for (const task of newTasks) {
-      if (!task.equipment_number) {
-        // Skip tasks missing mandatory equipment number
-        console.warn("[TaskContext] Skipping task in bulk import due to missing equipment number:", task);
-        continue;
-      }
+      if (!task.equipment_number) continue;
       let taskId: string | undefined;
       try {
         taskId = await generateUniqueTaskId();
       } catch (error: any) {
         toast.error(error.message);
-        return; // Stop bulk import if generation fails
+        return;
       }
-
-      tasksToInsert.push({
-        ...task,
-        task_id: taskId,
-        notification_num: task.notification_num || null,
-        priority: task.priority || 'medium', // Set default priority if not provided
-        status: task.assignee_id ? 'assigned' : 'unassigned',
-        creator_id: user?.id, // Assign current user as creator
-      });
+      tasksToInsert.push({ ...task, task_id: taskId, notification_num: task.notification_num || null, priority: task.priority || 'medium', status: task.assignee_id ? 'assigned' : 'unassigned', creator_id: user?.id });
     }
-
     if (tasksToInsert.length === 0) {
       toast.warning(t('no_valid_tasks_found_in_excel'));
       return;
     }
-
     const { error } = await supabase.from('tasks').insert(tasksToInsert);
-
-    if (error) {
-      toast.error(t("failed_to_add_tasks_bulk") + error.message);
-    } else {
-      fetchTasks(); // Refresh tasks after bulk insert
-    }
+    if (error) toast.error(t("failed_to_add_tasks_bulk") + error.message);
   };
 
   const changeTaskStatus = async (id: string, newStatus: Task['status']) => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
-        toast.error(t("task_not_found"));
-        return false;
+      toast.error(t("task_not_found"));
+      return false;
     }
-
     if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
       return false;
     }
-
-    // New permission check for completing a task
     if (newStatus === 'completed') {
-      const canCurrentUserComplete = 
-        (profile?.id === taskToUpdate.assignee_id) || // Is the assignee
-        (profile?.role === 'supervisor' && profile?.id === taskToUpdate.creator_id) || // Is the supervisor who created it
-        (profile?.role === 'admin'); // Is an admin (admin override)
-
+      const canCurrentUserComplete = (profile?.id === taskToUpdate.assignee_id) || (profile?.role === 'supervisor' && profile?.id === taskToUpdate.creator_id) || (profile?.role === 'admin');
       if (!canCurrentUserComplete) {
         toast.error(t("permission_denied_complete_task"));
         return false;
       }
-
-      // Existing validation: Require task_id and notification_num for completion by ALL users
-      if (!taskToUpdate.task_id) {
-        toast.error(t("task_id_required_to_complete"));
+      if (!taskToUpdate.task_id || !taskToUpdate.notification_num || !taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
+        toast.error(t("photos_and_permit_required_to_complete"));
         return false;
-      }
-      if (!taskToUpdate.notification_num) {
-        toast.error(t("notification_num_required_to_complete"));
-        return false;
-      }
-      // Require photo_before_url, photo_after_url, and photo_permit_url for completion by ALL users
-      if (!taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
-          toast.error(t("photos_and_permit_required_to_complete"));
-          return false;
       }
     }
-
     const updates: Partial<Task> = { status: newStatus };
     if (newStatus === 'completed' && user?.id) {
-      updates.closed_by_id = user.id; // Set who closed the task
+      updates.closed_by_id = user.id;
     } else if (newStatus !== 'completed') {
-      updates.closed_by_id = null; // Clear if status changes from completed
+      updates.closed_by_id = null;
     }
-
-    const { error } = await supabase
-      .from('tasks')
-      .update(updates)
-      .eq('id', id);
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
       return false;
-    } else {
-      console.log(`[TaskContext] Status updated for task ${id}, refetching tasks.`); // New log
-      fetchTasks(); // Force a refresh after successful status update
     }
     return true;
   };
@@ -233,38 +167,21 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("completed_tasks_admin_only_delete"));
       return;
     }
-    // Also delete associated photos from storage
     if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
     if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
-
     const { error } = await supabase.from('tasks').delete().eq('id', id);
-    if (error) {
-      toast.error(t("failed_to_delete_task") + error.message);
-    } else {
-      console.log(`[TaskContext] Task ${id} deleted, refetching tasks.`); // New log
-      fetchTasks(); // Force a refresh after successful delete
-    }
+    if (error) toast.error(t("failed_to_delete_task") + error.message);
   };
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
-    console.log(`[TaskContext] Attempting to update task ${id} with:`, updates); // New log
     const taskToUpdate = tasks.find(t => t.id === id);
     if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
       return;
     }
-    const { error } = await supabase
-      .from('tasks')
-      .update(updates)
-      .eq('id', id);
-    if (error) {
-      console.error(`[TaskContext] Failed to update task ${id}:`, error); // New log
-      toast.error(t("failed_to_update_task") + error.message);
-    } else {
-      console.log(`[TaskContext] Task ${id} updated successfully, refetching tasks.`); // New log
-      fetchTasks(); // Force a refresh after successful update
-    }
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
+    if (error) toast.error(t("failed_to_update_task") + error.message);
   };
 
   const assignTask = async (id: string, assigneeId: string | null) => {
@@ -274,40 +191,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
-    const { error } = await supabase
-      .from('tasks')
-      .update({ assignee_id: assigneeId, status: newStatus })
-      .eq('id', id);
-    if (error) {
-      toast.error(t("failed_to_assign_task") + error.message);
-    } else {
-      console.log(`[TaskContext] Task ${id} assigned to ${assigneeId}, refetching tasks.`); // New log
-      fetchTasks(); // Force a refresh after successful assignment
-    }
+    const { error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id);
+    if (error) toast.error(t("failed_to_assign_task") + error.message);
   };
 
   const deleteTaskPhoto = async (photoUrl: string) => {
     try {
-      // Extract the path from the public URL
       const urlParts = photoUrl.split('/public/task_photos/');
-      if (urlParts.length < 2) {
-        console.warn("[TaskContext] Invalid photo URL for deletion:", photoUrl);
-        return;
-      }
+      if (urlParts.length < 2) return;
       const filePath = urlParts[1];
-
-      const { error } = await supabase.storage
-        .from('task_photos')
-        .remove([filePath]);
-
-      if (error) {
-        console.error("[TaskContext] Error deleting photo from storage:", error.message);
-        toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
-      } else {
-        console.log("[TaskContext] Photo deleted from storage:", filePath);
-      }
+      const { error } = await supabase.storage.from('task_photos').remove([filePath]);
+      if (error) toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     } catch (error: any) {
-      console.error("[TaskContext] Unexpected error during photo deletion:", error.message);
       toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     }
   };
