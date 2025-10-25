@@ -213,25 +213,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [tasks, profile, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
-    const taskToUpdate = tasks.find(t => t.id === id);
-    if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error(t("completed_tasks_admin_only"));
-      return;
-    }
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
-    if (error) toast.error(t("failed_to_update_task") + error.message);
-  }, [tasks, profile, t]);
+    if (error) {
+      toast.error(t("failed_to_update_task") + error.message);
+    }
+  }, [t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
-    const taskToUpdate = tasks.find(t => t.id === id);
-    if (taskToUpdate && taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error(t("completed_tasks_admin_only"));
-      return;
-    }
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
     const { error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id);
     if (error) toast.error(t("failed_to_assign_task") + error.message);
-  }, [tasks, profile, t]);
+  }, [t]);
 
   return (
     <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto }}>
