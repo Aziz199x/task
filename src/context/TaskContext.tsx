@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "./SessionContext";
 import { useTranslation } from 'react-i18next';
+import { useTasksQuery } from "@/hooks/use-tasks-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskContextType {
   tasks: Task[];
@@ -23,11 +25,15 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
+const TASKS_QUERY_KEY = ['tasks']; // Define key locally for use in context
+
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user, profile } = useSession();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  
+  // Use the new query hook to manage tasks state
+  const { data: tasks = [], isLoading: loading, refetch: refetchTasks } = useTasksQuery();
 
   const tasksByIdMap = useMemo(() => {
     return new Map(tasks.map(task => [task.id, task]));
@@ -52,99 +58,54 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const fetchTasks = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error("[TaskContext] Error fetching tasks:", error);
-      toast.error("Failed to load tasks: " + error.message);
-      setTasks([]);
-    } else {
-      setTasks(data as Task[]);
-    }
-    setLoading(false);
-  }, []);
-
-  // 1. Initial fetch and Real-time setup
+  // 1. Real-time notifications (Keep notifications, but rely on query invalidation for state)
+  // We need a separate effect to listen for changes and trigger toasts, as the state is now managed by TanStack Query.
   useEffect(() => {
-    if (user) {
-      fetchTasks();
+    if (!user) return;
 
-      const channel = supabase
-        .channel('public:tasks')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'tasks' },
-          (payload) => {
-            console.log('Real-time event received:', payload.eventType, payload.new?.id || payload.old?.id);
-            const newRecord = payload.new as Task;
-            const oldRecord = payload.old as { id: string };
+    const channel = supabase
+      .channel('public:tasks_notifications')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          const newRecord = payload.new as Task;
+          const oldRecord = payload.old as Task; // Use Task type for old record too, for comparison
 
-            // Fallback: If real-time works, update state directly
-            switch (payload.eventType) {
-              case 'INSERT':
-                setTasks((currentTasks) => {
-                  if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
-                  if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
-                  if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
-                    playNotificationSound();
-                    toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
-                  }
-                  return [newRecord, ...currentTasks];
-                });
-                break;
-              case 'UPDATE':
-                setTasks((currentTasks) => {
-                  const oldTask = currentTasks.find(t => t.id === newRecord.id);
-                  if (oldTask && newRecord.creator_id !== user.id) {
-                    if (oldTask.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
-                    if (oldTask.assignee_id !== newRecord.assignee_id) {
-                      if (newRecord.assignee_id === user.id) {
-                        playNotificationSound();
-                        toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
-                      } else if (oldTask.assignee_id === user.id) {
-                        toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
-                      }
-                    }
-                    if (!oldTask.photo_before_url && newRecord.photo_before_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
-                    if (!oldTask.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
-                    if (!oldTask.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
-                  }
-                  return currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
-                });
-                break;
-              case 'DELETE':
-                setTasks((currentTasks) => {
-                  const deletedTask = currentTasks.find(t => t.id === oldRecord.id);
-                  if (deletedTask && deletedTask.creator_id !== user.id) toast.info(t('task_deleted_notification', { title: deletedTask.title }));
-                  return currentTasks.filter((task) => task.id !== oldRecord.id);
-                });
-                break;
-              default:
-                break;
+          if (payload.eventType === 'INSERT') {
+            if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
+            if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
+              playNotificationSound();
+              toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
             }
+          } else if (payload.eventType === 'UPDATE' && oldRecord) {
+            if (newRecord.creator_id !== user.id) {
+              if (oldRecord.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
+              if (oldRecord.assignee_id !== newRecord.assignee_id) {
+                if (newRecord.assignee_id === user.id) {
+                  playNotificationSound();
+                  toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
+                } else if (oldRecord.assignee_id === user.id) {
+                  toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
+                }
+              }
+              if (!oldRecord.photo_before_url && newRecord.photo_before_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
+              if (!oldRecord.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
+              if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            // Notifications for delete are handled optimistically in deleteTask, 
+            // but we keep the channel open for general system notifications.
           }
-        )
-        .on('system', { event: 'SUBSCRIBE' }, () => {
-          console.log('Supabase Realtime: Successfully subscribed to tasks channel.');
-        })
-        .subscribe((status) => {
-          console.log('Supabase Realtime Channel Status:', status);
-        });
+        }
+      )
+      .subscribe();
 
-      return () => {
-        console.log('Unsubscribing from tasks channel.');
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setTasks([]);
-      setLoading(false);
-    }
-  }, [user, fetchTasks, t, playNotificationSound]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, t, playNotificationSound]);
+
 
   const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;
@@ -189,7 +150,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const taskPayload = { // Removed 'id' from here
+    const taskPayload: Omit<Task, 'id'> = {
       created_at: new Date().toISOString(),
       title,
       description: description || null,
@@ -205,27 +166,35 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       creator_id: user?.id || null,
     };
 
-    // Optimistic update with a temporary client-side ID
+    // Optimistic update
     const tempId = 'temp-' + Date.now();
-    setTasks(currentTasks => [{ ...taskPayload, id: tempId } as Task, ...currentTasks]);
+    const optimisticTask = { ...taskPayload, id: tempId } as Task;
+
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, [optimisticTask, ...previousTasks]);
+    }
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert(taskPayload) // Insert without client-generated ID
+      .insert(taskPayload)
       .select()
       .single();
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.filter(task => task.id !== tempId));
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
       return false;
     }
     
-    // Replace temporary task with actual task from DB
-    setTasks(currentTasks => currentTasks.map(task => task.id === tempId ? data : task));
+    // Invalidate cache to fetch the final record (real-time listener will also handle this)
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [user, generateUniqueTaskId, t]);
+  }, [user, generateUniqueTaskId, t, queryClient]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
     const notificationNums = newTasks
@@ -255,7 +224,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    const tasksToInsert: Omit<Task, 'id'>[] = []; // Omit 'id' from insert payload
+    const tasksToInsert: Omit<Task, 'id'>[] = [];
     const optimisticTasks: Task[] = [];
 
     for (const task of newTasks) {
@@ -267,7 +236,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(error.message);
         return;
       }
-      const fullTaskPayload: Omit<Task, 'id'> = { // Omit 'id' from payload
+      const fullTaskPayload: Omit<Task, 'id'> = {
         created_at: new Date().toISOString(),
         title: task.title || '',
         description: task.description || null,
@@ -293,22 +262,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // Optimistic update
-    setTasks(currentTasks => [...optimisticTasks, ...currentTasks]);
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, [...optimisticTasks, ...previousTasks]);
+    }
     
-    const { data, error: insertError } = await supabase.from('tasks').insert(tasksToInsert).select();
+    const { error: insertError } = await supabase.from('tasks').insert(tasksToInsert);
 
     if (insertError) {
       toast.error(t("failed_to_add_tasks_bulk") + insertError.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.filter(task => !optimisticTasks.some(ot => ot.id === task.id)));
-    } else if (data) {
-      // Replace temporary tasks with actual tasks from DB
-      setTasks(currentTasks => {
-        const updatedTasks = currentTasks.filter(task => !optimisticTasks.some(ot => ot.id === task.id));
-        return [...data, ...updatedTasks];
-      });
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
+    } else {
+      // Invalidate cache to fetch the final records
+      queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     }
-  }, [user, generateUniqueTaskId, t]);
+  }, [user, generateUniqueTaskId, t, queryClient]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
@@ -348,18 +320,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // Optimistic update
-    const originalTask = { ...taskToUpdate };
-    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...updates } : task));
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.map(task => task.id === id ? { ...task, ...updates } : task));
+    }
     
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
       return false;
     }
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [tasksByIdMap, profile, user, t]);
+  }, [tasksByIdMap, profile, user, t, queryClient]);
 
   const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
     try {
@@ -400,7 +378,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // Optimistic update
-    setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.filter(task => task.id !== id));
+    }
 
     if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
     if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
@@ -410,9 +392,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => [...currentTasks, taskToDelete]);
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
     }
-  }, [tasksByIdMap, profile, user, t, deleteTaskPhoto]);
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+  }, [tasksByIdMap, profile, user, t, deleteTaskPhoto, queryClient]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
@@ -453,18 +438,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // Optimistic update
-    const originalTask = { ...taskToUpdate };
-    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...finalUpdates } : task));
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.map(task => task.id === id ? { ...task, ...finalUpdates } : task));
+    }
 
     const { error } = await supabase.from('tasks').update(finalUpdates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
       return false;
     }
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [tasksByIdMap, profile, t]);
+  }, [tasksByIdMap, profile, t, queryClient]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
@@ -490,18 +481,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     // Optimistic update
-    const originalTask = { ...taskToUpdate };
-    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...updates } : task));
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.map(task => task.id === id ? { ...task, ...updates } : task));
+    }
 
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
       // Revert optimistic update
-      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
       return false;
     }
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [tasksByIdMap, profile, t]);
+  }, [tasksByIdMap, profile, t, queryClient]);
 
   const contextValue = useMemo(() => ({
     tasks,
@@ -514,8 +511,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateTask,
     assignTask,
     deleteTaskPhoto,
-    refetchTasks: fetchTasks,
-  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, fetchTasks]);
+    refetchTasks: refetchTasks as () => Promise<void>,
+  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, refetchTasks]);
 
   return (
     <TaskContext.Provider value={contextValue}>
