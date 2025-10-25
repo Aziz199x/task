@@ -37,11 +37,8 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  console.log("[EditTaskForm] Current task prop:", task);
-  console.log("[EditTaskForm] editedTask state:", editedTask);
-
   useEffect(() => {
-    console.log("[EditTaskForm] useEffect triggered by task prop change. Updating local state.");
+    console.log("[EditTaskForm] useEffect triggered by task prop change. Updating local state.", task);
     setEditedTask(task);
     setNotificationNumError(validateNotificationNum(task.notification_num));
     setLocationError(validateLocationUrl(task.location));
@@ -121,45 +118,28 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       }
     }
 
-    console.log("[EditTaskForm] Calling updateTask for main form save with:", editedTask);
     await updateTask(task.id, editedTask);
     toast.success(t('task_updated_successfully'));
     setIsSaving(false);
     onClose(); // Close the dialog after saving
   };
 
-  // Memoized callback for photo upload success
+  // Callback for photo upload success
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
-    console.log(`[EditTaskForm] handlePhotoUploadSuccess for ${photoType}: received URL`, url);
-    // Update local state
-    setEditedTask(prev => {
-      const newState = {...prev, [`photo_${photoType}_url`]: url};
-      console.log(`[EditTaskForm] setEditedTask for ${photoType}: new state will be`, newState);
-      return newState;
-    });
-    // Immediately save to database
     const updates = { [`photo_${photoType}_url`]: url };
-    console.log(`[EditTaskForm] Calling updateTask for photo upload (${photoType}) with updates:`, updates);
     await updateTask(task.id, updates);
-  }, [task.id, updateTask]); // Dependencies: task.id, updateTask
+    // The UI will update automatically when the task prop changes via the context
+  }, [task.id, updateTask]);
 
-  // Memoized callback for photo removal
+  // Callback for photo removal
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
-    console.log(`[EditTaskForm] handlePhotoRemove for ${photoType}: current URL`, currentUrl);
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
-    // Clear the URL in the local state
-    setEditedTask(prev => {
-      const newState = { ...prev, [`photo_${photoType}_url`]: null };
-      console.log(`[EditTaskForm] setEditedTask for ${photoType} removal: new state will be`, newState);
-      return newState;
-    });
-    // Also update the database immediately
     const updates = { [`photo_${photoType}_url`]: null };
-    console.log(`[EditTaskForm] Calling updateTask for photo removal (${photoType}) with updates:`, updates);
     await updateTask(task.id, updates);
     toast.success(t('photo_removed_successfully'));
+    // The UI will update automatically when the task prop changes via the context
   }, [task.id, deleteTaskPhoto, updateTask, t]);
 
   return (
