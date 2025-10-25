@@ -133,9 +133,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
           }
         )
-        .subscribe();
+        .on('system', { event: 'SUBSCRIBE' }, () => {
+          console.log('Supabase Realtime: Successfully subscribed to tasks channel.');
+        })
+        .subscribe((status) => {
+          console.log('Supabase Realtime Channel Status:', status);
+        });
 
       return () => {
+        console.log('Unsubscribing from tasks channel.');
         supabase.removeChannel(channel);
       };
     } else {
