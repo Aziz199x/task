@@ -230,7 +230,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
           {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('unassigned')}</div>}
           {task.status === 'completed' && closedByUser && (
             <div className="flex items-center text-sm text-muted-foreground">
-              <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {closedByUser.first_name} {closedByUser.last_name}
+              <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
             </div>
           )}
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
