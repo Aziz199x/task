@@ -132,7 +132,11 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     console.log(`[EditTaskForm] handlePhotoUploadSuccess for ${photoType}: received URL`, url);
     // Update local state
-    setEditedTask(prev => ({...prev, [`photo_${photoType}_url`]: url}));
+    setEditedTask(prev => {
+      const newState = {...prev, [`photo_${photoType}_url`]: url};
+      console.log(`[EditTaskForm] setEditedTask for ${photoType}: new state will be`, newState);
+      return newState;
+    });
     // Immediately save to database
     const updates = { [`photo_${photoType}_url`]: url };
     console.log(`[EditTaskForm] Calling updateTask for photo upload (${photoType}) with updates:`, updates);
@@ -146,10 +150,11 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       await deleteTaskPhoto(currentUrl);
     }
     // Clear the URL in the local state
-    setEditedTask(prev => ({
-      ...prev,
-      [`photo_${photoType}_url`]: null
-    }));
+    setEditedTask(prev => {
+      const newState = { ...prev, [`photo_${photoType}_url`]: null };
+      console.log(`[EditTaskForm] setEditedTask for ${photoType} removal: new state will be`, newState);
+      return newState;
+    });
     // Also update the database immediately
     const updates = { [`photo_${photoType}_url`]: null };
     console.log(`[EditTaskForm] Calling updateTask for photo removal (${photoType}) with updates:`, updates);
