@@ -54,8 +54,32 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           'postgres_changes',
           { event: '*', schema: 'public', table: 'tasks' },
           (payload) => {
-            console.log('[TaskContext] Realtime event received, refetching tasks:', payload);
-            fetchTasks();
+            console.log('[TaskContext] Realtime event received:', payload);
+            const newRecord = payload.new as Task;
+            const oldRecord = payload.old as { id: string };
+
+            switch (payload.eventType) {
+              case 'INSERT':
+                setTasks((currentTasks) => {
+                  if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
+                  return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                });
+                break;
+              case 'UPDATE':
+                setTasks((currentTasks) =>
+                  currentTasks.map((task) =>
+                    task.id === newRecord.id ? newRecord : task
+                  )
+                );
+                break;
+              case 'DELETE':
+                setTasks((currentTasks) =>
+                  currentTasks.filter((task) => task.id !== oldRecord.id)
+                );
+                break;
+              default:
+                break;
+            }
           }
         )
         .subscribe();

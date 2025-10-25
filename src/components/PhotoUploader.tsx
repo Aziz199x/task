@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface PhotoUploaderProps {
   label: string;
@@ -26,14 +27,12 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
     if (!file) return;
 
     setUploading(true);
-    console.log(`[PhotoUploader - ${photoType}] Starting auto-upload for file:`, file.name);
-
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${photoType}-${Date.now()}.${fileExt}`;
       const filePath = `${taskId}/${fileName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('task_photos')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -41,25 +40,20 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         });
 
       if (uploadError) {
-        console.error(`[PhotoUploader - ${photoType}] Upload failed:`, uploadError);
-        toast.error(`${t('upload_failed')}: ${uploadError.message}`);
-      } else {
-        console.log(`[PhotoUploader - ${photoType}] Upload successful, data:`, uploadData);
-        const { data: publicUrlData } = supabase.storage
-          .from('task_photos')
-          .getPublicUrl(filePath);
-        
-        if (publicUrlData.publicUrl) {
-          console.log(`[PhotoUploader - ${photoType}] Public URL retrieved:`, publicUrlData.publicUrl);
-          onUploadSuccess(publicUrlData.publicUrl);
-        } else {
-          console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", publicUrlData);
-          toast.error(t('could_not_get_photo_url'));
-        }
+        throw uploadError;
       }
-    } catch (unexpectedError: any) {
-      console.error(`[PhotoUploader - ${photoType}] An unexpected error occurred during upload:`, unexpectedError);
-      toast.error(`${t('upload_failed')}: ${unexpectedError.message || 'Unknown error'}`);
+
+      const { data: publicUrlData } = supabase.storage
+        .from('task_photos')
+        .getPublicUrl(filePath);
+      
+      if (publicUrlData.publicUrl) {
+        onUploadSuccess(publicUrlData.publicUrl);
+      } else {
+        throw new Error(t('could_not_get_photo_url'));
+      }
+    } catch (error: any) {
+      toast.error(`${t('upload_failed')}: ${error.message}`);
     } finally {
       setUploading(false);
     }
@@ -68,9 +62,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      console.log(`[PhotoUploader - ${photoType}] File selected, triggering upload:`, selectedFile.name);
       handleUpload(selectedFile);
-      e.target.value = ''; // Reset input to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -79,7 +72,14 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="flex items-center gap-2">
-          <img key={currentUrl} src={currentUrl} alt={label} className="w-20 h-20 object-cover rounded-md" />
+          <Dialog>
+            <DialogTrigger asChild>
+              <img key={currentUrl} src={currentUrl} alt={label} className="w-20 h-20 object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity" />
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <img src={currentUrl} alt={label} className="w-full h-auto rounded-lg" />
+            </DialogContent>
+          </Dialog>
           <Button variant="destructive" size="icon" onClick={onRemove} disabled={uploading}>
             <Trash2 className="h-4 w-4" />
           </Button>
