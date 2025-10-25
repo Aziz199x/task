@@ -138,7 +138,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   };
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
+    const filtered = tasks.filter((task) => {
       const matchesSearch = searchTerm === "" ||
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -162,6 +162,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
       return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
     });
+
+    // Sort the filtered tasks by creation date (newest first)
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority]);
 
   const allTasksSelected = filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length;
@@ -304,7 +307,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" /> {t('delete_selected')}
+                      <Trash2 className="h-4 w-4 mr-2" /> {t('delete_selected')}
                     </DropdownMenuItem>
                   </>
                 )}

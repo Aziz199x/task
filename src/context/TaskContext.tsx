@@ -73,23 +73,31 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           'postgres_changes',
           { event: '*', schema: 'public', table: 'tasks' },
           (payload) => {
+            console.log('Real-time event received:', payload.eventType, payload.new?.id || payload.old?.id);
             const newRecord = payload.new as Task;
             const oldRecord = payload.old as { id: string };
 
             switch (payload.eventType) {
               case 'INSERT':
                 setTasks((currentTasks) => {
-                  if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
+                  console.log('INSERT event - currentTasks length:', currentTasks.length, 'newRecord ID:', newRecord.id);
+                  if (currentTasks.some(t => t.id === newRecord.id)) {
+                    console.log('INSERT: Task already exists, skipping.');
+                    return currentTasks;
+                  }
                   if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
                   if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
                     playNotificationSound();
                     toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
                   }
-                  return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                  const updatedTasks = [newRecord, ...currentTasks]; // Removed sort here, will sort in consumer components
+                  console.log('INSERT: New tasks length:', updatedTasks.length);
+                  return updatedTasks;
                 });
                 break;
               case 'UPDATE':
                 setTasks((currentTasks) => {
+                  console.log('UPDATE event - currentTasks length:', currentTasks.length, 'newRecord ID:', newRecord.id);
                   const oldTask = currentTasks.find(t => t.id === newRecord.id);
                   if (oldTask && newRecord.creator_id !== user.id) {
                     if (oldTask.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
@@ -105,14 +113,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (!oldTask.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
                     if (!oldTask.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
                   }
-                  return currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
+                  const updatedTasks = currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
+                  console.log('UPDATE: New tasks length:', updatedTasks.length);
+                  return updatedTasks;
                 });
                 break;
               case 'DELETE':
                 setTasks((currentTasks) => {
+                  console.log('DELETE event - currentTasks length:', currentTasks.length, 'oldRecord ID:', oldRecord.id);
                   const deletedTask = currentTasks.find(t => t.id === oldRecord.id);
                   if (deletedTask && deletedTask.creator_id !== user.id) toast.info(t('task_deleted_notification', { title: deletedTask.title }));
-                  return currentTasks.filter((task) => task.id !== oldRecord.id);
+                  const updatedTasks = currentTasks.filter((task) => task.id !== oldRecord.id);
+                  console.log('DELETE: New tasks length:', updatedTasks.length);
+                  return updatedTasks;
                 });
                 break;
               default:
