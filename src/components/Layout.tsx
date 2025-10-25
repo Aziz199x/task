@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
@@ -102,6 +102,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Button>
                   </Link>
                 )}
+                {/* New Profile Settings Button */}
+                <Link to="/settings">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={isActive('/settings') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                    title={t('profile_settings')}
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <ThemeSwitcher />
                 <LanguageSwitcher />
                 <Button variant="destructive" size="icon" onClick={signOut} title={t('logout')}>

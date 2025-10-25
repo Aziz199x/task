@@ -286,5 +286,10 @@
   "logout": "Logout",
   "technician_cannot_delete_completed_or_cancelled_task": "Technicians cannot delete completed or cancelled tasks.",
   "tasks_by_user": "Tasks by User",
-  "pick_a_date": "Pick a date"
+  "pick_a_date": "Pick a date",
+  "profile_settings": "Profile Settings",
+  "phone_number_optional": "Phone Number (Optional)",
+  "phone_number_placeholder": "e.g., +966501234567",
+  "profile_updated_successfully": "Profile updated successfully!",
+  "failed_to_update_profile": "Failed to update profile"
 }

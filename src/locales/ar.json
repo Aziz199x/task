@@ -286,5 +286,10 @@
   "logout": "تسجيل الخروج",
   "technician_cannot_delete_completed_or_cancelled_task": "لا يمكن للفنيين حذف المهام المكتملة أو الملغاة.",
   "tasks_by_user": "المهام حسب المستخدم",
-  "pick_a_date": "اختر تاريخًا"
+  "pick_a_date": "اختر تاريخًا",
+  "profile_settings": "إعدادات الملف الشخصي",
+  "phone_number_optional": "رقم الهاتف (اختياري)",
+  "phone_number_placeholder": "مثال: +966501234567",
+  "profile_updated_successfully": "تم تحديث الملف الشخصي بنجاح!",
+  "failed_to_update_profile": "فشل تحديث الملف الشخصي"
 }
