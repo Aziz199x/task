@@ -214,6 +214,14 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
   };
 
+  // Helper component for detail lines
+  const DetailLine: React.FC<{ icon: React.ReactNode; text: React.ReactNode; className?: string }> = ({ icon, text, className = "text-muted-foreground" }) => (
+    <div className={`flex items-start text-xs ${className}`}>
+      {React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5 mr-2 mt-0.5 flex-shrink-0" })}
+      <span className="break-words min-w-0">{text}</span>
+    </div>
+  );
+
   return (
     <Card className={`w-full flex items-start p-4 ${task.status === 'completed' ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isOverdue ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isOverdue ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
       {onSelect && (
@@ -228,7 +236,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
         <CardHeader className="p-0 pb-2">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-2 min-w-0">
-              <CardTitle className={`text-lg font-semibold break-words ${task.status === 'completed' ? "line-through" : ""}`}>
+              <CardTitle className={`text-base font-semibold break-words ${task.status === 'completed' ? "line-through" : ""}`}>
                 {task.title}
               </CardTitle>
               {/* Display the unique database ID (UUID) */}
@@ -306,57 +314,65 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 p-0 pt-2">
+        <CardContent className="space-y-1 p-0 pt-2">
           {/* Display description clearly separated */}
-          {task.description && <p className={`text-sm text-gray-700 dark:text-gray-300 ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
+          {task.description && <p className={`text-xs text-gray-700 dark:text-gray-300 ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
           
           <div className="space-y-1 pt-1">
-            <div className="flex items-start text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /> 
-              <span className="break-words">{t('created_on')}: {format(new Date(task.created_at), 'PPP p')}</span>
-            </div>
+            <DetailLine 
+              icon={<Clock />} 
+              text={`${t('created_on')}: ${format(new Date(task.created_at), 'PPP p')}`}
+            />
             
             {task.location && (
-              <div className="flex items-start text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                <span className="break-words min-w-0">
-                  {validateLocationUrl(task.location) === null ? (
-                    <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                      {task.location}
-                    </a>
-                  ) : (
-                    task.location
-                  )}
-                </span>
-              </div>
+              <DetailLine 
+                icon={<MapPin />} 
+                text={validateLocationUrl(task.location) === null ? (
+                  <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                    {task.location}
+                  </a>
+                ) : (
+                  task.location
+                )}
+              />
             )}
             
-            {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2 flex-shrink-0" /> {t('task_id')}: {task.task_id}</div>}
-            {task.notification_num && <div className="flex items-center text-sm text-muted-foreground"><Bell className="h-4 w-4 mr-2 flex-shrink-0" /> {t('notification_num')}: {task.notification_num}</div>}
+            {task.task_id && <DetailLine icon={<Hash />} text={`${t('task_id')}: ${task.task_id}`} />}
+            {task.notification_num && <DetailLine icon={<Bell />} text={`${t('notification_num')}: ${task.notification_num}`} />}
             
-            {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2 flex-shrink-0" /> {t('due_date')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
+            {task.due_date && (
+              <DetailLine 
+                icon={<CalendarDays />} 
+                text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isOverdue ? `(${t('overdue')})` : ''} ${isDueSoon && !isOverdue ? `(${t('due_soon')})` : ''}`}
+                className={isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}
+              />
+            )}
             
-            {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2 flex-shrink-0" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
-            {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2 flex-shrink-0" /> {t('equipment_number')}: {task.equipment_number}</div>}
+            {task.type_of_work && <DetailLine icon={<Wrench />} text={`${t('type')}: ${t(task.type_of_work.replace(' ', '_').toLowerCase())}`} />}
+            {task.equipment_number && <DetailLine icon={<HardHat />} text={`${t('equipment_number')}: ${task.equipment_number}`} />}
             
             {task.priority && (
-              <div className={`flex items-center text-sm ${getPriorityColor(task.priority)}`}>
-                <Flag className="h-4 w-4 mr-2 flex-shrink-0" /> {t('priority')}: {t(task.priority)}
-              </div>
+              <DetailLine 
+                icon={<Flag />} 
+                text={`${t('priority')}: ${t(task.priority)}`}
+                className={getPriorityColor(task.priority)}
+              />
             )}
             
-            {assignedTechnician && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2 flex-shrink-0" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</div>}
-            {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2 flex-shrink-0" /> {t('unassigned')}</div>}
+            {assignedTechnician && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedTechnician.first_name} ${assignedTechnician.last_name}`} />}
+            {!task.assignee_id && task.status !== 'unassigned' && <DetailLine icon={<User />} text={t('unassigned')} />}
             
             {task.status === 'completed' && closedByUser && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <UserCheck className="h-4 w-4 mr-2 flex-shrink-0" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
-              </div>
+              <DetailLine 
+                icon={<UserCheck />} 
+                text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`}
+              />
             )}
             {task.status === 'completed' && task.closed_at && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <CalendarDays className="h-4 w-4 mr-2 flex-shrink-0" /> {t('closed_on')}: {format(new Date(task.closed_at), 'PPP p')}
-              </div>
+              <DetailLine 
+                icon={<CalendarDays />} 
+                text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`}
+              />
             )}
           </div>
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
