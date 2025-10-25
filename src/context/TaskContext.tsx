@@ -281,6 +281,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [t]);
 
   const deleteTask = useCallback(async (id: string) => {
+    if (!profile || !['admin', 'manager'].includes(profile.role)) {
+      toast.error(t("permission_denied_delete_task"));
+      return;
+    }
+
     const taskToDelete = tasks.find(t => t.id === id);
     if (taskToDelete && taskToDelete.status === 'completed' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only_delete"));

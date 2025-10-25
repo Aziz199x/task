@@ -63,7 +63,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   );
 
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
-  const canDeleteTask = isAdmin || (!isCompleted && canEditOrDelete);
+  const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
 
   const handleDelete = () => {

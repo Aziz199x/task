@@ -40,6 +40,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+  const canBulkDelete = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
 
   const handleSelectTask = (taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -287,10 +288,14 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                     </DropdownMenuItem>
                   ))
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" /> {t('delete_selected')}
-                </DropdownMenuItem>
+                {canBulkDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" /> {t('delete_selected')}
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

@@ -229,6 +229,7 @@
   "location_url_invalid_format": "يجب أن يكون الموقع رابط خرائط جوجل بهذا التنسيق: https://www.google.com/maps?q=LATITUDE,LONGITUDE",
   "location_placeholder": "مثال: https://www.google.com/maps?q=21.494086,39.186785",
   "permission_denied_complete_task": "ليس لديك إذن لإكمال هذه المهمة.",
+  "permission_denied_delete_task": "ليس لديك صلاحية لحذف المهام.",
   "closed_by": "أغلق بواسطة",
   "due_date_cannot_be_in_past": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي.",
   "created_on": "تاريخ الإنشاء",

@@ -229,6 +229,7 @@
   "location_url_invalid_format": "Location must be a Google Maps URL in the format: https://www.google.com/maps?q=LATITUDE,LONGITUDE",
   "location_placeholder": "e.g., https://www.google.com/maps?q=21.494086,39.186785",
   "permission_denied_complete_task": "You do not have permission to complete this task.",
+  "permission_denied_delete_task": "You do not have permission to delete tasks.",
   "closed_by": "Closed by",
   "due_date_cannot_be_in_past": "Due date cannot be in the past.",
   "created_on": "Created on",
