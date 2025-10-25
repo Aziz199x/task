@@ -23,7 +23,6 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const [file, setFile] = useState<File | null>(null);
   const { t } = useTranslation();
 
-  // Log when the currentUrl prop changes
   useEffect(() => {
     console.log(`[PhotoUploader - ${photoType}] currentUrl prop changed to:`, currentUrl);
   }, [currentUrl, photoType]);
@@ -31,7 +30,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
-      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name);
+      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name, e.target.files[0]); // Log the file object
     } else {
       setFile(null);
       console.log(`[PhotoUploader - ${photoType}] File selection cleared.`);
@@ -39,41 +38,52 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   };
 
   const handleUpload = async () => {
-    console.log(`[PhotoUploader - ${photoType}] handleUpload function invoked.`); // New log
+    console.log(`[PhotoUploader - ${photoType}] handleUpload function invoked.`);
     if (!file) {
       toast.error(t('please_select_a_file_first'));
       return;
     }
     setUploading(true);
     console.log(`[PhotoUploader - ${photoType}] Starting upload for file:`, file.name);
+    console.log(`[PhotoUploader - ${photoType}] File object before upload:`, file); // New log for file object
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${photoType}-${Date.now()}.${fileExt}`;
-    const filePath = `${taskId}/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${photoType}-${Date.now()}.${fileExt}`;
+      const filePath = `${taskId}/${fileName}`;
 
-    const { error } = await supabase.storage
-      .from('task_photos')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error(`[PhotoUploader - ${photoType}] Upload failed:`, error); // Log the full error object
-      toast.error(`${t('upload_failed')}: ${error.message}`);
-    } else {
-      const { data } = supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('task_photos')
-        .getPublicUrl(filePath);
-      
-      if (data.publicUrl) {
-        console.log(`[PhotoUploader - ${photoType}] Upload successful, public URL:`, data.publicUrl);
-        onUploadSuccess(data.publicUrl); // Call the parent's success handler
-        setFile(null); // Clear the file input after successful upload
-        console.log(`[PhotoUploader - ${photoType}] onUploadSuccess called and file state cleared.`);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false // Ensure we don't accidentally overwrite if not intended
+        });
+
+      if (uploadError) {
+        console.error(`[PhotoUploader - ${photoType}] Upload failed:`, uploadError);
+        toast.error(`${t('upload_failed')}: ${uploadError.message}`);
       } else {
-        console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", data); // Improved logging
-        toast.error(t('could_not_get_photo_url'));
+        console.log(`[PhotoUploader - ${photoType}] Upload successful, data:`, uploadData);
+        // Now get the public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('task_photos')
+          .getPublicUrl(filePath);
+        
+        if (publicUrlData.publicUrl) {
+          console.log(`[PhotoUploader - ${photoType}] Public URL retrieved:`, publicUrlData.publicUrl);
+          onUploadSuccess(publicUrlData.publicUrl);
+          setFile(null);
+        } else {
+          console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", publicUrlData);
+          toast.error(t('could_not_get_photo_url'));
+        }
       }
+    } catch (unexpectedError: any) {
+      console.error(`[PhotoUploader - ${photoType}] An unexpected error occurred during upload:`, unexpectedError);
+      toast.error(`${t('upload_failed')}: ${unexpectedError.message || 'Unknown error'}`);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   if (currentUrl) {
