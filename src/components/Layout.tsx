@@ -72,7 +72,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         variant="ghost" 
                         size="sm" 
                         className={isActive('/create-account') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
-                      >
+                    >
                         <UserPlus className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -92,8 +92,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <LanguageSwitcher />
                 </div>
                 {/* Logout Button - below the others */}
-                <Button variant="destructive" size="sm" onClick={signOut} className="w-full md:w-auto flex items-center justify-center md:justify-start">
-                  <LogOut className="h-4 w-4 mr-2" /> {t('logout')}
+                <Button variant="destructive" size="icon" onClick={signOut}>
+                  <LogOut className="h-4 w-4" />
                 </Button>
               </div>
             </div>
