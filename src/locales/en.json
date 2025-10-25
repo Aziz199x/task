@@ -44,7 +44,7 @@
   "description_optional": "Description (Optional)",
   "location": "Location",
   "task_id": "Task ID",
-  "due_date": "Expected Completion Date",
+  "due_date": "Due Date",
   "type_of_work": "Type of Work",
   "select_type_of_work": "Select type of work",
   "correction_maintenance": "Correction Maintenance",
