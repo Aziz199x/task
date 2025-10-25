@@ -37,10 +37,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setEditedTask(task);
-  }, [task]);
-
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
     if (!googleMapsUrlRegex.test(url)) return t('location_url_invalid_format');
