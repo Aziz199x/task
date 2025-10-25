@@ -24,8 +24,8 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Globe className="h-5 w-5" />
+        <Button variant="ghost" size="sm">
+          <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

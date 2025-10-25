@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { LogOut, LayoutDashboard, ListTodo, Users, UserPlus, Settings } from "lucide-react";
+import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
@@ -38,62 +38,62 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             )}
           </div>
           {session && (
-            <div className="flex flex-col md:flex-row md:items-center md:space-x-4 gap-2 md:gap-0">
+            <div className="flex flex-col md:flex-row md:items-center md:space-x-4 gap-2 md:gap-0 md:justify-center md:flex-grow">
               {profile && (
-                <div className="text-sm text-center md:text-left">
+                <div className="text-sm text-center md:text-left md:mr-4">
                   <p className="font-medium">{profile.first_name || user?.email}</p>
                   <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
                 </div>
               )}
-              {/* Navigation Links */}
-              <div className="flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1">
-                <Link to="/">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={isActive('/') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
-                  >
-                    <ListTodo className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/dashboard">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={isActive('/dashboard') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                  </Button>
-                </Link>
-                {allowedToCreateAccounts && (
-                  <Link to="/create-account">
+              <div className="flex flex-col items-center md:items-end gap-2">
+                {/* Top row of navigation and utility buttons */}
+                <div className="flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1">
+                  <Link to="/">
                     <Button 
                       variant="ghost" 
-                      size="icon" 
-                      className={isActive('/create-account') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                      size="sm" 
+                      className={isActive('/') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
                     >
-                      <UserPlus className="h-5 w-5" />
+                      <ListTodo className="h-4 w-4" />
                     </Button>
                   </Link>
-                )}
-                {allowedToManageUsers && (
-                  <Link to="/manage-users">
+                  <Link to="/dashboard">
                     <Button 
                       variant="ghost" 
-                      size="icon" 
-                      className={isActive('/manage-users') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                      size="sm" 
+                      className={isActive('/dashboard') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
                     >
-                      <Settings className="h-5 w-5" />
+                      <LayoutDashboard className="h-4 w-4" />
                     </Button>
                   </Link>
-                )}
-              </div>
-              {/* Theme, Language, and Logout Buttons */}
-              <div className="flex items-center space-x-2">
-                <ThemeSwitcher />
-                <LanguageSwitcher />
-                <Button variant="destructive" size="icon" onClick={signOut}>
-                  <LogOut className="h-5 w-5" />
+                  {allowedToCreateAccounts && (
+                    <Link to="/create-account">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={isActive('/create-account') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
+                  {allowedToManageUsers && (
+                    <Link to="/manage-users">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={isActive('/manage-users') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
+                  <ThemeSwitcher />
+                  <LanguageSwitcher />
+                </div>
+                {/* Logout Button - below the others */}
+                <Button variant="destructive" size="sm" onClick={signOut} className="w-full md:w-auto flex items-center justify-center md:justify-start">
+                  <LogOut className="h-4 w-4 mr-2" /> {t('logout')}
                 </Button>
               </div>
             </div>
