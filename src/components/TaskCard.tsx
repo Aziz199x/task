@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,8 @@ import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from 'react-i18next';
 import TaskPhotoGallery from "./TaskPhotoGallery";
-import EditTaskForm from "./EditTaskForm"; // Import the new component
-import { useProfiles } from "@/hooks/use-profiles"; // Import useProfiles to get all user profiles
+import EditTaskForm from "./EditTaskForm";
+import { useProfiles } from "@/hooks/use-profiles";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +26,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
@@ -39,28 +38,27 @@ const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?)
 
 const validateLocationUrl = (url: string | null | undefined): string | null => {
   if (!url || url.trim() === "") {
-    return null; // Location is optional
+    return null;
   }
   if (!googleMapsUrlRegex.test(url)) {
-    return "location_url_invalid_format"; // Return key for translation
+    return "location_url_invalid_format";
   }
   return null;
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSelected }) => {
+const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, isSelected }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
-  const { profiles } = useProfiles(); // Use useProfiles to get all profiles
+  const { profiles } = useProfiles();
   const { t } = useTranslation();
 
-  // Get the current task from global state (real-time updates)
   const task = tasks.find(t => t.id === initialTask.id) || initialTask;
 
   const [isEditing, setIsEditing] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false); // Keep for status change/assign actions
+  const [isSaving, setIsSaving] = React.useState(false);
   const [showRevertConfirmation, setShowRevertConfirmation] = React.useState(false);
-  const [showCancelConfirmation, setShowCancelConfirmation] = React.useState(false); // New state for cancel confirmation
+  const [showCancelConfirmation, setShowCancelConfirmation] = React.useState(false);
 
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
@@ -75,33 +73,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
   const canStartProgress = (isAssignedToCurrentUser || canEditOrDelete) && task.status === 'assigned';
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
-                    (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress'); // Only allow cancellation for active tasks
+                    (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress');
   const canShare = typeof navigator !== 'undefined' && navigator.share;
-  const canAssignToMe = user && !isAssignedToCurrentUser && (!isCompleted || isAdmin); // New condition for 'Assign to Me'
+  const canAssignToMe = user && !isAssignedToCurrentUser && (!isCompleted || isAdmin);
 
-  const handleDelete = () => {
+  const handleDelete = React.useCallback(() => {
     deleteTask(task.id);
     toast.success(t('task_deleted_successfully'));
-  };
+  }, [deleteTask, task.id, t]);
 
-  const handleStatusChange = async (newStatus: Task['status']) => {
+  const handleStatusChange = React.useCallback(async (newStatus: Task['status']) => {
     if (task.status === 'completed' && newStatus === 'in-progress') {
       setShowRevertConfirmation(true);
       return;
     }
-    if (newStatus === 'cancelled') { // New check for cancellation
+    if (newStatus === 'cancelled') {
       setShowCancelConfirmation(true);
       return;
     }
-    setIsSaving(true); // Indicate saving for status changes
+    setIsSaving(true);
     const success = await changeTaskStatus(task.id, newStatus);
     if (success) {
       toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
     }
     setIsSaving(false);
-  };
+  }, [changeTaskStatus, task.id, task.status, t]);
 
-  const confirmRevertToInProgress = async () => {
+  const confirmRevertToInProgress = React.useCallback(async () => {
     setIsSaving(true);
     const success = await changeTaskStatus(task.id, 'in-progress');
     if (success) {
@@ -109,9 +107,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
     }
     setIsSaving(false);
     setShowRevertConfirmation(false);
-  };
+  }, [changeTaskStatus, task.id, t]);
 
-  const confirmCancelTask = async () => { // New function for confirming cancellation
+  const confirmCancelTask = React.useCallback(async () => {
     setIsSaving(true);
     const success = await changeTaskStatus(task.id, 'cancelled');
     if (success) {
@@ -119,9 +117,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
     }
     setIsSaving(false);
     setShowCancelConfirmation(false);
-  };
+  }, [changeTaskStatus, task.id, t]);
 
-  const handleCompleteClick = async () => {
+  const handleCompleteClick = React.useCallback(async () => {
     const missingFields = [];
     if (!task.photo_before_url) missingFields.push(t('before_work_photo'));
     if (!task.photo_after_url) missingFields.push(t('after_work_photo'));
@@ -130,13 +128,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
 
     if (missingFields.length > 0) {
       toast.error(`${t('please_fill_in_the_following_fields')}: ${missingFields.join(', ')}`);
-      setIsEditing(true); // Open the edit dialog
+      setIsEditing(true);
     } else {
       await handleStatusChange('completed');
     }
-  };
+  }, [task, handleStatusChange, t]);
 
-  const handleAssignToMe = async () => {
+  const handleAssignToMe = React.useCallback(async () => {
     setIsSaving(true);
     if (user?.id) {
       const success = await assignTask(task.id, user.id);
@@ -147,18 +145,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
       toast.error(t('you_must_be_logged_in_to_assign_tasks'));
     }
     setIsSaving(false);
-  };
+  }, [assignTask, task.id, user, t]);
 
-  const handleUnassign = async () => {
+  const handleUnassign = React.useCallback(async () => {
     setIsSaving(true);
     const success = await assignTask(task.id, null);
     if (success) {
       toast.success(t('task_unassigned'));
     }
     setIsSaving(false);
-  };
+  }, [assignTask, task.id, t]);
 
-  const handleShare = async () => {
+  const handleShare = React.useCallback(async () => {
     if (!canShare) {
       toast.error(t('share_not_supported'));
       return;
@@ -187,10 +185,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
         toast.error(t('share_failed'));
       }
     }
-  };
+  }, [canShare, task, technicians, t]);
 
   const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
-  const closedByUser = profiles.find(p => p.id === task.closed_by_id); // Find the user who closed the task
+  const closedByUser = profiles.find(p => p.id === task.closed_by_id);
 
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
   const now = new Date();
@@ -383,6 +381,20 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
       </AlertDialog>
     </Card>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  return (
+    prevProps.task.id === nextProps.task.id &&
+    prevProps.task.status === nextProps.task.status &&
+    prevProps.task.title === nextProps.task.title &&
+    prevProps.task.assignee_id === nextProps.task.assignee_id &&
+    prevProps.task.photo_before_url === nextProps.task.photo_before_url &&
+    prevProps.task.photo_after_url === nextProps.task.photo_after_url &&
+    prevProps.task.photo_permit_url === nextProps.task.photo_permit_url &&
+    prevProps.isSelected === nextProps.isSelected
+  );
+});
+
+TaskCard.displayName = 'TaskCard';
 
 export default TaskCard;

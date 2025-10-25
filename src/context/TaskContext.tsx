@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -185,10 +185,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    if (newTask) {
-      setTasks(currentTasks => [newTask, ...currentTasks]);
-    }
-    
+    // Don't update state here - let real-time subscription handle it
     return true;
   }, [user, generateUniqueTaskId, t]);
 
@@ -237,15 +234,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     
-    const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksToInsert).select();
+    const { error } = await supabase.from('tasks').insert(tasksToInsert);
 
     if (error) {
       toast.error(t("failed_to_add_tasks_bulk") + error.message);
     }
-
-    if (insertedTasks) {
-      setTasks(currentTasks => [...insertedTasks, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-    }
+    // Don't update state here - let real-time subscription handle it
   }, [user, generateUniqueTaskId, t]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
@@ -285,14 +279,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updates.closed_at = null;
     }
     
-    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
       return false;
     }
-    if (data) {
-      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
-    }
+    // Don't update state here - let real-time subscription handle it
     return true;
   }, [tasks, profile, user, t]);
 
@@ -319,20 +311,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const isAdminOrManager = profile && ['admin', 'manager'].includes(profile.role);
     const isTechnician = profile?.role === 'technician';
 
-    // Admins/Managers can delete any task, but completed tasks require admin role
     if (isAdminOrManager) {
       if (taskToDelete.status === 'completed' && profile?.role !== 'admin') {
         toast.error(t("completed_tasks_admin_only_delete"));
         return;
       }
     } else if (isTechnician && isCreator) {
-      // Technicians can delete their own tasks if not completed or cancelled
       if (taskToDelete.status === 'completed' || taskToDelete.status === 'cancelled') {
-        toast.error(t("technician_cannot_delete_completed_or_cancelled_task")); // New translation key
+        toast.error(t("technician_cannot_delete_completed_or_cancelled_task"));
         return;
       }
     } else {
-      // Any other role or unauthorized technician
       toast.error(t("permission_denied_delete_task"));
       return;
     }
@@ -344,9 +333,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
-    } else {
-      setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
     }
+    // Don't update state here - let real-time subscription handle it
   }, [tasks, profile, user, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
@@ -358,18 +346,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const finalUpdates = { ...updates };
 
-    // If the task is completed, prevent changing its status from 'completed'.
-    // Also, only an admin can update other fields of a completed task.
     if (taskToUpdate.status === 'completed') {
       if (profile?.role !== 'admin') {
-        toast.error(t("completed_tasks_admin_only_modify")); // New translation key for general modification
+        toast.error(t("completed_tasks_admin_only_modify"));
         return false;
       }
-      // If an admin is updating a completed task, ensure status remains 'completed'.
-      // If 'updates' contains a 'status' field that is not 'completed', remove it.
       if (finalUpdates.status && finalUpdates.status !== 'completed') {
         delete finalUpdates.status;
-        toast.info(t("completed_task_status_preserved")); // Inform admin that status was not changed
+        toast.info(t("completed_task_status_preserved"));
       }
     }
 
@@ -391,15 +375,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    const { data, error } = await supabase.from('tasks').update(finalUpdates).eq('id', id).select().single();
+    const { error } = await supabase.from('tasks').update(finalUpdates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
       return false;
-    } else if (data) {
-      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
-      return true;
     }
-    return false;
+    // Don't update state here - let real-time subscription handle it
+    return true;
   }, [tasks, profile, t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
@@ -411,39 +393,43 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const updates: Partial<Task> = { assignee_id: assigneeId };
 
-    // If the task is completed, its status should not change.
-    // Only an admin can reassign a completed task.
     if (taskToUpdate.status === 'completed') {
       if (profile?.role !== 'admin') {
         toast.error(t("completed_tasks_admin_only_assign"));
         return false;
       }
-      // If admin, only assignee_id is updated. Status remains 'completed'.
-      // No need to add 'status' to updates object.
     } else {
-      // For non-completed tasks, update status based on assigneeId
       updates.status = assigneeId ? 'assigned' : 'unassigned';
     }
 
-    // Prevent unnecessary updates if assignee_id is not actually changing AND status is not changing
     if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === (updates.status || taskToUpdate.status)) {
       toast.info(t("no_change_in_assignment"));
       return false;
     }
 
-    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
+    const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
       return false;
-    } else if (data) {
-      setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
-      return true;
     }
-    return false;
+    // Don't update state here - let real-time subscription handle it
+    return true;
   }, [tasks, profile, t]);
 
+  const contextValue = useMemo(() => ({
+    tasks,
+    loading,
+    addTask,
+    addTasksBulk,
+    changeTaskStatus,
+    deleteTask,
+    updateTask,
+    assignTask,
+    deleteTaskPhoto
+  }), [tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto]);
+
   return (
-    <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto }}>
+    <TaskContext.Provider value={contextValue}>
       {children}
     </TaskContext.Provider>
   );
