@@ -23,7 +23,7 @@ const TaskStatusColumn: React.FC<TaskStatusColumnProps> = ({ title, tasks }) => 
         {tasks.length === 0 ? (
           <p className="text-center text-muted-foreground text-sm">{t('no_tasks_in_this_category')}</p>
         ) : (
-          tasks.map((task) => <TaskCard key={task.id} task={task} />)
+          tasks.map((task) => <TaskCard key={task.id} taskId={task.id} />) // Pass taskId
         )}
       </CardContent>
     </Card>

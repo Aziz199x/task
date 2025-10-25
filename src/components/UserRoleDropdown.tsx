@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserProfile } from '@/context/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +20,7 @@ const roleHierarchy = {
   'contractor': 0,
 };
 
-const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
+const UserRoleDropdown: React.FC<UserRoleDropdownProps> = memo(({ profile }) => {
   const { profile: currentUserProfile } = useSession();
   const { t } = useTranslation(); // Initialize useTranslation
   const [currentRole, setCurrentRole] = React.useState<UserProfile['role']>(profile.role);
@@ -85,6 +85,8 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = ({ profile }) => {
       </SelectContent>
     </Select>
   );
-};
+});
+
+UserRoleDropdown.displayName = 'UserRoleDropdown';
 
 export default UserRoleDropdown;

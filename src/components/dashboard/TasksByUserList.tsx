@@ -70,7 +70,7 @@ const TasksByUserList: React.FC = () => {
             {tasksGroupedByAssignee.unassigned.length === 0 ? (
               <p className="text-muted-foreground text-center text-sm">{t('no_unassigned_tasks')}</p>
             ) : (
-              tasksGroupedByAssignee.unassigned.map(task => <TaskCard key={task.id} task={task} />)
+              tasksGroupedByAssignee.unassigned.map(task => <TaskCard key={task.id} taskId={task.id} />) // Pass taskId
             )}
           </CardContent>
         </Card>
@@ -88,7 +88,7 @@ const TasksByUserList: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 max-h-[400px] overflow-y-auto">
-                {userTasks.map(task => <TaskCard key={task.id} task={task} />)}
+                {userTasks.map(task => <TaskCard key={task.id} taskId={task.id} />)} {/* Pass taskId */}
               </CardContent>
             </Card>
           );

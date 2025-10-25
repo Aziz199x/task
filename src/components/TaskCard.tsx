@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
-  task: Task; // Initial task data, will be updated from context
+  taskId: string; // Changed from task: Task to taskId: string
   onSelect?: (taskId: string, isSelected: boolean) => void;
   isSelected?: boolean;
 }
@@ -46,7 +46,7 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
   return null;
 };
 
-const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, isSelected }) => {
+const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }) => {
   const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
@@ -54,7 +54,12 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, i
   const { t } = useTranslation();
 
   // Get the most up-to-date task data from the map
-  const task = tasksByIdMap.get(initialTask.id) || initialTask;
+  const task = tasksByIdMap.get(taskId);
+
+  // If task is not found, it might have been deleted or not yet loaded
+  if (!task) {
+    return null;
+  }
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -238,7 +243,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, i
                       <DialogTitle>{t('edit_task')}</DialogTitle>
                     </DialogHeader>
                     <EditTaskForm
-                      task={task}
+                      task={task} // Pass the full task object here for editing
                       onClose={() => setIsEditing(false)}
                       canEditOrDelete={canEditOrDelete}
                       canComplete={canComplete}
@@ -382,6 +387,9 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, i
       </AlertDialog>
     </Card>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison for memo: only re-render if taskId or isSelected changes
+  return prevProps.taskId === nextProps.taskId && prevProps.isSelected === nextProps.isSelected;
 });
 
 TaskCard.displayName = 'TaskCard';

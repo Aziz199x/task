@@ -53,7 +53,7 @@ const TechnicianTasks: React.FC = () => {
           {unassignedTasks.length === 0 ? (
             <p className="text-muted-foreground text-center">{t('no_unassigned_tasks')}</p>
           ) : (
-            unassignedTasks.map(task => <TaskCard key={task.id} task={task} />)
+            unassignedTasks.map(task => <TaskCard key={task.id} taskId={task.id} />) // Pass taskId
           )}
         </CardContent>
       </Card>
@@ -76,7 +76,7 @@ const TechnicianTasks: React.FC = () => {
                 {tasksByTechnician[tech.id]?.length === 0 ? (
                   <p className="text-muted-foreground text-center text-sm">{t('no_tasks_assigned_to_this_technician')}</p>
                 ) : (
-                  tasksByTechnician[tech.id].map(task => <TaskCard key={task.id} task={task} />)
+                  tasksByTechnician[tech.id].map(task => <TaskCard key={task.id} taskId={task.id} />) // Pass taskId
                 )}
               </CardContent>
             </Card>

@@ -92,7 +92,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     } else {
       setSelectedTaskIds(new Set());
     }
-  }, [filteredTasks]); // filteredTasks is now correctly a dependency
+  }, [filteredTasks]);
 
   const handleBulkAction = useCallback(async (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
@@ -328,7 +328,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
-              task={task}
+              taskId={task.id} // Pass taskId instead of the full task object
               onSelect={handleSelectTask}
               isSelected={selectedTaskIds.has(task.id)}
             />
