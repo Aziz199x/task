@@ -162,6 +162,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const signOut = async () => {
     console.log("[SessionProvider] Attempting to sign out.");
+    
+    // Check if a session exists before attempting to sign out
+    if (!session) {
+      console.warn("[SessionProvider] Sign out attempted but session is already missing.");
+      toast.info(t("you_have_been_signed_out"));
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("[SessionProvider] Failed to sign out:", error.message);
@@ -178,7 +186,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     profile,
     loading: isLoadingInitial, // Use isLoadingInitial for the loading state
     signOut
-  }), [session, user, profile, isLoadingInitial]);
+  }), [session, user, profile, isLoadingInitial, signOut]);
 
   if (isLoadingInitial) {
     return (
