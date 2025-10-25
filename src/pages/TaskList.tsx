@@ -178,81 +178,85 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       {!hideForm && canAddTask && <TaskForm />}
 
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
-        <div className="relative w-full md:w-1/3">
+        {/* Search Input - Full width on mobile, 1/3 on desktop */}
+        <div className="relative w-full md:w-1/3 flex-shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder={`${t('search_tasks')} (${t('equipment_number')}, ${t('task_id')}, ${t('notification_num')})`}
+            placeholder={t('search_tasks')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
 
-        <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder={t('filter_by_status')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all_statuses')}</SelectItem>
-            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            <SelectItem value="assigned">{t('assigned')}</SelectItem>
-            <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
-            <SelectItem value="completed">{t('completed')}</SelectItem>
-            <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Filters - Wrap on mobile, align on desktop */}
+        <div className="flex flex-wrap gap-4 w-full md:w-auto">
+          <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('filter_by_status')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('all_statuses')}</SelectItem>
+              <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
+              <SelectItem value="assigned">{t('assigned')}</SelectItem>
+              <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
+              <SelectItem value="completed">{t('completed')}</SelectItem>
+              <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={(value: string | "all") => setFilterAssignee(value)} value={filterAssignee}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder={t('filter_by_assignee')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all_assignees')}</SelectItem>
-            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            {technicians.map((tech) => (
-              <SelectItem key={tech.id} value={tech.id}>
-                {tech.first_name} {tech.last_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(value: string | "all") => setFilterAssignee(value)} value={filterAssignee}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('filter_by_assignee')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('all_assignees')}</SelectItem>
+              <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
+              {technicians.map((tech) => (
+                <SelectItem key={tech.id} value={tech.id}>
+                  {tech.first_name} {tech.last_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder={t('filter_by_type_of_work')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all_types')}</SelectItem>
-            <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
-            <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
-            <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
-            <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
-            <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder={t('filter_by_type_of_work')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('all_types')}</SelectItem>
+              <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
+              <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
+              <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
+              <SelectItem value="Termination Maintenance">{t('termination_maintenance')}</SelectItem>
+              <SelectItem value="Replacing Equipment">{t('replacing_equipment')}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={(value: "all" | "overdue" | "due-soon") => setFilterReminder(value)} value={filterReminder}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder={t('filter_by_reminder')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all_tasks')}</SelectItem>
-            <SelectItem value="overdue">{t('overdue')}</SelectItem>
-            <SelectItem value="due-soon">{t('due_soon')}</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(value: "all" | "overdue" | "due-soon") => setFilterReminder(value)} value={filterReminder}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('filter_by_reminder')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('all_tasks')}</SelectItem>
+              <SelectItem value="overdue">{t('overdue')}</SelectItem>
+              <SelectItem value="due-soon">{t('due_soon')}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={(value: Task['priority'] | "all") => setFilterPriority(value)} value={filterPriority}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder={t('filter_by_priority')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">{t('low')}</SelectItem>
-            <SelectItem value="medium">{t('medium')}</SelectItem>
-            <SelectItem value="high">{t('high')}</SelectItem>
-            <SelectItem value="urgent">{t('urgent')}</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(value: Task['priority'] | "all") => setFilterPriority(value)} value={filterPriority}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('filter_by_priority')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">{t('low')}</SelectItem>
+              <SelectItem value="medium">{t('medium')}</SelectItem>
+              <SelectItem value="high">{t('high')}</SelectItem>
+              <SelectItem value="urgent">{t('urgent')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {filteredTasks.length > 0 && (
