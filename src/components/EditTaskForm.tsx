@@ -14,7 +14,7 @@ import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import PhotoUploader from "./PhotoUploader";
-import { isPast, isToday } from 'date-fns'; // Import date-fns functions
+import { isPast, isToday } from 'date-fns';
 
 interface EditTaskFormProps {
   task: Task;
@@ -37,32 +37,22 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // This effect now ONLY runs when the component is first mounted
-  // with a specific task. It will not re-run and overwrite user input
-  // if the parent's `task` object gets a new reference.
+  // Initialize state and errors only when the task ID changes (i.e., when a new task is opened)
   useEffect(() => {
     setEditedTask(task);
     setNotificationNumError(validateNotificationNum(task.notification_num));
     setLocationError(validateLocationUrl(task.location));
-  }, [task.id]); // Depend only on the task ID
+  }, [task.id]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
-    if (!url || url.trim() === "") {
-      return null; // Location is optional
-    }
-    if (!googleMapsUrlRegex.test(url)) {
-      return t('location_url_invalid_format');
-    }
+    if (!url || url.trim() === "") return null;
+    if (!googleMapsUrlRegex.test(url)) return t('location_url_invalid_format');
     return null;
   };
 
   const validateNotificationNum = (num: string | null | undefined): string | null => {
-    if (!num || num.trim() === "") {
-      return null; // It's optional during creation/editing, but required for completion
-    }
-    if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) {
-      return t('notification_num_invalid_format');
-    }
+    if (!num || num.trim() === "") return null;
+    if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notification_num_invalid_format');
     return null;
   };
 
@@ -107,12 +97,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       return;
     }
 
-    // Due Date Validation
     if (editedTask.due_date) {
       const selectedDate = new Date(editedTask.due_date);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Normalize today to start of day
-
+      today.setHours(0, 0, 0, 0);
       if (isPast(selectedDate) && !isToday(selectedDate)) {
         toast.error(t('due_date_cannot_be_in_past'));
         setIsSaving(false);
@@ -123,22 +111,18 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     await updateTask(task.id, editedTask);
     toast.success(t('task_updated_successfully'));
     setIsSaving(false);
-    onClose(); // Close the dialog after saving
+    onClose();
   };
 
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    // Optimistically update local state for instant UI feedback
     setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
-    // Then, update the database in the background
     await updateTask(task.id, { [photoUrlKey]: url });
   }, [task.id, updateTask]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit', currentUrl: string | null | undefined) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    // Optimistically update local state
     setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
-    // Then, update the database and storage
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }

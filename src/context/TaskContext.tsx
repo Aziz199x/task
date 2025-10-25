@@ -5,18 +5,18 @@ import { Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "./SessionContext";
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
   addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<void>;
-  addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>; // New bulk add function
+  addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   assignTask: (id: string, assigneeId: string | null) => Promise<void>;
-  deleteTaskPhoto: (photoUrl: string) => Promise<void>; // New function to delete a photo
+  deleteTaskPhoto: (photoUrl: string) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -25,13 +25,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, profile } = useSession();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
 
   const fetchTasks = useCallback(async () => {
-    // Only set loading to true on the very first fetch
-    if (tasks.length === 0) {
-      setLoading(true);
-    }
+    setLoading(true);
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
@@ -45,27 +42,50 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTasks(data as Task[]);
     }
     setLoading(false);
-  }, [tasks.length]); // Dependency on tasks.length to manage initial loading state
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchTasks();
+
+      const channel = supabase
+        .channel('public:tasks')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'tasks' },
+          (payload) => {
+            console.log('[TaskContext] Realtime event received:', payload);
+            const newRecord = payload.new as Task;
+            const oldRecord = payload.old as Task;
+
+            if (payload.eventType === 'INSERT') {
+              setTasks((currentTasks) => {
+                if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
+                return [newRecord, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              setTasks((currentTasks) =>
+                currentTasks.map((task) =>
+                  task.id === newRecord.id ? newRecord : task
+                )
+              );
+            } else if (payload.eventType === 'DELETE') {
+              setTasks((currentTasks) =>
+                currentTasks.filter((task) => task.id !== oldRecord.id)
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setTasks([]);
+      setLoading(false);
     }
   }, [user, fetchTasks]);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('public:tasks')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
-        console.log("[TaskContext] Realtime update received, refetching tasks:", payload);
-        fetchTasks(); // Refetch all tasks on any change
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchTasks]);
 
   const generateUniqueTaskId = async (): Promise<string> => {
     let unique = false;
