@@ -252,5 +252,9 @@
   "error_checking_notification_numbers": "خطأ في التحقق من أرقام الإشعارات الموجودة: {{message}}",
   "light": "فاتح",
   "dark": "داكن",
-  "system": "النظام"
+  "system": "النظام",
+  "share": "مشاركة",
+  "share_not_supported": "المشاركة غير مدعومة في هذا المتصفح.",
+  "task_details_title": "تفاصيل المهمة: {{title}}",
+  "share_failed": "تعذرت مشاركة المهمة."
 }

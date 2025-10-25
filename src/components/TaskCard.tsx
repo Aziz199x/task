@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock, Share2 } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
   const canStartProgress = (isAssignedToCurrentUser || canEditOrDelete) && task.status === 'assigned';
   const canCancel = isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role));
+  const canShare = typeof navigator !== 'undefined' && navigator.share;
 
   const handleDelete = () => {
     deleteTask(task.id);
@@ -108,6 +109,37 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
     await assignTask(task.id, null);
     toast.success(t('task_unassigned'));
     setIsSaving(false);
+  };
+
+  const handleShare = async () => {
+    if (!canShare) {
+      toast.error(t('share_not_supported'));
+      return;
+    }
+
+    const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
+    const taskDetails = [
+      `*${t('task_title')}*: ${task.title}`,
+      task.description ? `${t('description_optional')}: ${task.description}` : '',
+      task.due_date ? `${t('due_date')}: ${format(new Date(task.due_date), 'PPP')}` : '',
+      task.location ? `${t('location')}: ${task.location}` : '',
+      task.equipment_number ? `${t('equipment_number')}: ${task.equipment_number}` : '',
+      task.notification_num ? `${t('notification_num')}: ${task.notification_num}` : '',
+      task.priority ? `${t('priority')}: ${t(task.priority)}` : '',
+      assignedTechnician ? `${t('assigned_to')}: ${assignedTechnician.first_name} ${assignedTechnician.last_name}` : `${t('assigned_to')}: ${t('unassigned')}`
+    ].filter(Boolean).join('\n');
+
+    try {
+      await navigator.share({
+        title: t('task_details_title', { title: task.title }),
+        text: taskDetails,
+      });
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        toast.error(t('share_failed'));
+      }
+    }
   };
 
   const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
@@ -193,17 +225,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                   <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                 )}
 
-                {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask) && <DropdownMenuSeparator />}
+                {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
 
                 {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
                 {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
 
-                {((user && !isAssignedToCurrentUser) || canUnassignTask) && canDeleteTask && <DropdownMenuSeparator />}
+                {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
+
+                {canShare && (
+                  <DropdownMenuItem onClick={handleShare}>
+                    <Share2 className="h-4 w-4 mr-2" /> {t('share')}
+                  </DropdownMenuItem>
+                )}
 
                 {canDeleteTask && (
-                  <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
-                    <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
-                  </DropdownMenuItem>
+                  <>
+                    {canShare && <DropdownMenuSeparator />}
+                    <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
+                      <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
+                    </DropdownMenuItem>
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

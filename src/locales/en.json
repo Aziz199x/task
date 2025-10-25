@@ -252,5 +252,9 @@
   "error_checking_notification_numbers": "Error checking for existing notification numbers: {{message}}",
   "light": "Light",
   "dark": "Dark",
-  "system": "System"
+  "system": "System",
+  "share": "Share",
+  "share_not_supported": "Sharing is not supported on this browser.",
+  "task_details_title": "Task Details: {{title}}",
+  "share_failed": "Could not share the task."
 }
