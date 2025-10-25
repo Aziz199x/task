@@ -12,4 +12,11 @@ if (!supabaseAnonKey) {
   // You might want to throw an error or handle this more robustly in a production app
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: localStorage, // Explicitly use localStorage for session storage
+    persistSession: true, // Ensure session persistence is enabled
+    autoRefreshToken: true, // Automatically refresh tokens
+    detectSessionInUrl: true, // Detect session from URL (useful for redirects)
+  },
+});
