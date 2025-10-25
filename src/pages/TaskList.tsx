@@ -36,7 +36,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
@@ -189,10 +189,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       {/* Filters - Organized wrapping layout */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-2"> {/* Changed gap-4 to gap-2 */}
         <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_status')} />
+            <SelectValue placeholder={t('filter_by_status')} className="truncate" /> {/* Added truncate */}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_statuses')}</SelectItem>
@@ -206,7 +206,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: string | "all") => setFilterAssignee(value)} value={filterAssignee}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_assignee')} />
+            <SelectValue placeholder={t('filter_by_assignee')} className="truncate" /> {/* Added truncate */}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
@@ -221,7 +221,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t('filter_by_type_of_work')} />
+            <SelectValue placeholder={t('filter_by_type_of_work')} className="truncate" /> {/* Added truncate */}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_types')}</SelectItem>
@@ -235,7 +235,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: "all" | "overdue" | "due-soon") => setFilterReminder(value)} value={filterReminder}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_reminder')} />
+            <SelectValue placeholder={t('filter_by_reminder')} className="truncate" /> {/* Added truncate */}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_tasks')}</SelectItem>
@@ -246,7 +246,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         <Select onValueChange={(value: Task['priority'] | "all") => setFilterPriority(value)} value={filterPriority}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_priority')} />
+            <SelectValue placeholder={t('filter_by_priority')} className="truncate" /> {/* Added truncate */}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="low">{t('low')}</SelectItem>
@@ -258,7 +258,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       {filteredTasks.length > 0 && (
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-2 mb-4"> {/* Changed gap-4 to gap-2 */}
           <Checkbox
             checked={allTasksSelected}
             onCheckedChange={(checked) => handleSelectAllTasks(checked === true)}
