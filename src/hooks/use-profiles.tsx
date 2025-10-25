@@ -1,21 +1,22 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { UserProfile } from '@/context/SessionContext'; // Re-use the UserProfile type
+import { UserProfile } from '@/context/SessionContext';
 
 export const useProfiles = () => {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setLoading(true);
     setError(null);
     const { data, error } = await supabase
       .from('profiles')
-      .select('*'); // Fetch all columns for all profiles
+      .select('*')
+      .order('first_name', { ascending: true });
 
     if (error) {
       console.error("Error fetching profiles:", error.message);
@@ -26,7 +27,7 @@ export const useProfiles = () => {
       setProfiles(data as UserProfile[]);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchProfiles();
@@ -69,7 +70,7 @@ export const useProfiles = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchProfiles]);
 
   return { profiles, loading, error, refetchProfiles: fetchProfiles };
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react'; // Import a spinner icon
+import { Loader2 } from 'lucide-react';
 
 export interface UserProfile {
   id: string;
@@ -19,7 +19,7 @@ interface SessionContextType {
   session: Session | null;
   user: User | null;
   profile: UserProfile | null;
-  loading: boolean; // This 'loading' will now always be false for consumers once children are rendered
+  loading: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -29,7 +29,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoadingInitial, setIsLoadingInitial] = useState(true); // Internal loading state for the provider itself
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -53,7 +53,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     let isMounted = true;
 
     const initializeAuth = async () => {
-      // 1. Get the current session immediately on mount
       const { data: { session: initialSession } } = await supabase.auth.getSession();
       
       if (!isMounted) return;
@@ -66,14 +65,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       } else {
         setProfile(null);
       }
-      setIsLoadingInitial(false); // Initial load complete, now render children
+      setIsLoadingInitial(false);
 
-      // 2. Then, set up the listener for subsequent changes
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, currentSession) => {
-          if (!isMounted) return; // Check mount status again
+          if (!isMounted) return;
 
-          // Only update if the session actually changed or if it's a sign-out event
           if (currentSession?.user?.id !== user?.id || event === 'SIGNED_OUT') {
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
@@ -99,9 +96,35 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     initializeAuth();
 
     return () => {
-      isMounted = false; // Cleanup: component is unmounted
+      isMounted = false;
     };
-  }, []); // Empty dependency array to run only once on mount
+  }, []);
+
+  // Set up real-time subscription for profile updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`profile:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Profile updated:', payload);
+          setProfile(payload.new as UserProfile);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -110,7 +133,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // If still loading, render a global loading screen
+  const contextValue = useMemo(() => ({
+    session,
+    user,
+    profile,
+    loading: false,
+    signOut
+  }), [session, user, profile]);
+
   if (isLoadingInitial) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
@@ -121,7 +151,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   }
 
   return (
-    <SessionContext.Provider value={{ session, user, profile, loading: false, signOut }}>
+    <SessionContext.Provider value={contextValue}>
       {children}
     </SessionContext.Provider>
   );

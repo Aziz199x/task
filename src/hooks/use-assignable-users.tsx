@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSession } from '@/context/SessionContext';
@@ -8,7 +8,7 @@ import { UserProfile } from '@/context/SessionContext';
 
 export const useAssignableUsers = () => {
   const { profile: currentUserProfile } = useSession();
-  const [assignableUsers, setAssignableUsers] = useState<UserProfile[]>([]);
+  const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,56 +18,54 @@ export const useAssignableUsers = () => {
       return;
     }
 
-    const fetchAssignableUsers = async () => {
+    const fetchProfiles = async () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role');
-
-      if (currentUserProfile.role === 'admin') {
-        // Admins can assign to anyone, so fetch all profiles
-        // No additional .in('role', ...) filter needed
-      } else {
-        let targetRoles: UserProfile['role'][] = [];
-        switch (currentUserProfile.role) {
-          case 'manager':
-            targetRoles = ['supervisor', 'technician', 'contractor'];
-            break;
-          case 'supervisor':
-            targetRoles = ['technician', 'contractor'];
-            break;
-          case 'technician':
-            targetRoles = ['contractor'];
-            break;
-          default:
-            targetRoles = [];
-        }
-
-        if (targetRoles.length === 0) {
-          setAssignableUsers([]);
-          setLoading(false);
-          return;
-        }
-        query = query.in('role', targetRoles);
-      }
-
-      const { data, error } = await query;
+        .select('id, first_name, last_name, avatar_url, role')
+        .order('first_name', { ascending: true });
 
       if (error) {
         console.error("Error fetching assignable users:", error.message);
         toast.error("Failed to load users: " + error.message);
         setError(error.message);
-        setAssignableUsers([]);
+        setAllProfiles([]);
       } else if (data) {
-        setAssignableUsers(data as UserProfile[]);
+        setAllProfiles(data as UserProfile[]);
       }
       setLoading(false);
     };
 
-    fetchAssignableUsers();
-  }, [currentUserProfile]);
+    fetchProfiles();
+  }, [currentUserProfile?.id]); // Only refetch if current user changes
+
+  const assignableUsers = useMemo(() => {
+    if (!currentUserProfile) return [];
+
+    let targetRoles: UserProfile['role'][] = [];
+    
+    if (currentUserProfile.role === 'admin') {
+      return allProfiles; // Admins can assign to anyone
+    }
+    
+    switch (currentUserProfile.role) {
+      case 'manager':
+        targetRoles = ['supervisor', 'technician', 'contractor'];
+        break;
+      case 'supervisor':
+        targetRoles = ['technician', 'contractor'];
+        break;
+      case 'technician':
+        targetRoles = ['contractor'];
+        break;
+      default:
+        targetRoles = [];
+    }
+
+    return allProfiles.filter(profile => targetRoles.includes(profile.role));
+  }, [allProfiles, currentUserProfile]);
 
   return { assignableUsers, loading, error };
 };
