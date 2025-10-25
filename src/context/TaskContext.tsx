@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 interface TaskContextType {
   tasks: Task[];
+  tasksByIdMap: Map<string, Task>; // Expose the map
   loading: boolean;
   addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
@@ -27,6 +28,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const { user, profile } = useSession();
   const { t } = useTranslation();
+
+  const tasksByIdMap = useMemo(() => {
+    return new Map(tasks.map(task => [task.id, task]));
+  }, [tasks]);
 
   const playNotificationSound = useCallback(() => {
     try {
@@ -184,19 +189,43 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const { error } = await supabase
+    const newTask: Task = {
+      id: 'temp-' + Date.now(), // Temporary ID for optimistic update
+      created_at: new Date().toISOString(),
+      title,
+      description: description || null,
+      location: location || null,
+      task_id: taskId,
+      due_date: dueDate || null,
+      assignee_id: assigneeId || null,
+      type_of_work: typeOfWork || null,
+      equipment_number: equipmentNumber,
+      notification_num: notificationNum || null,
+      priority: priority || 'medium',
+      status: assigneeId ? 'assigned' : 'unassigned',
+      creator_id: user?.id || null,
+    };
+
+    // Optimistic update
+    setTasks(currentTasks => [newTask, ...currentTasks]);
+
+    const { data, error } = await supabase
       .from('tasks')
-      .insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id });
+      .insert(newTask)
+      .select()
+      .single();
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
+      // Revert optimistic update
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== newTask.id));
       return false;
     }
     
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
+    // Replace temporary task with actual task from DB
+    setTasks(currentTasks => currentTasks.map(task => task.id === newTask.id ? data : task));
     return true;
-  }, [user, generateUniqueTaskId, t, fetchTasks]);
+  }, [user, generateUniqueTaskId, t]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
     const notificationNums = newTasks
@@ -226,7 +255,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    const tasksToInsert = [];
+    const tasksToInsert: Task[] = [];
+    const optimisticTasks: Task[] = [];
+
     for (const task of newTasks) {
       if (!task.equipment_number) continue;
       let taskId: string | undefined;
@@ -236,25 +267,50 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(error.message);
         return;
       }
-      tasksToInsert.push({ ...task, task_id: taskId, notification_num: task.notification_num || null, priority: task.priority || 'medium', status: task.assignee_id ? 'assigned' : 'unassigned', creator_id: user?.id });
+      const fullTask: Task = { 
+        id: 'temp-' + Date.now() + Math.random(), // Unique temporary ID
+        created_at: new Date().toISOString(),
+        title: task.title || '',
+        description: task.description || null,
+        location: task.location || null,
+        task_id: taskId,
+        due_date: task.due_date || null,
+        assignee_id: task.assignee_id || null,
+        type_of_work: task.type_of_work || null,
+        equipment_number: task.equipment_number,
+        notification_num: task.notification_num || null,
+        priority: task.priority || 'medium',
+        status: task.assignee_id ? 'assigned' : 'unassigned',
+        creator_id: user?.id || null,
+      };
+      tasksToInsert.push(fullTask);
+      optimisticTasks.push(fullTask);
     }
     if (tasksToInsert.length === 0) {
       toast.warning(t('no_valid_tasks_found_in_excel'));
       return;
     }
-    
-    const { error } = await supabase.from('tasks').insert(tasksToInsert);
 
-    if (error) {
-      toast.error(t("failed_to_add_tasks_bulk") + error.message);
-    }
+    // Optimistic update
+    setTasks(currentTasks => [...optimisticTasks, ...currentTasks]);
     
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
-  }, [user, generateUniqueTaskId, t, fetchTasks]);
+    const { data, error: insertError } = await supabase.from('tasks').insert(tasksToInsert).select();
+
+    if (insertError) {
+      toast.error(t("failed_to_add_tasks_bulk") + insertError.message);
+      // Revert optimistic update
+      setTasks(currentTasks => currentTasks.filter(task => !optimisticTasks.some(ot => ot.id === task.id)));
+    } else if (data) {
+      // Replace temporary tasks with actual tasks from DB
+      setTasks(currentTasks => {
+        const updatedTasks = currentTasks.filter(task => !optimisticTasks.some(ot => ot.id === task.id));
+        return [...data, ...updatedTasks];
+      });
+    }
+  }, [user, generateUniqueTaskId, t]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
-    const taskToUpdate = tasks.find(t => t.id === id);
+    const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
       return false;
@@ -289,17 +345,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updates.closed_by_id = null;
       updates.closed_at = null;
     }
+
+    // Optimistic update
+    const originalTask = { ...taskToUpdate };
+    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...updates } : task));
     
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
+      // Revert optimistic update
+      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
       return false;
     }
-    
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
     return true;
-  }, [tasks, profile, user, t, fetchTasks]);
+  }, [tasksByIdMap, profile, user, t]);
 
   const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
     try {
@@ -311,11 +370,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error: any) {
       toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     }
-    // Note: Photo deletion doesn't trigger a full task refetch, the subsequent updateTask call handles the UI update.
   }, [t]);
 
   const deleteTask = useCallback(async (id: string) => {
-    const taskToDelete = tasks.find(t => t.id === id);
+    const taskToDelete = tasksByIdMap.get(id);
     if (!taskToDelete) {
       toast.error(t("task_not_found"));
       return;
@@ -340,6 +398,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
+    // Optimistic update
+    setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+
     if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
     if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
@@ -347,14 +408,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
+      // Revert optimistic update
+      setTasks(currentTasks => [...currentTasks, taskToDelete]);
     }
-    
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
-  }, [tasks, profile, user, t, deleteTaskPhoto, fetchTasks]);
+  }, [tasksByIdMap, profile, user, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
-    const taskToUpdate = tasks.find(t => t.id === id);
+    const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
       return false;
@@ -391,19 +451,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
+    // Optimistic update
+    const originalTask = { ...taskToUpdate };
+    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...finalUpdates } : task));
+
     const { error } = await supabase.from('tasks').update(finalUpdates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
+      // Revert optimistic update
+      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
       return false;
     }
-    
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
     return true;
-  }, [tasks, profile, t, fetchTasks]);
+  }, [tasksByIdMap, profile, t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
-    const taskToUpdate = tasks.find(t => t.id === id);
+    const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
       return false;
@@ -425,19 +488,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
+    // Optimistic update
+    const originalTask = { ...taskToUpdate };
+    setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, ...updates } : task));
+
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
+      // Revert optimistic update
+      setTasks(currentTasks => currentTasks.map(task => task.id === id ? originalTask : task));
       return false;
     }
-    
-    // Fallback: Manually refetch after successful write
-    await fetchTasks();
     return true;
-  }, [tasks, profile, t, fetchTasks]);
+  }, [tasksByIdMap, profile, t]);
 
   const contextValue = useMemo(() => ({
     tasks,
+    tasksByIdMap,
     loading,
     addTask,
     addTasksBulk,
@@ -447,7 +514,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     assignTask,
     deleteTaskPhoto,
     refetchTasks: fetchTasks,
-  }), [tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, fetchTasks]);
+  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, fetchTasks]);
 
   return (
     <TaskContext.Provider value={contextValue}>

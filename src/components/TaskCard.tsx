@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
-  task: Task;
+  task: Task; // Initial task data, will be updated from context
   onSelect?: (taskId: string, isSelected: boolean) => void;
   isSelected?: boolean;
 }
@@ -47,13 +47,14 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
 };
 
 const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, isSelected }) => {
-  const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
+  const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
   const { profiles } = useProfiles();
   const { t } = useTranslation();
 
-  const task = tasks.find(t => t.id === initialTask.id) || initialTask;
+  // Get the most up-to-date task data from the map
+  const task = tasksByIdMap.get(initialTask.id) || initialTask;
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -383,15 +384,27 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ task: initialTask, onSelect, i
   );
 }, (prevProps, nextProps) => {
   // Custom comparison function for memo
+  // Only re-render if the task ID changes, or if the task data from the map is different,
+  // or if selection state changes.
+  const currentTaskFromMap = nextProps.tasksByIdMap.get(nextProps.task.id) || nextProps.task;
+  const prevTaskFromMap = prevProps.tasksByIdMap.get(prevProps.task.id) || prevProps.task;
+
   return (
     prevProps.task.id === nextProps.task.id &&
-    prevProps.task.status === nextProps.task.status &&
-    prevProps.task.title === nextProps.task.title &&
-    prevProps.task.assignee_id === nextProps.task.assignee_id &&
-    prevProps.task.photo_before_url === nextProps.task.photo_before_url &&
-    prevProps.task.photo_after_url === nextProps.task.photo_after_url &&
-    prevProps.task.photo_permit_url === nextProps.task.photo_permit_url &&
-    prevProps.isSelected === nextProps.isSelected
+    prevProps.isSelected === nextProps.isSelected &&
+    // Deep compare relevant task properties from the map
+    currentTaskFromMap.status === prevTaskFromMap.status &&
+    currentTaskFromMap.title === prevTaskFromMap.title &&
+    currentTaskFromMap.description === prevTaskFromMap.description &&
+    currentTaskFromMap.assignee_id === prevTaskFromMap.assignee_id &&
+    currentTaskFromMap.photo_before_url === prevTaskFromMap.photo_before_url &&
+    currentTaskFromMap.photo_after_url === prevTaskFromMap.photo_after_url &&
+    currentTaskFromMap.photo_permit_url === prevTaskFromMap.photo_permit_url &&
+    currentTaskFromMap.notification_num === prevTaskFromMap.notification_num &&
+    currentTaskFromMap.priority === prevTaskFromMap.priority &&
+    currentTaskFromMap.due_date === prevTaskFromMap.due_date &&
+    currentTaskFromMap.location === prevTaskFromMap.location &&
+    currentTaskFromMap.equipment_number === prevTaskFromMap.equipment_number
   );
 });
 

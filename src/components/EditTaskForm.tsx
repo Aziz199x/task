@@ -16,7 +16,7 @@ import PhotoUploader from "./PhotoUploader";
 import { isPast, isToday } from 'date-fns';
 
 interface EditTaskFormProps {
-  task: Task;
+  task: Task; // Initial task data, will be updated from context
   onClose: () => void;
   canEditOrDelete: boolean;
   canComplete: boolean;
@@ -24,14 +24,14 @@ interface EditTaskFormProps {
 
 const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
 
-const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDelete, canComplete }) => {
-  const { tasks, updateTask, deleteTaskPhoto } = useTasks();
+const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose, canEditOrDelete, canComplete }) => {
+  const { tasksByIdMap, updateTask, deleteTaskPhoto } = useTasks();
   const { profile: currentUserProfile } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
   // Get the current task from global state (real-time updates)
-  const currentTask = tasks.find(t => t.id === task.id) || task;
+  const currentTask = tasksByIdMap.get(initialTask.id) || initialTask;
   
   const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
   const [isSaving, setIsSaving] = useState(false);
@@ -107,7 +107,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       }
     }
 
-    const success = await updateTask(task.id, editedTask);
+    const success = await updateTask(currentTask.id, editedTask);
     setIsSaving(false);
 
     if (success) {
@@ -120,9 +120,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
     
     // Update the database immediately - this will trigger real-time updates
-    await updateTask(task.id, { [photoUrlKey]: url });
+    await updateTask(currentTask.id, { [photoUrlKey]: url });
     toast.success(t('photo_uploaded_successfully'));
-  }, [task.id, updateTask, t]);
+  }, [currentTask.id, updateTask, t]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
@@ -134,9 +134,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     }
     
     // Update the database - this will trigger real-time updates
-    await updateTask(task.id, { [photoUrlKey]: null });
+    await updateTask(currentTask.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t, currentTask]);
+  }, [currentTask.id, deleteTaskPhoto, updateTask, t, currentTask]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -248,7 +248,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
         <>
           <PhotoUploader
             label={t('before_work_photo')}
-            taskId={task.id}
+            taskId={currentTask.id}
             photoType="before"
             currentUrl={currentTask.photo_before_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('before', url)}
@@ -256,7 +256,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
           />
           <PhotoUploader
             label={t('after_work_photo')}
-            taskId={task.id}
+            taskId={currentTask.id}
             photoType="after"
             currentUrl={currentTask.photo_after_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('after', url)}
@@ -264,7 +264,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
           />
           <PhotoUploader
             label={t('permit_photo')}
-            taskId={task.id}
+            taskId={currentTask.id}
             photoType="permit"
             currentUrl={currentTask.photo_permit_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('permit', url)}

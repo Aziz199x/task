@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings } from "lucide-react";
@@ -22,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
   const allowedToManageUsers = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">

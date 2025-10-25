@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useTasks } from "@/context/TaskContext";
 import TaskCard from "@/components/TaskCard";
 import TaskForm from "@/components/TaskForm";
@@ -24,7 +24,7 @@ interface TaskListProps {
 }
 
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
-  const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
+  const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
   const { technicians } = useTechnicians(); // Keep for filter dropdown
   const { profile: currentUserProfile } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
@@ -42,7 +42,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const canBulkDelete = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
 
-  const handleSelectTask = (taskId: string, isSelected: boolean) => {
+  const handleSelectTask = useCallback((taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
       const newSet = new Set(prev);
       if (isSelected) {
@@ -52,18 +52,18 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleSelectAllTasks = (isSelected: boolean) => {
+  const handleSelectAllTasks = useCallback((isSelected: boolean) => {
     if (isSelected) {
       const allVisibleTaskIds = filteredTasks.map(task => task.id);
       setSelectedTaskIds(new Set(allVisibleTaskIds));
     } else {
       setSelectedTaskIds(new Set());
     }
-  };
+  }, [filteredTasks]);
 
-  const handleBulkAction = async (action: string, value?: string | null) => {
+  const handleBulkAction = useCallback(async (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
       toast.error(t('no_tasks_selected_for_bulk_action'));
       return;
@@ -75,7 +75,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
     if (!isAdminOrManager) {
       tasksToActOn = tasksToActOn.filter(taskId => {
-        const task = tasks.find(t => t.id === taskId);
+        const task = tasksByIdMap.get(taskId); // Use map for efficient lookup
         return task && task.status !== 'completed';
       });
 
@@ -128,14 +128,17 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         break;
       case 'delete':
-        tasksToActOn.forEach(taskId => deleteTask(taskId));
+        // Delete tasks sequentially to ensure optimistic updates and error handling per task
+        for (const taskId of tasksToActOn) {
+          await deleteTask(taskId);
+        }
         toast.success(t('tasks_deleted', { count: tasksToActOn.length }));
         break;
       default:
         break;
     }
     setSelectedTaskIds(new Set());
-  };
+  }, [selectedTaskIds, currentUserProfile, tasksByIdMap, t, changeTaskStatus, assignTask, deleteTask]);
 
   const filteredTasks = useMemo(() => {
     const filtered = tasks.filter((task) => {
