@@ -17,6 +17,7 @@ interface TaskContextType {
   updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   assignTask: (id: string, assigneeId: string | null) => Promise<boolean>;
   deleteTaskPhoto: (photoUrl: string) => Promise<void>;
+  refetchTasks: () => Promise<void>; // Expose refetch function
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -63,6 +64,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   }, []);
 
+  // 1. Initial fetch and Real-time setup
   useEffect(() => {
     if (user) {
       fetchTasks();
@@ -77,27 +79,21 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const newRecord = payload.new as Task;
             const oldRecord = payload.old as { id: string };
 
+            // Fallback: If real-time works, update state directly
             switch (payload.eventType) {
               case 'INSERT':
                 setTasks((currentTasks) => {
-                  console.log('INSERT event - currentTasks length:', currentTasks.length, 'newRecord ID:', newRecord.id);
-                  if (currentTasks.some(t => t.id === newRecord.id)) {
-                    console.log('INSERT: Task already exists, skipping.');
-                    return currentTasks;
-                  }
+                  if (currentTasks.some(t => t.id === newRecord.id)) return currentTasks;
                   if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
                   if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
                     playNotificationSound();
                     toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
                   }
-                  const updatedTasks = [newRecord, ...currentTasks]; // Removed sort here, will sort in consumer components
-                  console.log('INSERT: New tasks length:', updatedTasks.length);
-                  return updatedTasks;
+                  return [newRecord, ...currentTasks];
                 });
                 break;
               case 'UPDATE':
                 setTasks((currentTasks) => {
-                  console.log('UPDATE event - currentTasks length:', currentTasks.length, 'newRecord ID:', newRecord.id);
                   const oldTask = currentTasks.find(t => t.id === newRecord.id);
                   if (oldTask && newRecord.creator_id !== user.id) {
                     if (oldTask.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
@@ -113,19 +109,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (!oldTask.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
                     if (!oldTask.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
                   }
-                  const updatedTasks = currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
-                  console.log('UPDATE: New tasks length:', updatedTasks.length);
-                  return updatedTasks;
+                  return currentTasks.map((task) => task.id === newRecord.id ? newRecord : task);
                 });
                 break;
               case 'DELETE':
                 setTasks((currentTasks) => {
-                  console.log('DELETE event - currentTasks length:', currentTasks.length, 'oldRecord ID:', oldRecord.id);
                   const deletedTask = currentTasks.find(t => t.id === oldRecord.id);
                   if (deletedTask && deletedTask.creator_id !== user.id) toast.info(t('task_deleted_notification', { title: deletedTask.title }));
-                  const updatedTasks = currentTasks.filter((task) => task.id !== oldRecord.id);
-                  console.log('DELETE: New tasks length:', updatedTasks.length);
-                  return updatedTasks;
+                  return currentTasks.filter((task) => task.id !== oldRecord.id);
                 });
                 break;
               default:
@@ -193,20 +184,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const { data: newTask, error } = await supabase
+    const { error } = await supabase
       .from('tasks')
-      .insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id })
-      .select()
-      .single();
+      .insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id });
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
       return false;
     }
-
-    // Don't update state here - let real-time subscription handle it
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
     return true;
-  }, [user, generateUniqueTaskId, t]);
+  }, [user, generateUniqueTaskId, t, fetchTasks]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
     const notificationNums = newTasks
@@ -258,8 +248,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_add_tasks_bulk") + error.message);
     }
-    // Don't update state here - let real-time subscription handle it
-  }, [user, generateUniqueTaskId, t]);
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
+  }, [user, generateUniqueTaskId, t, fetchTasks]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
@@ -303,9 +295,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("failed_to_update_status") + error.message);
       return false;
     }
-    // Don't update state here - let real-time subscription handle it
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
     return true;
-  }, [tasks, profile, user, t]);
+  }, [tasks, profile, user, t, fetchTasks]);
 
   const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
     try {
@@ -317,6 +311,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error: any) {
       toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     }
+    // Note: Photo deletion doesn't trigger a full task refetch, the subsequent updateTask call handles the UI update.
   }, [t]);
 
   const deleteTask = useCallback(async (id: string) => {
@@ -353,8 +348,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
     }
-    // Don't update state here - let real-time subscription handle it
-  }, [tasks, profile, user, t, deleteTaskPhoto]);
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
+  }, [tasks, profile, user, t, deleteTaskPhoto, fetchTasks]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
@@ -399,9 +396,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("failed_to_update_task") + error.message);
       return false;
     }
-    // Don't update state here - let real-time subscription handle it
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
     return true;
-  }, [tasks, profile, t]);
+  }, [tasks, profile, t, fetchTasks]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
@@ -431,9 +430,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("failed_to_assign_task") + error.message);
       return false;
     }
-    // Don't update state here - let real-time subscription handle it
+    
+    // Fallback: Manually refetch after successful write
+    await fetchTasks();
     return true;
-  }, [tasks, profile, t]);
+  }, [tasks, profile, t, fetchTasks]);
 
   const contextValue = useMemo(() => ({
     tasks,
@@ -444,8 +445,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteTask,
     updateTask,
     assignTask,
-    deleteTaskPhoto
-  }), [tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto]);
+    deleteTaskPhoto,
+    refetchTasks: fetchTasks,
+  }), [tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, fetchTasks]);
 
   return (
     <TaskContext.Provider value={contextValue}>
