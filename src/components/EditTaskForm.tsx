@@ -26,16 +26,24 @@ interface EditTaskFormProps {
 const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
 
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDelete, canComplete }) => {
-  const { updateTask, deleteTaskPhoto } = useTasks();
+  const { tasks, updateTask, deleteTaskPhoto } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
-  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => task);
+  // Find the current task from the tasks array to get real-time updates
+  const currentTask = tasks.find(t => t.id === task.id) || task;
+
+  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Update local state when the task changes in the database
+  useEffect(() => {
+    setEditedTask(currentTask);
+  }, [currentTask]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
@@ -109,17 +117,19 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
+    // Update the database - the real-time listener will update our local state
     await updateTask(task.id, { [photoUrlKey]: url });
-  }, [task.id, updateTask]);
+    toast.success(t('photo_uploaded_successfully'));
+  }, [task.id, updateTask, t]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
     const currentUrl = editedTask[photoUrlKey] as string | null | undefined;
-    setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
+    
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
+    // Update the database - the real-time listener will update our local state
     await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
   }, [task.id, deleteTaskPhoto, updateTask, t, editedTask]);
