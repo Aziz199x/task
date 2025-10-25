@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,8 +23,10 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const [file, setFile] = useState<File | null>(null);
   const { t } = useTranslation();
 
-  console.log(`[PhotoUploader - ${photoType}] currentUrl prop:`, currentUrl);
-  console.log(`[PhotoUploader - ${photoType}] file state:`, file?.name);
+  // Log when the currentUrl prop changes
+  useEffect(() => {
+    console.log(`[PhotoUploader - ${photoType}] currentUrl prop changed to:`, currentUrl);
+  }, [currentUrl, photoType]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -62,9 +64,9 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       
       if (data.publicUrl) {
         console.log(`[PhotoUploader - ${photoType}] Upload successful, public URL:`, data.publicUrl);
-        onUploadSuccess(data.publicUrl);
-        toast.success(t('photo_uploaded_successfully'));
+        onUploadSuccess(data.publicUrl); // Call the parent's success handler
         setFile(null); // Clear the file input after successful upload
+        console.log(`[PhotoUploader - ${photoType}] onUploadSuccess called and file state cleared.`);
       } else {
         console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", data); // Improved logging
         toast.error(t('could_not_get_photo_url'));
