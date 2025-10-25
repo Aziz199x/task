@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, memo, useEffect } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Upload, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -20,35 +20,13 @@ interface PhotoUploaderProps {
 
 const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType, currentUrl, onUploadSuccess, onRemove }) => {
   const [uploading, setUploading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    console.log(`[PhotoUploader - ${photoType}] currentUrl prop changed to:`, currentUrl);
-  }, [currentUrl, photoType]);
+  const handleUpload = useCallback(async (file: File) => {
+    if (!file) return;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name, e.target.files[0]);
-    } else {
-      setFile(null);
-      console.log(`[PhotoUploader - ${photoType}] File selection cleared.`);
-    }
-  };
-
-  const handleUpload = async () => {
-    console.log(`[PhotoUploader - ${photoType}] handleUpload function invoked.`);
-    if (!file) {
-      toast.error(t('please_select_a_file_first'));
-      return;
-    }
     setUploading(true);
-    console.log(`[PhotoUploader - ${photoType}] Starting upload for file:`, file.name);
-    console.log(`[PhotoUploader - ${photoType}] File object before upload:`, file); // Log the file object
-    
-    // NEW LOG: Verify file object right before the Supabase upload call
-    console.log(`[PhotoUploader - ${photoType}] Attempting Supabase upload with file:`, file);
+    console.log(`[PhotoUploader - ${photoType}] Starting auto-upload for file:`, file.name);
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -74,7 +52,6 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         if (publicUrlData.publicUrl) {
           console.log(`[PhotoUploader - ${photoType}] Public URL retrieved:`, publicUrlData.publicUrl);
           onUploadSuccess(publicUrlData.publicUrl);
-          setFile(null);
         } else {
           console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", publicUrlData);
           toast.error(t('could_not_get_photo_url'));
@@ -86,6 +63,15 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
     } finally {
       setUploading(false);
     }
+  }, [taskId, photoType, onUploadSuccess, t]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      console.log(`[PhotoUploader - ${photoType}] File selected, triggering upload:`, selectedFile.name);
+      handleUpload(selectedFile);
+      e.target.value = ''; // Reset input to allow re-uploading the same file
+    }
   };
 
   if (currentUrl) {
@@ -94,7 +80,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         <Label>{label}</Label>
         <div className="flex items-center gap-2">
           <img src={currentUrl} alt={label} className="w-20 h-20 object-cover rounded-md" />
-          <Button variant="destructive" size="icon" onClick={onRemove}>
+          <Button variant="destructive" size="icon" onClick={onRemove} disabled={uploading}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -106,10 +92,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
     <div className="space-y-2">
       <Label htmlFor={`${photoType}-upload`}>{label}</Label>
       <div className="flex items-center gap-2">
-        <Input id={`${photoType}-upload`} type="file" onChange={handleFileChange} accept="image/*" />
-        <Button onClick={handleUpload} disabled={uploading || !file} size="icon">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        </Button>
+        <Input id={`${photoType}-upload`} type="file" onChange={handleFileChange} accept="image/*" disabled={uploading} />
+        {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
       </div>
     </div>
   );
