@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings, Zap } from "lucide-react";
+import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
@@ -36,8 +36,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               alt="AbuMiral Logo" 
               className="h-8 w-8 dark:hidden" 
             />
-            {/* Icon for Dark Mode (Placeholder) */}
-            <Zap className="h-8 w-8 hidden dark:block" />
+            {/* Logo for Dark Mode */}
+            <img 
+              src="/logo-dark.png" 
+              alt="AbuMiral Logo" 
+              className="h-8 w-8 hidden dark:block" 
+            />
             
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
           </div>
