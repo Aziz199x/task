@@ -12,6 +12,7 @@ import CreateAccount from "./pages/CreateAccount";
 import ManageUsers from "./pages/ManageUsers";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Diagnostics from "./pages/Diagnostics";
 import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 import { I18nextProvider } from 'react-i18next';
@@ -46,6 +47,7 @@ const App = () => (
                     <Route path="/technician-tasks" element={<TechnicianTasks />} />
                     <Route path="/create-account" element={<CreateAccount />} />
                     <Route path="/manage-users" element={<ManageUsers />} />
+                    <Route path="/diagnostics" element={<Diagnostics />} />
                   </Route>
                   
                   <Route path="*" element={<NotFound />} />
