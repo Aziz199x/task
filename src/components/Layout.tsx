@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <img src="/logo.svg" alt="AZ Logo" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
             {profile && (
-              <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded hidden md:inline-block">
+              <span className="text-sm font-semibold bg-primary-foreground/20 px-2 py-1 rounded">
                 Role: {t(profile.role)}
               </span>
             )}
@@ -40,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {session && (
             <div className="flex items-center space-x-2 md:space-x-4 flex-wrap justify-center">
               {profile && (
-                <div className="text-sm hidden md:block">
+                <div className="text-sm">
                   <p className="font-medium">{profile.first_name || user?.email}</p>
                   <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
                 </div>
