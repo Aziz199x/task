@@ -4,7 +4,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -198,6 +198,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
         </CardHeader>
         <CardContent className="space-y-2 p-0 pt-2">
           {task.description && <p className={`text-sm text-muted-foreground ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 mr-2" /> {t('created_on')}: {format(new Date(task.created_at), 'PPP p')}
+          </div>
           {task.location && (
             <div className="flex items-center text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mr-2" />

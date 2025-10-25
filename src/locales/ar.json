@@ -230,5 +230,6 @@
   "location_placeholder": "مثال: https://www.google.com/maps?q=21.494086,39.186785",
   "permission_denied_complete_task": "ليس لديك إذن لإكمال هذه المهمة.",
   "closed_by": "أغلق بواسطة",
-  "due_date_cannot_be_in_past": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي."
+  "due_date_cannot_be_in_past": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي.",
+  "created_on": "تاريخ الإنشاء"
 }
