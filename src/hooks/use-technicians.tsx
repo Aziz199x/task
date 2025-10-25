@@ -1,44 +1,19 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useMemo } from 'react';
+import { useProfiles } from './use-profiles'; // Import useProfiles
+import { UserProfile } from '@/context/SessionContext'; // Re-use the UserProfile type
 
-export interface TechnicianProfile {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  role: 'admin' | 'manager' | 'supervisor' | 'technician';
-}
+export interface TechnicianProfile extends UserProfile {} // Technicians are just profiles with a specific role
 
 export const useTechnicians = () => {
-  const [technicians, setTechnicians] = useState<TechnicianProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profiles, loading, error, refetchProfiles } = useProfiles(); // Use the existing useProfiles hook
 
-  useEffect(() => {
-    const fetchTechnicians = async () => {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, avatar_url, role')
-        .eq('role', 'technician'); // Filter for technicians
+  const technicians = useMemo(() => {
+    return profiles.filter(profile => profile.role === 'technician');
+  }, [profiles]);
 
-      if (error) {
-        console.error("Error fetching technicians:", error.message);
-        toast.error("Failed to load technicians: " + error.message);
-        setError(error.message);
-        setTechnicians([]);
-      } else if (data) {
-        setTechnicians(data as TechnicianProfile[]);
-      }
-      setLoading(false);
-    };
-
-    fetchTechnicians();
-  }, []);
-
-  return { technicians, loading, error };
+  // The loading and error states will now reflect the underlying useProfiles hook
+  // refetchTechnicians will simply call refetchProfiles
+  return { technicians, loading, error, refetchTechnicians: refetchProfiles };
 };
