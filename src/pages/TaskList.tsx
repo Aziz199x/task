@@ -113,9 +113,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
-        // Ensure the message is always a string to prevent potential errors in toast library
         const message = t('skipped_completed_tasks_warning', { count: skippedCount });
-        toast.warning(String(message));
+        toast.warning(message ? String(message) : t('some_tasks_skipped_fallback'));
       }
     }
     
@@ -140,7 +139,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            toast.warning(t('tasks_could_not_be_updated_warning', { count: failCount }));
+            const message = t('tasks_could_not_be_updated_warning', { count: failCount });
+            toast.warning(message ? String(message) : t('tasks_update_failed_fallback'));
           }
         }
         break;
@@ -157,7 +157,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         const assignFailCount = tasksToActOn.length - assignSuccessCount;
         if (assignFailCount > 0) {
-          toast.warning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
+          const message = t('tasks_could_not_be_assigned_warning', { count: assignFailCount });
+          toast.warning(message ? String(message) : t('tasks_assign_failed_fallback'));
         }
         break;
       case 'delete':

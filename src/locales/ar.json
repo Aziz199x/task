@@ -293,5 +293,8 @@
   "profile_updated_successfully": "تم تحديث الملف الشخصي بنجاح!",
   "failed_to_update_profile": "فشل تحديث الملف الشخصي",
   "profile_updated_realtime_notification": "تم تحديث ملفك الشخصي في الوقت الفعلي!",
-  "failed_to_generate_unique_task_id_after_attempts": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى."
+  "failed_to_generate_unique_task_id_after_attempts": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى.",
+  "some_tasks_skipped_fallback": "تم تخطي بعض المهام.",
+  "tasks_update_failed_fallback": "تعذر تحديث بعض المهام.",
+  "tasks_assign_failed_fallback": "تعذر تعيين بعض المهام."
 }

@@ -293,5 +293,8 @@
   "profile_updated_successfully": "Profile updated successfully!",
   "failed_to_update_profile": "Failed to update profile",
   "profile_updated_realtime_notification": "Your profile has been updated in real-time!",
-  "failed_to_generate_unique_task_id_after_attempts": "Failed to generate a unique task ID after multiple attempts. Please try again."
+  "failed_to_generate_unique_task_id_after_attempts": "Failed to generate a unique task ID after multiple attempts. Please try again.",
+  "some_tasks_skipped_fallback": "Some tasks were skipped.",
+  "tasks_update_failed_fallback": "Some tasks could not be updated.",
+  "tasks_assign_failed_fallback": "Some tasks could not be assigned."
 }
