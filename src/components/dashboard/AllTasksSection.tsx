@@ -32,9 +32,10 @@ const AllTasksSection: React.FC = () => {
 
   return (
     <Card className="col-span-full">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-start justify-between">
         <CardTitle>{t('all_tasks')}</CardTitle>
-        <div className="flex items-center space-x-2"> {/* Group buttons */}
+        {/* Updated class names for responsiveness: flex-wrap and gap-2 */}
+        <div className="flex flex-wrap items-center gap-2 justify-end max-w-full">
           {canAddTask && (
             <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
               <DialogTrigger asChild>
