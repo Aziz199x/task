@@ -107,10 +107,13 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       }
     }
 
-    await updateTask(task.id, editedTask);
-    toast.success(t('task_updated_successfully'));
+    const success = await updateTask(task.id, editedTask);
     setIsSaving(false);
-    onClose();
+
+    if (success) {
+      toast.success(t('task_updated_successfully'));
+      onClose();
+    }
   };
 
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {

@@ -93,19 +93,22 @@ const TaskForm: React.FC = () => {
       }
     }
 
-    await addTask(title, description, location.trim() === "" ? undefined : location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
-    setTitle("");
-    setDescription("");
-    setLocation("");
-    setLocationError(null);
-    setDueDate("");
-    setAssigneeId(null);
-    setTypeOfWork(undefined);
-    setEquipmentNumber("");
-    setNotificationNum("");
-    setPriority('medium');
-    toast.success(t('task_added_successfully'));
+    const success = await addTask(title, description, location.trim() === "" ? undefined : location, dueDate, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
     setLoading(false);
+
+    if (success) {
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setLocationError(null);
+      setDueDate("");
+      setAssigneeId(null);
+      setTypeOfWork(undefined);
+      setEquipmentNumber("");
+      setNotificationNum("");
+      setPriority('medium');
+      toast.success(t('task_added_successfully'));
+    }
   };
 
   return (

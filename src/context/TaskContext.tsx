@@ -10,11 +10,11 @@ import { useTranslation } from 'react-i18next';
 interface TaskContextType {
   tasks: Task[];
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<void>;
+  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
-  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   assignTask: (id: string, assigneeId: string | null) => Promise<void>;
   deleteTaskPhoto: (photoUrl: string) => Promise<void>;
 }
@@ -143,10 +143,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newTaskId;
   }, [t]);
 
-  const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => {
+  const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']): Promise<boolean> => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
-      return;
+      return false;
     }
 
     // Check for notification number uniqueness
@@ -159,11 +159,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (checkError) {
         toast.error(`Error checking notification number: ${checkError.message}`);
-        return;
+        return false;
       }
       if (data && data.length > 0) {
         toast.error(t("notification_num_not_unique"));
-        return;
+        return false;
       }
     }
 
@@ -172,10 +172,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       taskId = await generateUniqueTaskId();
     } catch (error: any) {
       toast.error(error.message);
-      return;
+      return false;
     }
     const { error } = await supabase.from('tasks').insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id });
-    if (error) toast.error(t("failed_to_add_task") + error.message);
+    if (error) {
+      toast.error(t("failed_to_add_task") + error.message);
+      return false;
+    }
+    return true;
   }, [user, generateUniqueTaskId, t]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
@@ -294,7 +298,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [tasks, profile, t, deleteTaskPhoto]);
 
-  const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     // Check for notification number uniqueness if it's being updated
     if (updates.notification_num && updates.notification_num.trim() !== "") {
       const { data: existingTask, error: checkError } = await supabase
@@ -306,20 +310,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (checkError) {
         toast.error(`Error checking notification number: ${checkError.message}`);
-        return;
+        return false;
       }
       if (existingTask && existingTask.length > 0) {
         toast.error(t("notification_num_not_unique"));
-        return;
+        return false;
       }
     }
 
     const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
+      return false;
     } else if (data) {
       setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
+      return true;
     }
+    return false;
   }, [t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
