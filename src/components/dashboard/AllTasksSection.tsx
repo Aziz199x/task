@@ -14,6 +14,7 @@ import { Task } from '@/types/task';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/context/SessionContext';
 import ExcelUploadButton from '@/components/ExcelUploadButton'; // Import the ExcelUploadButton
+import ChatImportButton from '@/components/ChatImportButton'; // Import the new ChatImportButton
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
 const AllTasksSection: React.FC = () => {
@@ -58,6 +59,18 @@ const AllTasksSection: React.FC = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>{t('import_tasks_from_excel_tooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {canAddTask && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <ChatImportButton />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t('import_tasks_from_chat_tooltip')}</p>
               </TooltipContent>
             </Tooltip>
           )}

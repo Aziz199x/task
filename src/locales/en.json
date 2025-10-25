@@ -272,5 +272,15 @@
   "no_change_in_assignment": "No change in assignment or status detected.",
   "completed_tasks_admin_only_modify": "Completed tasks can only be modified by an admin.",
   "completed_task_status_preserved": "Status of completed task was preserved.",
-  "tasks_could_not_be_assigned_warning": "{{count}} tasks could not be assigned."
+  "tasks_could_not_be_assigned_warning": "{{count}} tasks could not be assigned.",
+  "import_from_chat": "Import from Chat",
+  "import_tasks_from_chat": "Import Tasks from Chat",
+  "chat_import_instructions": "Paste your chat messages below. The system will try to extract task details. Use keywords like 'Title:', 'Description:', 'Assignee:', 'Due Date:', 'Location:', 'Equipment Number:', 'Notification Num:', 'Priority:', 'Type of Work:', 'Status:' for best results. Each new 'Title:' will start a new task.",
+  "paste_chat_text_here": "Paste chat text here",
+  "chat_text_placeholder": "Example:\nTitle: Fix server rack\nDescription: Server rack 3 needs urgent attention.\nAssignee: John Doe\nDue Date: 2024-12-25\nLocation: https://www.google.com/maps?q=21.494086,3.186785\nEquipment Number: SR-003\nPriority: Urgent\n\nTitle: Check network cables\nDescription: Inspect all network cables in office area.\nAssignee: Jane Smith\nStatus: In-progress",
+  "please_paste_chat_text": "Please paste some chat text to import.",
+  "no_valid_tasks_found_in_chat": "No valid tasks found in the chat text. Please check the format.",
+  "chat_import_success": "{{count}} tasks imported successfully from chat!",
+  "chat_import_invalid_tasks_skipped": "{{count}} invalid task(s) were skipped (missing Title or Equipment Number).",
+  "error_importing_tasks_from_chat": "Error importing tasks from chat"
 }
