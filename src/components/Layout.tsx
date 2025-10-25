@@ -65,15 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <LayoutDashboard className="h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/technician-tasks">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className={isActive('/technician-tasks') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
-                  >
-                    <Users className="h-5 w-5" />
-                  </Button>
-                </Link>
+                {/* Removed Technician Tasks button */}
                 {allowedToCreateAccounts && (
                   <Link to="/create-account">
                     <Button 
