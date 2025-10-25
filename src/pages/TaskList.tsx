@@ -112,8 +112,20 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         break;
       case 'assign':
-        tasksToActOn.forEach(taskId => assignTask(taskId, value === undefined ? null : value));
-        toast.success(t('assignee_updated_for_tasks', { count: tasksToActOn.length }));
+        let assignSuccessCount = 0;
+        for (const taskId of tasksToActOn) {
+          const success = await assignTask(taskId, value === undefined ? null : value);
+          if (success) {
+            assignSuccessCount++;
+          }
+        }
+        if (assignSuccessCount > 0) {
+          toast.success(t('assignee_updated_for_tasks', { count: assignSuccessCount }));
+        }
+        const assignFailCount = tasksToActOn.length - assignSuccessCount;
+        if (assignFailCount > 0) {
+          toast.warning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
+        }
         break;
       case 'delete':
         tasksToActOn.forEach(taskId => deleteTask(taskId));

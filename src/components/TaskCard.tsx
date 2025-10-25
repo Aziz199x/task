@@ -139,8 +139,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const handleAssignToMe = async () => {
     setIsSaving(true);
     if (user?.id) {
-      await assignTask(task.id, user.id);
-      // Toast message handled by assignTask in TaskContext
+      const success = await assignTask(task.id, user.id);
+      if (success) {
+        toast.success(t('task_assigned_to_you'));
+      }
     } else {
       toast.error(t('you_must_be_logged_in_to_assign_tasks'));
     }
@@ -149,8 +151,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
 
   const handleUnassign = async () => {
     setIsSaving(true);
-    await assignTask(task.id, null);
-    // Toast message handled by assignTask in TaskContext
+    const success = await assignTask(task.id, null);
+    if (success) {
+      toast.success(t('task_unassigned'));
+    }
     setIsSaving(false);
   };
 

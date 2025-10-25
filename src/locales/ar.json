@@ -113,6 +113,8 @@
   "due": "مستحق",
   "assigned_to": "معين إلى",
   "no_tasks_in_this_category": "لا توجد مهام في هذه الفئة.",
+  "tasks_by_technician": "المهام حسب الفني",
+  "no_unassigned_tasks": "لا توجد مهام غير معينة.",
   "no_technicians_found": "لم يتم العثور على فنيين.",
   "no_tasks_assigned_to_this_technician": "لم يتم تعيين مهام لهذا الفني.",
   "loading_technicians": "جارٍ تحميل الفنيين...",
@@ -162,6 +164,7 @@
   "completed_tasks_admin_only": "لا يمكن تعديل المهام المكتملة إلا بواسطة المسؤول.",
   "failed_to_update_status": "فشل تحديث الحالة: ",
   "completed_tasks_admin_only_delete": "لا يمكن حذف المهام المكتملة إلا بواسطة المسؤول.",
+  "failed_to_delete_task": "فشل حذف المهمة: ",
   "failed_to_update_task": "فشل تحديث المهمة: ",
   "failed_to_assign_task": "فشل تعيين المهمة: ",
   "failed_to_add_task": "فشل إضافة المهمة: ",
@@ -265,5 +268,9 @@
   "confirm_cancel_task_description": "هل أنت متأكد أنك تريد إلغاء المهمة '{{title}}'؟ لا يمكن التراجع عن هذا الإجراء بسهولة.",
   "confirm_cancel_action": "نعم، إلغاء المهمة",
   "cancelling": "جارٍ الإلغاء...",
-  "completed_tasks_admin_only_assign": "لا يمكن إعادة تعيين المهام المكتملة إلا بواسطة المسؤول."
+  "completed_tasks_admin_only_assign": "لا يمكن إعادة تعيين المهام المكتملة إلا بواسطة المسؤول.",
+  "no_change_in_assignment": "لم يتم الكشف عن تغيير في التعيين أو الحالة.",
+  "completed_tasks_admin_only_modify": "لا يمكن تعديل المهام المكتملة إلا بواسطة المسؤول.",
+  "completed_task_status_preserved": "تم الحفاظ على حالة المهمة المكتملة.",
+  "tasks_could_not_be_assigned_warning": "تعذر تعيين {{count}} مهام."
 }

@@ -113,6 +113,8 @@
   "due": "Due",
   "assigned_to": "Assigned to",
   "no_tasks_in_this_category": "No tasks in this category.",
+  "tasks_by_technician": "Tasks by Technician",
+  "no_unassigned_tasks": "No unassigned tasks.",
   "no_technicians_found": "No technicians found.",
   "no_tasks_assigned_to_this_technician": "No tasks assigned to this technician.",
   "loading_technicians": "Loading technicians...",
@@ -162,6 +164,7 @@
   "completed_tasks_admin_only": "Completed tasks can only be modified by an admin.",
   "failed_to_update_status": "Failed to update status: ",
   "completed_tasks_admin_only_delete": "Completed tasks can only be deleted by an admin.",
+  "failed_to_delete_task": "Failed to delete task: ",
   "failed_to_update_task": "Failed to update task: ",
   "failed_to_assign_task": "Failed to assign task: ",
   "failed_to_add_task": "Failed to add task: ",
@@ -265,5 +268,9 @@
   "confirm_cancel_task_description": "Are you sure you want to cancel the task '{{title}}'? This action cannot be undone easily.",
   "confirm_cancel_action": "Yes, Cancel Task",
   "cancelling": "Cancelling...",
-  "completed_tasks_admin_only_assign": "Completed tasks can only be reassigned by an admin."
+  "completed_tasks_admin_only_assign": "Completed tasks can only be reassigned by an admin.",
+  "no_change_in_assignment": "No change in assignment or status detected.",
+  "completed_tasks_admin_only_modify": "Completed tasks can only be modified by an admin.",
+  "completed_task_status_preserved": "Status of completed task was preserved.",
+  "tasks_could_not_be_assigned_warning": "{{count}} tasks could not be assigned."
 }

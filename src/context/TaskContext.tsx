@@ -15,7 +15,7 @@ interface TaskContextType {
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
-  assignTask: (id: string, assigneeId: string | null) => Promise<void>;
+  assignTask: (id: string, assigneeId: string | null) => Promise<boolean>;
   deleteTaskPhoto: (photoUrl: string) => Promise<void>;
 }
 
@@ -248,13 +248,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user, generateUniqueTaskId, t]);
 
-  const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']) => {
+  const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
       return false;
     }
-    if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
+    if (taskToUpdate.status === 'completed' && newStatus !== 'in-progress' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
       return false;
     }
@@ -332,11 +332,34 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [tasks, profile, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
-    if (updates.notification_num && updates.notification_num.trim() !== "") {
+    const taskToUpdate = tasks.find(t => t.id === id);
+    if (!taskToUpdate) {
+      toast.error(t("task_not_found"));
+      return false;
+    }
+
+    const finalUpdates = { ...updates };
+
+    // If the task is completed, prevent changing its status from 'completed'.
+    // Also, only an admin can update other fields of a completed task.
+    if (taskToUpdate.status === 'completed') {
+      if (profile?.role !== 'admin') {
+        toast.error(t("completed_tasks_admin_only_modify")); // New translation key for general modification
+        return false;
+      }
+      // If an admin is updating a completed task, ensure status remains 'completed'.
+      // If 'updates' contains a 'status' field that is not 'completed', remove it.
+      if (finalUpdates.status && finalUpdates.status !== 'completed') {
+        delete finalUpdates.status;
+        toast.info(t("completed_task_status_preserved")); // Inform admin that status was not changed
+      }
+    }
+
+    if (finalUpdates.notification_num && finalUpdates.notification_num.trim() !== "") {
       const { data: existingTask, error: checkError } = await supabase
         .from('tasks')
         .select('id')
-        .eq('notification_num', updates.notification_num.trim())
+        .eq('notification_num', finalUpdates.notification_num.trim())
         .not('id', 'eq', id)
         .limit(1);
 
@@ -350,7 +373,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
+    const { data, error } = await supabase.from('tasks').update(finalUpdates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
       return false;
@@ -359,28 +382,46 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     }
     return false;
-  }, [t]);
+  }, [tasks, profile, t]);
 
-  const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
+  const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
     const taskToUpdate = tasks.find(t => t.id === id);
     if (!taskToUpdate) {
       toast.error(t("task_not_found"));
-      return;
+      return false;
     }
 
-    // Prevent changing status of completed tasks unless admin
-    if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
-      toast.error(t("completed_tasks_admin_only_assign")); // New translation key
-      return;
+    const updates: Partial<Task> = { assignee_id: assigneeId };
+
+    // If the task is completed, its status should not change.
+    // Only an admin can reassign a completed task.
+    if (taskToUpdate.status === 'completed') {
+      if (profile?.role !== 'admin') {
+        toast.error(t("completed_tasks_admin_only_assign"));
+        return false;
+      }
+      // If admin, only assignee_id is updated. Status remains 'completed'.
+      // No need to add 'status' to updates object.
+    } else {
+      // For non-completed tasks, update status based on assigneeId
+      updates.status = assigneeId ? 'assigned' : 'unassigned';
     }
 
-    const newStatus = assigneeId ? 'assigned' : 'unassigned';
-    const { data, error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id).select().single();
+    // Prevent unnecessary updates if assignee_id is not actually changing AND status is not changing
+    if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === (updates.status || taskToUpdate.status)) {
+      toast.info(t("no_change_in_assignment"));
+      return false;
+    }
+
+    const { data, error } = await supabase.from('tasks').update(updates).eq('id', id).select().single();
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
+      return false;
     } else if (data) {
       setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
+      return true;
     }
+    return false;
   }, [tasks, profile, t]);
 
   return (
