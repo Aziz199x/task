@@ -230,6 +230,7 @@
   "location_placeholder": "مثال: https://www.google.com/maps?q=21.494086,39.186785",
   "permission_denied_complete_task": "ليس لديك إذن لإكمال هذه المهمة.",
   "permission_denied_delete_task": "ليس لديك صلاحية لحذف المهام.",
+  "permission_denied_cancel_task": "ليس لديك صلاحية لإلغاء هذه المهمة.",
   "closed_by": "أغلق بواسطة",
   "due_date_cannot_be_in_past": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي.",
   "created_on": "تاريخ الإنشاء",

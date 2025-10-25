@@ -57,10 +57,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const isCreator = user && task.creator_id === user.id;
 
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || isAdmin);
-
   const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
   const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
+  const canStartProgress = (isAssignedToCurrentUser || canEditOrDelete) && task.status === 'assigned';
+  const canCancel = isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role));
 
   const handleDelete = () => {
     deleteTask(task.id);
@@ -185,20 +186,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleStatusChange('unassigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_unassigned')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('assigned')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_assigned')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {canStartProgress && (
+                  <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>
+                )}
+                {canCancel && (
+                  <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isCompleted && !isAdmin || isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
+                )}
+
+                {(canStartProgress || canCancel) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask) && <DropdownMenuSeparator />}
+
                 {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
                 {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
+
+                {((user && !isAssignedToCurrentUser) || canUnassignTask) && canDeleteTask && <DropdownMenuSeparator />}
+
                 {canDeleteTask && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
-                      <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}>
+                    <Trash2 className="h-4 w-4 mr-2" /> {t('delete')}
+                  </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

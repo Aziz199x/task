@@ -253,6 +253,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
     }
+    if (newStatus === 'cancelled') {
+      const canCancel = (profile?.id === taskToUpdate.creator_id) || (profile && ['admin', 'manager'].includes(profile.role));
+      if (!canCancel) {
+        toast.error(t("permission_denied_cancel_task"));
+        return false;
+      }
+    }
     const updates: Partial<Task> = { status: newStatus };
     if (newStatus === 'completed' && user?.id) updates.closed_by_id = user.id;
     else if (newStatus !== 'completed') updates.closed_by_id = null;
