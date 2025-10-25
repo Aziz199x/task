@@ -224,16 +224,17 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
           />
         </div>
       )}
-      <div className="flex-grow">
+      <div className="flex-grow min-w-0"> {/* Added min-w-0 to allow flex item to shrink */}
         <CardHeader className="p-0 pb-2">
           <div className="flex items-start justify-between">
-            <div className="flex-1 pr-2">
-              <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? "line-through" : ""}`}>
+            <div className="flex-1 pr-2 min-w-0">
+              <CardTitle className={`text-lg font-semibold break-words ${task.status === 'completed' ? "line-through" : ""}`}>
                 {task.title}
               </CardTitle>
-              {task.task_id && <p className="text-sm font-medium text-muted-foreground pt-1">ID: {task.task_id}</p>}
+              {/* Display the unique database ID (UUID) */}
+              <p className="text-xs font-medium text-muted-foreground pt-1 truncate">ID: {task.id}</p>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               {canEditTask && (
                 <Dialog open={isEditing} onOpenChange={setIsEditing}>
                   <DialogTrigger asChild>
@@ -306,44 +307,58 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
           </div>
         </CardHeader>
         <CardContent className="space-y-2 p-0 pt-2">
-          {task.description && <p className={`text-sm text-muted-foreground ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Clock className="h-4 w-4 mr-2" /> {t('created_on')}: {format(new Date(task.created_at), 'PPP p')}
+          {/* Display description clearly separated */}
+          {task.description && <p className={`text-sm text-gray-700 dark:text-gray-300 ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
+          
+          <div className="space-y-1 pt-1">
+            <div className="flex items-start text-sm text-muted-foreground">
+              <Clock className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" /> 
+              <span className="break-words">{t('created_on')}: {format(new Date(task.created_at), 'PPP p')}</span>
+            </div>
+            
+            {task.location && (
+              <div className="flex items-start text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                <span className="break-words min-w-0">
+                  {validateLocationUrl(task.location) === null ? (
+                    <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                      {task.location}
+                    </a>
+                  ) : (
+                    task.location
+                  )}
+                </span>
+              </div>
+            )}
+            
+            {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2 flex-shrink-0" /> {t('task_id')}: {task.task_id}</div>}
+            {task.notification_num && <div className="flex items-center text-sm text-muted-foreground"><Bell className="h-4 w-4 mr-2 flex-shrink-0" /> {t('notification_num')}: {task.notification_num}</div>}
+            
+            {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2 flex-shrink-0" /> {t('due_date')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
+            
+            {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2 flex-shrink-0" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
+            {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2 flex-shrink-0" /> {t('equipment_number')}: {task.equipment_number}</div>}
+            
+            {task.priority && (
+              <div className={`flex items-center text-sm ${getPriorityColor(task.priority)}`}>
+                <Flag className="h-4 w-4 mr-2 flex-shrink-0" /> {t('priority')}: {t(task.priority)}
+              </div>
+            )}
+            
+            {assignedTechnician && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2 flex-shrink-0" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</div>}
+            {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2 flex-shrink-0" /> {t('unassigned')}</div>}
+            
+            {task.status === 'completed' && closedByUser && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <UserCheck className="h-4 w-4 mr-2 flex-shrink-0" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
+              </div>
+            )}
+            {task.status === 'completed' && task.closed_at && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <CalendarDays className="h-4 w-4 mr-2 flex-shrink-0" /> {t('closed_on')}: {format(new Date(task.closed_at), 'PPP p')}
+              </div>
+            )}
           </div>
-          {task.location && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-2" />
-              {validateLocationUrl(task.location) === null ? (
-                <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                  {task.location}
-                </a>
-              ) : (
-                task.location
-              )}
-            </div>
-          )}
-          {task.task_id && <div className="flex items-center text-sm text-muted-foreground"><Hash className="h-4 w-4 mr-2" /> {t('task_id')}: {task.task_id}</div>}
-          {task.notification_num && <div className="flex items-center text-sm text-muted-foreground"><Bell className="h-4 w-4 mr-2" /> {t('notification_num')}: {task.notification_num}</div>}
-          {task.due_date && <div className={`flex items-center text-sm ${isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}`}><CalendarDays className="h-4 w-4 mr-2" /> {t('due_date')}: {format(dueDateObj!, 'PPP')} {isOverdue && `(${t('overdue')})`} {isDueSoon && !isOverdue && `(${t('due_soon')})`}</div>}
-          {task.type_of_work && <div className="flex items-center text-sm text-muted-foreground"><Wrench className="h-4 w-4 mr-2" /> {t('type')}: {t(task.type_of_work.replace(' ', '_').toLowerCase())}</div>}
-          {task.equipment_number && <div className="flex items-center text-sm text-muted-foreground"><HardHat className="h-4 w-4 mr-2" /> {t('equipment_number')}: {task.equipment_number}</div>}
-          {task.priority && (
-            <div className={`flex items-center text-sm ${getPriorityColor(task.priority)}`}>
-              <Flag className="h-4 w-4 mr-2" /> {t('priority')}: {t(task.priority)}
-            </div>
-          )}
-          {assignedTechnician && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('assigned_to')}: {assignedTechnician.first_name} {assignedTechnician.last_name}</div>}
-          {!task.assignee_id && task.status !== 'unassigned' && <div className="flex items-center text-sm text-muted-foreground"><User className="h-4 w-4 mr-2" /> {t('unassigned')}</div>}
-          {task.status === 'completed' && closedByUser && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <UserCheck className="h-4 w-4 mr-2" /> {t('closed_by')}: {`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}
-            </div>
-          )}
-          {task.status === 'completed' && task.closed_at && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4 mr-2" /> {t('closed_on')}: {format(new Date(task.closed_at), 'PPP p')}
-            </div>
-          )}
           <TaskPhotoGallery photoBeforeUrl={task.photo_before_url} photoAfterUrl={task.photo_after_url} photoPermitUrl={task.photo_permit_url} />
         </CardContent>
         {canComplete && (
