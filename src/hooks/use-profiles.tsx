@@ -4,73 +4,91 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UserProfile } from '@/context/SessionContext';
+import { useSession } from '@/context/SessionContext';
+
+// Extend UserProfile type locally to include email
+export interface ProfileWithEmail extends UserProfile {
+  email: string | null;
+}
 
 export const useProfiles = () => {
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const { session } = useSession();
+  const [profiles, setProfiles] = useState<ProfileWithEmail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfiles = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error } = await supabase
+
+    // 1. Fetch all profiles
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .order('first_name', { ascending: true });
 
-    if (error) {
-      console.error("Error fetching profiles:", error.message);
-      toast.error("Failed to load profiles: " + error.message);
-      setError(error.message);
+    if (profileError) {
+      console.error("Error fetching profiles:", profileError.message);
+      toast.error("Failed to load profiles: " + profileError.message);
+      setError(profileError.message);
       setProfiles([]);
-    } else if (data) {
-      setProfiles(data as UserProfile[]);
+      setLoading(false);
+      return;
     }
+
+    let profilesWithEmails: ProfileWithEmail[] = profileData.map(p => ({ ...p, email: null })) as ProfileWithEmail[];
+    
+    // 2. Fetch emails using Edge Function (only if authenticated)
+    if (session?.access_token) {
+      const userIds = profileData.map(p => p.id);
+      try {
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('list-user-emails', {
+          body: { userIds },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (emailError) {
+          console.warn("Warning: Failed to fetch user emails via Edge Function (Permission issue or function error). Falling back to ID display.", emailError.message);
+        } else if (emailData && Array.isArray(emailData)) {
+          const emailMap = new Map(emailData.map(item => [item.id, item.email]));
+          profilesWithEmails = profilesWithEmails.map(p => ({
+            ...p,
+            email: emailMap.get(p.id) || null,
+          }));
+        }
+      } catch (e: any) {
+        console.warn("Warning: Failed to invoke list-user-emails function:", e.message);
+      }
+    }
+
+    setProfiles(profilesWithEmails);
     setLoading(false);
-  }, []);
+  }, [session?.access_token]);
 
   useEffect(() => {
-    fetchProfiles();
+    if (session) {
+      fetchProfiles();
+    } else {
+      setProfiles([]);
+      setLoading(false);
+    }
 
     const channel = supabase
       .channel('public:profiles')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
         console.log('Profile change received!', payload);
-        
-        const newProfile = payload.new as UserProfile;
-        const oldProfile = payload.old as { id: string };
-
-        switch (payload.eventType) {
-          case 'INSERT':
-            setProfiles(currentProfiles => {
-              if (currentProfiles.some(p => p.id === newProfile.id)) {
-                return currentProfiles;
-              }
-              return [...currentProfiles, newProfile].sort((a, b) => 
-                (a.first_name || '').localeCompare(b.first_name || '')
-              );
-            });
-            break;
-          case 'UPDATE':
-            setProfiles(currentProfiles => 
-              currentProfiles.map(p => p.id === newProfile.id ? newProfile : p)
-            );
-            break;
-          case 'DELETE':
-            setProfiles(currentProfiles => 
-              currentProfiles.filter(p => p.id !== oldProfile.id)
-            );
-            break;
-          default:
-            break;
-        }
+        // Since we rely on the Edge Function for emails, we refetch everything on change
+        // to ensure data consistency, especially after user creation/deletion.
+        fetchProfiles();
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchProfiles]);
+  }, [session, fetchProfiles]);
 
   return { profiles, loading, error, refetchProfiles: fetchProfiles };
 };

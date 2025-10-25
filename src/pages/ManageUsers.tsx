@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import Layout from "@/components/Layout";
 import { useSession } from "@/context/SessionContext";
-import { useProfiles } from "@/hooks/use-profiles";
+import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useTasks } from "@/context/TaskContext"; // Import useTasks
 
 const ManageUsers: React.FC = () => {
-  const { profile: currentUserProfile, loading: sessionLoading, user: currentUser } = useSession();
+  const { profile: currentUserProfile, loading: sessionLoading } = useSession();
   const { profiles, loading: profilesLoading, error: profilesError } = useProfiles();
   const { tasks } = useTasks(); // Get tasks from TaskContext
   const { t } = useTranslation();
@@ -22,17 +22,12 @@ const ManageUsers: React.FC = () => {
   const isAuthorized = currentUserProfile && allowedRoles.includes(currentUserProfile.role);
 
   // Helper function to get email prefix
-  const getEmailPrefix = (userId: string) => {
-    // We rely on the current user object for the email if available, otherwise we use the ID as a fallback
-    const profile = profiles.find(p => p.id === userId);
-    const email = profile?.email || currentUser?.email; // Note: profile object doesn't contain email directly, relying on session user or fetching if needed. For simplicity, we'll use the ID if email is unavailable, but format it.
-    
-    if (email) {
-      return email.split('@')[0];
+  const getEmailPrefix = (profile: ProfileWithEmail) => {
+    if (profile.email) {
+      return profile.email.split('@')[0];
     }
-    
-    // Fallback: use a shortened version of the ID
-    return userId.substring(0, 8);
+    // Fallback: use a shortened version of the ID if email is null
+    return profile.id.substring(0, 8);
   };
 
   // Calculate performance rate for each profile
@@ -95,7 +90,7 @@ const ManageUsers: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('name')}</TableHead>
-                <TableHead>{t('user_identifier')}</TableHead> {/* Renamed header */}
+                <TableHead>{t('user_identifier')}</TableHead>
                 <TableHead>{t('current_role')}</TableHead>
                 <TableHead>{t('performance_rate')}</TableHead>
                 <TableHead className="text-right">{t('actions')}</TableHead>
@@ -106,7 +101,7 @@ const ManageUsers: React.FC = () => {
                 <TableRow key={profile.id}>
                   <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {getEmailPrefix(profile.id)}
+                    {getEmailPrefix(profile)}
                   </TableCell>
                   <TableCell className="capitalize">{t(profile.role)}</TableCell>
                   <TableCell>{profile.performanceRate}</TableCell>
