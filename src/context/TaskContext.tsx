@@ -149,7 +149,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // Check for notification number uniqueness
     if (notificationNum && notificationNum.trim() !== "") {
       const { data, error: checkError } = await supabase
         .from('tasks')
@@ -174,11 +173,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(error.message);
       return false;
     }
-    const { error } = await supabase.from('tasks').insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id });
+
+    const { data: newTask, error } = await supabase
+      .from('tasks')
+      .insert({ title, description, location, task_id: taskId, due_date: dueDate || null, assignee_id: assigneeId, type_of_work: typeOfWork, equipment_number: equipmentNumber, notification_num: notificationNum || null, priority: priority || 'medium', status: assigneeId ? 'assigned' : 'unassigned', creator_id: user?.id })
+      .select()
+      .single();
+
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
       return false;
     }
+
+    if (newTask) {
+      setTasks(currentTasks => [newTask, ...currentTasks]);
+    }
+    
     return true;
   }, [user, generateUniqueTaskId, t]);
 
@@ -188,14 +198,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .filter((n): n is string => !!n && n.trim() !== "");
 
     if (notificationNums.length > 0) {
-      // Check for duplicates within the uploaded list itself
       const uniqueNums = new Set(notificationNums);
       if (uniqueNums.size !== notificationNums.length) {
         toast.error(t("upload_contains_duplicates"));
         return;
       }
 
-      // Check against the database for existing numbers
       const { data, error } = await supabase
         .from('tasks')
         .select('notification_num')
@@ -228,8 +236,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.warning(t('no_valid_tasks_found_in_excel'));
       return;
     }
-    const { error } = await supabase.from('tasks').insert(tasksToInsert);
-    if (error) toast.error(t("failed_to_add_tasks_bulk") + error.message);
+    
+    const { data: insertedTasks, error } = await supabase.from('tasks').insert(tasksToInsert).select();
+
+    if (error) {
+      toast.error(t("failed_to_add_tasks_bulk") + error.message);
+    }
+
+    if (insertedTasks) {
+      setTasks(currentTasks => [...insertedTasks, ...currentTasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    }
   }, [user, generateUniqueTaskId, t]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']) => {
@@ -311,13 +327,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [tasks, profile, t, deleteTaskPhoto]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
-    // Check for notification number uniqueness if it's being updated
     if (updates.notification_num && updates.notification_num.trim() !== "") {
       const { data: existingTask, error: checkError } = await supabase
         .from('tasks')
         .select('id')
         .eq('notification_num', updates.notification_num.trim())
-        .not('id', 'eq', id) // Exclude the current task from the check
+        .not('id', 'eq', id)
         .limit(1);
 
       if (checkError) {

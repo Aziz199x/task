@@ -31,12 +31,38 @@ export const useProfiles = () => {
   useEffect(() => {
     fetchProfiles();
 
-    // Realtime listener for profile changes
     const channel = supabase
       .channel('public:profiles')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
         console.log('Profile change received!', payload);
-        fetchProfiles(); // Re-fetch profiles on any change
+        
+        const newProfile = payload.new as UserProfile;
+        const oldProfile = payload.old as { id: string };
+
+        switch (payload.eventType) {
+          case 'INSERT':
+            setProfiles(currentProfiles => {
+              if (currentProfiles.some(p => p.id === newProfile.id)) {
+                return currentProfiles;
+              }
+              return [...currentProfiles, newProfile].sort((a, b) => 
+                (a.first_name || '').localeCompare(b.first_name || '')
+              );
+            });
+            break;
+          case 'UPDATE':
+            setProfiles(currentProfiles => 
+              currentProfiles.map(p => p.id === newProfile.id ? newProfile : p)
+            );
+            break;
+          case 'DELETE':
+            setProfiles(currentProfiles => 
+              currentProfiles.filter(p => p.id !== oldProfile.id)
+            );
+            break;
+          default:
+            break;
+        }
       })
       .subscribe();
 
