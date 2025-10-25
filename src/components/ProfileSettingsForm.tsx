@@ -17,7 +17,7 @@ interface ProfileWithPhone extends UserProfile {
 }
 
 const ProfileSettingsForm: React.FC = () => {
-  const { profile, user, loading: sessionLoading } = useSession();
+  const { profile, user, loading: sessionLoading, refetchProfile } = useSession(); // Get refetchProfile
   const { t } = useTranslation();
 
   // Cast profile to include phone_number for easier access
@@ -82,6 +82,9 @@ const ProfileSettingsForm: React.FC = () => {
         // Do not throw here, as profile update might have succeeded
       }
       console.log("[ProfileSettingsForm] Auth user metadata update attempted.");
+
+      // Explicitly refetch profile to ensure UI updates
+      await refetchProfile(user.id);
 
       toast.success(t('profile_updated_successfully'));
     } catch (error: any) {

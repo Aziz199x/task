@@ -291,5 +291,6 @@
   "phone_number_optional": "Phone Number (Optional)",
   "phone_number_placeholder": "e.g., +966501234567",
   "profile_updated_successfully": "Profile updated successfully!",
-  "failed_to_update_profile": "Failed to update profile"
+  "failed_to_update_profile": "Failed to update profile",
+  "profile_updated_realtime_notification": "Your profile has been updated in real-time!"
 }

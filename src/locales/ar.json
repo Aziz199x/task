@@ -291,5 +291,6 @@
   "phone_number_optional": "رقم الهاتف (اختياري)",
   "phone_number_placeholder": "مثال: +966501234567",
   "profile_updated_successfully": "تم تحديث الملف الشخصي بنجاح!",
-  "failed_to_update_profile": "فشل تحديث الملف الشخصي"
+  "failed_to_update_profile": "فشل تحديث الملف الشخصي",
+  "profile_updated_realtime_notification": "تم تحديث ملفك الشخصي في الوقت الفعلي!"
 }

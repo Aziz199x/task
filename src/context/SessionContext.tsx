@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ export interface UserProfile {
   avatar_url: string | null;
   role: 'admin' | 'manager' | 'supervisor' | 'technician' | 'contractor';
   updated_at: string | null;
+  phone_number?: string | null; // Include phone_number here for consistency
 }
 
 interface SessionContextType {
@@ -22,6 +23,7 @@ interface SessionContextType {
   profile: UserProfile | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refetchProfile: (userId: string) => Promise<UserProfile | null>; // Expose refetch function
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -33,7 +35,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const { t } = useTranslation();
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
     const { data, error } = await supabase
       .from('profiles')
@@ -53,7 +55,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] No profile found for user:", userId);
     setProfile(null);
     return null;
-  };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -85,14 +87,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         setUser(initialSession?.user ?? null);
 
         if (initialSession?.user) {
-          // Await profile fetch, but ensure we proceed to finally block regardless
           await fetchUserProfile(initialSession.user.id);
         } else {
           setProfile(null);
         }
       }
       
-      // Ensure loading state is dismissed here
       if (isMounted) {
         setIsLoadingInitial(false);
         console.log("[SessionProvider] Initial loading complete.");
@@ -130,7 +130,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       isMounted = false;
       console.log("[SessionProvider] Component unmounted, cleaning up.");
     };
-  }, [t]); // Depend on t for toast messages
+  }, [t, fetchUserProfile]); // Depend on t and fetchUserProfile
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
@@ -153,6 +153,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         (payload) => {
           console.log('[SessionProvider] Real-time profile update received:', payload);
           setProfile(payload.new as UserProfile);
+          toast.info(t('profile_updated_realtime_notification')); // Add a toast for real-time update
         }
       )
       .subscribe((status) => {
@@ -163,7 +164,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       console.log("[SessionProvider] Unsubscribing from profile channel.");
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, t]);
 
   const signOut = async () => {
     console.log("[SessionProvider] Attempting to sign out.");
@@ -171,22 +172,18 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      // Check for the specific error message indicating the session is already missing
       if (error.message.includes('Auth session missing')) {
         console.warn("[SessionProvider] Sign out failed because session was already missing. Clearing local state manually.");
-        // Manually clear local state and trigger sign out notification
         setSession(null);
         setUser(null);
         setProfile(null);
         toast.info(t("you_have_been_signed_out"));
-        // Note: The onAuthStateChange listener should also catch this, but this ensures immediate feedback.
       } else {
         console.error("[SessionProvider] Failed to sign out:", error.message);
         toast.error(t("failed_to_sign_out") + error.message);
       }
     } else {
       console.log("[SessionProvider] Signed out successfully.");
-      // The onAuthStateChange listener will handle state updates
     }
   };
 
@@ -194,9 +191,10 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     session,
     user,
     profile,
-    loading: isLoadingInitial, // Use isLoadingInitial for the loading state
-    signOut
-  }), [session, user, profile, isLoadingInitial, signOut]);
+    loading: isLoadingInitial,
+    signOut,
+    refetchProfile: fetchUserProfile, // Expose fetchUserProfile as refetchProfile
+  }), [session, user, profile, isLoadingInitial, signOut, fetchUserProfile]);
 
   if (isLoadingInitial) {
     return (
