@@ -41,9 +41,18 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // Update local state when the task changes in the database
+  // But preserve user's unsaved edits for text fields
   useEffect(() => {
-    setEditedTask(currentTask);
-  }, [currentTask]);
+    setEditedTask(prev => ({
+      ...prev,
+      // Always sync photo URLs from database
+      photo_before_url: currentTask.photo_before_url,
+      photo_after_url: currentTask.photo_after_url,
+      photo_permit_url: currentTask.photo_permit_url,
+      // Sync other fields only if they haven't been edited
+      // (This is a simple approach - in production you might want more sophisticated change tracking)
+    }));
+  }, [currentTask.photo_before_url, currentTask.photo_after_url, currentTask.photo_permit_url]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
@@ -124,7 +133,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    const currentUrl = editedTask[photoUrlKey] as string | null | undefined;
+    const currentUrl = currentTask[photoUrlKey] as string | null | undefined;
     
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
@@ -132,7 +141,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
     // Update the database - the real-time listener will update our local state
     await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t, editedTask]);
+  }, [task.id, deleteTaskPhoto, updateTask, t, currentTask]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -243,6 +252,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       {canComplete && (
         <>
           <PhotoUploader
+            key={`before-${editedTask.photo_before_url || 'empty'}`}
             label={t('before_work_photo')}
             taskId={task.id}
             photoType="before"
@@ -251,6 +261,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             onRemove={() => handlePhotoRemove('before')}
           />
           <PhotoUploader
+            key={`after-${editedTask.photo_after_url || 'empty'}`}
             label={t('after_work_photo')}
             taskId={task.id}
             photoType="after"
@@ -259,6 +270,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
             onRemove={() => handlePhotoRemove('after')}
           />
           <PhotoUploader
+            key={`permit-${editedTask.photo_permit_url || 'empty'}`}
             label={t('permit_photo')}
             taskId={task.id}
             photoType="permit"
