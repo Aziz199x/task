@@ -36,11 +36,42 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set()); // Corrected initialization
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const canBulkDelete = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
+
+  // Define filteredTasks first, as it's a dependency for other callbacks
+  const filteredTasks = useMemo(() => {
+    const filtered = tasks.filter((task) => {
+      const matchesSearch = searchTerm === "" ||
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.equipment_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
+      const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
+      const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+
+      const dueDateObj = task.due_date ? new Date(task.due_date) : null;
+      const now = new Date();
+      const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
+      const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
+
+      const matchesReminder = filterReminder === "all" ||
+        (filterReminder === "overdue" && isOverdue) ||
+        (filterReminder === "due-soon" && isDueSoon && !isOverdue);
+
+      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
+    });
+
+    // Sort the filtered tasks by creation date (newest first)
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority]);
 
   const handleSelectTask = useCallback((taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -61,7 +92,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     } else {
       setSelectedTaskIds(new Set());
     }
-  }, [filteredTasks]);
+  }, [filteredTasks]); // filteredTasks is now correctly a dependency
 
   const handleBulkAction = useCallback(async (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
@@ -139,36 +170,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     }
     setSelectedTaskIds(new Set());
   }, [selectedTaskIds, currentUserProfile, tasksByIdMap, t, changeTaskStatus, assignTask, deleteTask]);
-
-  const filteredTasks = useMemo(() => {
-    const filtered = tasks.filter((task) => {
-      const matchesSearch = searchTerm === "" ||
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.equipment_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
-      const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
-      const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
-      const matchesPriority = filterPriority === "all" || task.priority === filterPriority; // New filter for priority
-
-      const dueDateObj = task.due_date ? new Date(task.due_date) : null;
-      const now = new Date();
-      const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
-      const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
-
-      const matchesReminder = filterReminder === "all" ||
-        (filterReminder === "overdue" && isOverdue) ||
-        (filterReminder === "due-soon" && isDueSoon && !isOverdue);
-
-      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
-    });
-
-    // Sort the filtered tasks by creation date (newest first)
-    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority]);
 
   const allTasksSelected = filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length;
 
