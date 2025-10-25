@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto flex flex-wrap justify-between items-center gap-4">
           {/* App Logo and Title (Always visible) */}
           <div className="flex items-center gap-4 flex-shrink-0">
-            <img src="/logo.png" alt="AzizApp Logo" className="h-8 w-8" />
+            <img src="/logo.png" alt="AbuMiral Logo" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">{t('task_manager')}</h1>
           </div>
 
