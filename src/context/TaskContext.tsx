@@ -362,6 +362,18 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [t]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null) => {
+    const taskToUpdate = tasks.find(t => t.id === id);
+    if (!taskToUpdate) {
+      toast.error(t("task_not_found"));
+      return;
+    }
+
+    // Prevent changing status of completed tasks unless admin
+    if (taskToUpdate.status === 'completed' && profile?.role !== 'admin') {
+      toast.error(t("completed_tasks_admin_only_assign")); // New translation key
+      return;
+    }
+
     const newStatus = assigneeId ? 'assigned' : 'unassigned';
     const { data, error } = await supabase.from('tasks').update({ assignee_id: assigneeId, status: newStatus }).eq('id', id).select().single();
     if (error) {
@@ -369,7 +381,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else if (data) {
       setTasks(currentTasks => currentTasks.map(task => (task.id === id ? data : task)));
     }
-  }, [t]);
+  }, [tasks, profile, t]);
 
   return (
     <TaskContext.Provider value={{ tasks, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto }}>

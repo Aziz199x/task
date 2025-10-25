@@ -77,6 +77,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
                     (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress'); // Only allow cancellation for active tasks
   const canShare = typeof navigator !== 'undefined' && navigator.share;
+  const canAssignToMe = user && !isAssignedToCurrentUser && (!isCompleted || isAdmin); // New condition for 'Assign to Me'
 
   const handleDelete = () => {
     deleteTask(task.id);
@@ -139,7 +140,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
     setIsSaving(true);
     if (user?.id) {
       await assignTask(task.id, user.id);
-      toast.success(t('task_assigned_to_you'));
+      // Toast message handled by assignTask in TaskContext
     } else {
       toast.error(t('you_must_be_logged_in_to_assign_tasks'));
     }
@@ -149,7 +150,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
   const handleUnassign = async () => {
     setIsSaving(true);
     await assignTask(task.id, null);
-    toast.success(t('task_unassigned'));
+    // Toast message handled by assignTask in TaskContext
     setIsSaving(false);
   };
 
@@ -259,8 +260,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSele
                     <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                   )}
                   {(canStartProgress || canCancel || isCompleted) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
-                  {user && !isAssignedToCurrentUser && <DropdownMenuItem onClick={handleAssignToMe} disabled={isCompleted && !isAdmin || isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
-                  {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isCompleted && !isAdmin || isSaving}>{t('unassign')}</DropdownMenuItem>}
+                  {canAssignToMe && <DropdownMenuItem onClick={handleAssignToMe} disabled={isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
+                  {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isSaving}>{t('unassign')}</DropdownMenuItem>}
                   {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   {canShare && (
                     <DropdownMenuItem onClick={handleShare}>
