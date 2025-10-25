@@ -22,7 +22,10 @@ interface EditTaskFormProps {
   canComplete: boolean;
 }
 
-const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
+// Regex to validate Google Maps URL formats:
+// 1. https://www.google.com/maps?q=LATITUDE,LONGITUDE
+// 2. https://maps.app.goo.gl/SHORTCODE
+const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)|https:\/\/maps\.app\.goo\.gl\/[a-zA-Z0-9]+)$/;
 
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose, canEditOrDelete, canComplete }) => {
   const { tasksByIdMap, updateTask, deleteTaskPhoto } = useTasks();

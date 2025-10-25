@@ -33,8 +33,10 @@ const TaskForm: React.FC = () => {
   const [priority, setPriority] = useState<Task['priority']>('medium');
   const [loading, setLoading] = useState(false);
 
-  // Regex to validate Google Maps URL format: https://www.google.com/maps?q=LATITUDE,LONGITUDE
-  const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
+  // Regex to validate Google Maps URL formats:
+  // 1. https://www.google.com/maps?q=LATITUDE,LONGITUDE
+  // 2. https://maps.app.goo.gl/SHORTCODE
+  const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)|https:\/\/maps\.app\.goo\.gl\/[a-zA-Z0-9]+)$/;
 
   const validateLocationUrl = (url: string): string | null => {
     if (url.trim() === "") {
