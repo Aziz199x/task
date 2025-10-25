@@ -30,7 +30,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
-      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name, e.target.files[0]); // Log the file object
+      console.log(`[PhotoUploader - ${photoType}] File selected:`, e.target.files[0].name, e.target.files[0]);
     } else {
       setFile(null);
       console.log(`[PhotoUploader - ${photoType}] File selection cleared.`);
@@ -45,7 +45,10 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
     }
     setUploading(true);
     console.log(`[PhotoUploader - ${photoType}] Starting upload for file:`, file.name);
-    console.log(`[PhotoUploader - ${photoType}] File object before upload:`, file); // New log for file object
+    console.log(`[PhotoUploader - ${photoType}] File object before upload:`, file); // Log the file object
+    
+    // NEW LOG: Verify file object right before the Supabase upload call
+    console.log(`[PhotoUploader - ${photoType}] Attempting Supabase upload with file:`, file);
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -56,7 +59,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         .from('task_photos')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false // Ensure we don't accidentally overwrite if not intended
+          upsert: false
         });
 
       if (uploadError) {
@@ -64,7 +67,6 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         toast.error(`${t('upload_failed')}: ${uploadError.message}`);
       } else {
         console.log(`[PhotoUploader - ${photoType}] Upload successful, data:`, uploadData);
-        // Now get the public URL
         const { data: publicUrlData } = supabase.storage
           .from('task_photos')
           .getPublicUrl(filePath);
