@@ -114,7 +114,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
         const message = t('skipped_completed_tasks_warning', { count: skippedCount });
-        toast.warning(message ? String(message) : t('some_tasks_skipped_fallback'));
+        // Use a hardcoded fallback if translation fails
+        toast.warning(String(message || t('some_tasks_skipped_fallback') || 'Warning: Some tasks were skipped.'));
       }
     }
     
@@ -140,7 +141,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
             const message = t('tasks_could_not_be_updated_warning', { count: failCount });
-            toast.warning(message ? String(message) : t('tasks_update_failed_fallback'));
+            // Use a hardcoded fallback if translation fails
+            toast.warning(String(message || t('tasks_update_failed_fallback') || 'Warning: Some tasks could not be updated.'));
           }
         }
         break;
@@ -158,7 +160,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         const assignFailCount = tasksToActOn.length - assignSuccessCount;
         if (assignFailCount > 0) {
           const message = t('tasks_could_not_be_assigned_warning', { count: assignFailCount });
-          toast.warning(message ? String(message) : t('tasks_assign_failed_fallback'));
+          // Use a hardcoded fallback if translation fails
+          toast.warning(String(message || t('tasks_assign_failed_fallback') || 'Warning: Some tasks could not be assigned.'));
         }
         break;
       case 'delete':
