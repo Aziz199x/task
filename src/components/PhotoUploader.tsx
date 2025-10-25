@@ -66,7 +66,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
         toast.success(t('photo_uploaded_successfully'));
         setFile(null); // Clear the file input after successful upload
       } else {
-        console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath);
+        console.error(`[PhotoUploader - ${photoType}] Could not get public URL for file:`, filePath, "Data:", data); // Improved logging
         toast.error(t('could_not_get_photo_url'));
       }
     }
