@@ -36,12 +36,15 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
   return null;
 };
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onSelect, isSelected }) => {
-  const { changeTaskStatus, deleteTask, assignTask } = useTasks();
+const TaskCard: React.FC<TaskCardProps> = ({ task: initialTask, onSelect, isSelected }) => {
+  const { tasks, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { technicians } = useTechnicians();
   const { profiles } = useProfiles(); // Use useProfiles to get all profiles
   const { t } = useTranslation();
+
+  // Get the current task from global state (real-time updates)
+  const task = tasks.find(t => t.id === initialTask.id) || initialTask;
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false); // Keep for status change/assign actions

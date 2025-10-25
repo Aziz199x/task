@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,15 +25,23 @@ interface EditTaskFormProps {
 const googleMapsUrlRegex = /^https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)$/;
 
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDelete, canComplete }) => {
-  const { updateTask, deleteTaskPhoto } = useTasks();
+  const { tasks, updateTask, deleteTaskPhoto } = useTasks();
   const { profile: currentUserProfile } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
-  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => task);
+  // Get the current task from global state (real-time updates)
+  const currentTask = tasks.find(t => t.id === task.id) || task;
+  
+  const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
   const [isSaving, setIsSaving] = useState(false);
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Sync local state with global state when task updates
+  useEffect(() => {
+    setEditedTask(currentTask);
+  }, [currentTask]);
 
   const validateLocationUrl = (url: string | null | undefined): string | null => {
     if (!url || url.trim() === "") return null;
@@ -108,28 +116,24 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
   const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
     
-    // Optimistic UI update
-    setEditedTask(prev => ({ ...prev, [photoUrlKey]: url }));
-
-    // Update the database
+    // Update the database immediately - this will trigger real-time updates
     await updateTask(task.id, { [photoUrlKey]: url });
     toast.success(t('photo_uploaded_successfully'));
   }, [task.id, updateTask, t]);
 
   const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
     const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    const currentUrl = editedTask[photoUrlKey] as string | null | undefined;
+    const currentUrl = currentTask[photoUrlKey] as string | null | undefined;
     
-    // Optimistic UI update
-    setEditedTask(prev => ({ ...prev, [photoUrlKey]: null }));
-
+    // Delete from storage first
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
-    // Update the database
+    
+    // Update the database - this will trigger real-time updates
     await updateTask(task.id, { [photoUrlKey]: null });
     toast.success(t('photo_removed_successfully'));
-  }, [task.id, deleteTaskPhoto, updateTask, t, editedTask]);
+  }, [task.id, deleteTaskPhoto, updateTask, t, currentTask]);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -240,29 +244,26 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task, onClose, canEditOrDel
       {canComplete && (
         <>
           <PhotoUploader
-            key={`before-${editedTask.photo_before_url || 'empty'}`}
             label={t('before_work_photo')}
             taskId={task.id}
             photoType="before"
-            currentUrl={editedTask.photo_before_url}
+            currentUrl={currentTask.photo_before_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('before', url)}
             onRemove={() => handlePhotoRemove('before')}
           />
           <PhotoUploader
-            key={`after-${editedTask.photo_after_url || 'empty'}`}
             label={t('after_work_photo')}
             taskId={task.id}
             photoType="after"
-            currentUrl={editedTask.photo_after_url}
+            currentUrl={currentTask.photo_after_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('after', url)}
             onRemove={() => handlePhotoRemove('after')}
           />
           <PhotoUploader
-            key={`permit-${editedTask.photo_permit_url || 'empty'}`}
             label={t('permit_photo')}
             taskId={task.id}
             photoType="permit"
-            currentUrl={editedTask.photo_permit_url}
+            currentUrl={currentTask.photo_permit_url}
             onUploadSuccess={(url) => handlePhotoUploadSuccess('permit', url)}
             onRemove={() => handlePhotoRemove('permit')}
           />
