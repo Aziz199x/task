@@ -5,6 +5,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export interface UserProfile {
   id: string;
@@ -30,8 +31,10 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const { t } = useTranslation();
 
   const fetchUserProfile = async (userId: string) => {
+    console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -39,56 +42,79 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       .single();
 
     if (error) {
-      console.error("SessionProvider: Error fetching profile:", error.message);
+      console.error("[SessionProvider] Error fetching profile:", error.message);
       setProfile(null);
       return null;
     } else if (data) {
+      console.log("[SessionProvider] Profile fetched successfully:", data);
       setProfile(data as UserProfile);
       return data as UserProfile;
     }
+    console.log("[SessionProvider] No profile found for user:", userId);
+    setProfile(null);
     return null;
   };
 
   useEffect(() => {
     let isMounted = true;
+    console.log("[SessionProvider] Initializing auth listener...");
 
     const initializeAuth = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      if (!isMounted) return;
+      try {
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
 
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
+        if (sessionError) {
+          console.error("[SessionProvider] Error getting initial session:", sessionError.message);
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        } else {
+          console.log("[SessionProvider] Initial session:", initialSession);
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
 
-      if (initialSession?.user) {
-        await fetchUserProfile(initialSession.user.id);
-      } else {
+          if (initialSession?.user) {
+            await fetchUserProfile(initialSession.user.id);
+          } else {
+            setProfile(null);
+          }
+        }
+      } catch (e: any) {
+        console.error("[SessionProvider] Unexpected error during initial auth setup:", e.message);
+        setSession(null);
+        setUser(null);
         setProfile(null);
+      } finally {
+        if (isMounted) {
+          setIsLoadingInitial(false);
+          console.log("[SessionProvider] Initial loading complete.");
+        }
       }
-      setIsLoadingInitial(false);
 
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, currentSession) => {
           if (!isMounted) return;
+          console.log(`[SessionProvider] Auth state change: ${event}`, currentSession);
 
-          if (currentSession?.user?.id !== user?.id || event === 'SIGNED_OUT') {
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
 
-            if (currentSession?.user) {
-              await fetchUserProfile(currentSession.user.id);
-            } else {
-              setProfile(null);
-            }
+          if (currentSession?.user) {
+            await fetchUserProfile(currentSession.user.id);
+          } else {
+            setProfile(null);
           }
 
           if (event === 'SIGNED_OUT') {
-            toast.info("You have been signed out.");
+            toast.info(t("you_have_been_signed_out"));
           }
         }
       );
 
       return () => {
+        console.log("[SessionProvider] Unsubscribing from auth listener.");
         authListener.subscription.unsubscribe();
       };
     };
@@ -97,12 +123,17 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     return () => {
       isMounted = false;
+      console.log("[SessionProvider] Component unmounted, cleaning up.");
     };
-  }, []);
+  }, [t]); // Depend on t for toast messages
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log("[SessionProvider] No user ID for profile real-time subscription.");
+      return;
+    }
+    console.log(`[SessionProvider] Subscribing to profile updates for user: ${user.id}`);
 
     const channel = supabase
       .channel(`profile:${user.id}`)
@@ -115,21 +146,29 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           filter: `id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Profile updated:', payload);
+          console.log('[SessionProvider] Real-time profile update received:', payload);
           setProfile(payload.new as UserProfile);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[SessionProvider] Profile channel status: ${status}`);
+      });
 
     return () => {
+      console.log("[SessionProvider] Unsubscribing from profile channel.");
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
 
   const signOut = async () => {
+    console.log("[SessionProvider] Attempting to sign out.");
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error("Failed to sign out: " + error.message);
+      console.error("[SessionProvider] Failed to sign out:", error.message);
+      toast.error(t("failed_to_sign_out") + error.message);
+    } else {
+      console.log("[SessionProvider] Signed out successfully.");
+      // The onAuthStateChange listener will handle state updates
     }
   };
 
@@ -137,15 +176,15 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     session,
     user,
     profile,
-    loading: false,
+    loading: isLoadingInitial, // Use isLoadingInitial for the loading state
     signOut
-  }), [session, user, profile]);
+  }), [session, user, profile, isLoadingInitial]);
 
   if (isLoadingInitial) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <span className="sr-only">Loading...</span>
+        <span className="sr-only">{t('loading')}...</span>
       </div>
     );
   }
