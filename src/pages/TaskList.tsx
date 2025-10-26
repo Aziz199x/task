@@ -26,7 +26,7 @@ interface TaskListProps {
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
   const { technicians } = useTechnicians(); // Keep for filter dropdown
-  const { profile: currentUserProfile } = useSession();
+  const { profile: currentUserProfile, user } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
@@ -69,9 +69,23 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
     });
 
-    // Sort the filtered tasks by creation date (newest first)
-    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority]);
+    // Sort the filtered tasks
+    const currentUserId = user?.id;
+    return filtered.sort((a, b) => {
+      const aIsAssignedToMe = a.assignee_id === currentUserId;
+      const bIsAssignedToMe = b.assignee_id === currentUserId;
+
+      if (aIsAssignedToMe && !bIsAssignedToMe) {
+        return -1; // a comes first
+      }
+      if (!aIsAssignedToMe && bIsAssignedToMe) {
+        return 1; // b comes first
+      }
+
+      // If both are assigned to me, or neither are, sort by creation date (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
 
   const handleSelectTask = useCallback((taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
