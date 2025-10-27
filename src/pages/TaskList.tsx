@@ -37,7 +37,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set<string>());
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
@@ -334,6 +334,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
             <SelectValue placeholder={t('filter_by_priority')} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">{t('all_priorities')}</SelectItem>
             <SelectItem value="low">{t('low')}</SelectItem>
             <SelectItem value="medium">{t('medium')}</SelectItem>
             <SelectItem value="high">{t('high')}</SelectItem>
