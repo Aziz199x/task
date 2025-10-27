@@ -295,5 +295,8 @@
   "profile_updated_realtime_notification": "Your profile has been updated in real-time!",
   "failed_to_generate_unique_task_id_after_attempts": "Failed to generate a unique task ID after multiple attempts. Please try again.",
   "skipped_ineligible_for_reassignment": "{{count}} task(s) were skipped as they are not eligible for re-assignment.",
-  "no_eligible_tasks_for_assignment": "None of the selected tasks are eligible for assignment."
+  "no_eligible_tasks_for_assignment": "None of the selected tasks are eligible for assignment.",
+  "active_task_overview": "Active Task Overview",
+  "no_assigned_or_pending_tasks": "No assigned or pending tasks to display.",
+  "no_completed_in_progress_or_cancelled_tasks": "No completed, in-progress, or cancelled tasks to display."
 }

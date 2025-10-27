@@ -10,7 +10,8 @@ import TaskStatusOverviewChart from "@/components/dashboard/TaskStatusOverviewCh
 import TaskLoadByEmployeeChart from "@/components/dashboard/TaskLoadByEmployeeChart";
 import AllTasksSection from "@/components/dashboard/AllTasksSection";
 import UserManagementCard from "@/components/dashboard/UserManagementCard";
-import TasksByUserList from "@/components/dashboard/TasksByUserList"; // Import the new component
+import TasksByUserList from "@/components/dashboard/TasksByUserList";
+import ActiveTaskOverviewChart from "@/components/dashboard/ActiveTaskOverviewChart"; // Import the new component
 import { useTechnicians } from "@/hooks/use-technicians";
 
 const Dashboard: React.FC = () => {
@@ -67,6 +68,7 @@ const Dashboard: React.FC = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
         <TaskStatusOverviewChart tasks={tasks} />
+        <ActiveTaskOverviewChart tasks={tasks} /> {/* New chart for active tasks */}
         <TaskLoadByEmployeeChart tasks={tasks} technicians={technicians} />
         <UserManagementCard />
       </div>

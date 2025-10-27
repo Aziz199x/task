@@ -6,36 +6,37 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Task } from '@/types/task';
 import { useTranslation } from 'react-i18next';
 
-interface TaskStatusOverviewChartProps {
+interface ActiveTaskOverviewChartProps {
   tasks: Task[];
 }
 
-// Define colors only for the statuses to be displayed in this chart
 const COLORS = {
-  'completed': '#00C49F', // Green
-  'in-progress': '#0088FE', // Blue
-  'cancelled': '#8884d8', // Purple
+  'assigned': '#FFBB28', // Yellow/Orange
+  'pending': '#FF8042', // Orange
 };
 
-const TaskStatusOverviewChart: React.FC<TaskStatusOverviewChartProps> = ({ tasks }) => {
+const ActiveTaskOverviewChart: React.FC<ActiveTaskOverviewChartProps> = ({ tasks }) => {
   const { t } = useTranslation();
 
-  // Filter tasks to only include 'completed', 'in-progress', 'cancelled'
-  const relevantTasks = tasks.filter(task => 
-    task.status === 'completed' || 
-    task.status === 'in-progress' || 
-    task.status === 'cancelled'
+  // Filter tasks to only include 'assigned' and 'unassigned' (which we'll call 'pending')
+  const activeTasks = tasks.filter(task => 
+    task.status === 'assigned' || 
+    task.status === 'unassigned'
   );
 
-  const statusCounts = relevantTasks.reduce((acc, task) => {
-    acc[task.status] = (acc[task.status] || 0) + 1;
+  const statusCounts = activeTasks.reduce((acc, task) => {
+    if (task.status === 'assigned') {
+      acc.assigned = (acc.assigned || 0) + 1;
+    } else if (task.status === 'unassigned') {
+      acc.pending = (acc.pending || 0) + 1;
+    }
     return acc;
-  }, {} as Record<Task['status'], number>);
+  }, {} as Record<'assigned' | 'pending', number>);
 
   const data = Object.entries(statusCounts).map(([status, count]) => ({
-    name: t(status.replace('-', '_')),
+    name: t(status),
     value: count,
-    status: status as Task['status'],
+    status: status as 'assigned' | 'pending',
   }));
 
   // Only render if there's data to show
@@ -43,10 +44,10 @@ const TaskStatusOverviewChart: React.FC<TaskStatusOverviewChartProps> = ({ tasks
     return (
       <Card className="col-span-1 lg:col-span-2">
         <CardHeader>
-          <CardTitle>{t('task_status_overview')}</CardTitle>
+          <CardTitle>{t('active_task_overview')}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px] text-muted-foreground">
-          {t('no_completed_in_progress_or_cancelled_tasks')}
+          {t('no_assigned_or_pending_tasks')}
         </CardContent>
       </Card>
     );
@@ -55,7 +56,7 @@ const TaskStatusOverviewChart: React.FC<TaskStatusOverviewChartProps> = ({ tasks
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
-        <CardTitle>{t('task_status_overview')}</CardTitle>
+        <CardTitle>{t('active_task_overview')}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -74,7 +75,7 @@ const TaskStatusOverviewChart: React.FC<TaskStatusOverviewChartProps> = ({ tasks
                 <Cell key={`cell-${index}`} fill={COLORS[entry.status]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value, name) => [`${value} (${((value as number / relevantTasks.length) * 100).toFixed(1)}%)`, name]} />
+            <Tooltip formatter={(value, name) => [`${value} (${((value as number / activeTasks.length) * 100).toFixed(1)}%)`, name]} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -83,4 +84,4 @@ const TaskStatusOverviewChart: React.FC<TaskStatusOverviewChartProps> = ({ tasks
   );
 };
 
-export default TaskStatusOverviewChart;
+export default ActiveTaskOverviewChart;
