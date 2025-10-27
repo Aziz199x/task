@@ -124,6 +124,25 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             } catch (e) {
               console.error("[SessionProvider] Error fetching user profile on auth state change:", e);
             }
+
+            // If a user just signed in, sign out other sessions
+            if (event === 'SIGNED_IN' && currentSession?.access_token) {
+              console.log("[SessionProvider] User signed in, attempting to sign out other sessions.");
+              try {
+                const { error: signOutOtherError } = await supabase.functions.invoke('sign-out-other-sessions', {
+                  headers: {
+                    Authorization: `Bearer ${currentSession.access_token}`,
+                  },
+                });
+                if (signOutOtherError) {
+                  console.error("Error invoking sign-out-other-sessions function:", signOutOtherError.message);
+                } else {
+                  console.log("Successfully invoked sign-out-other-sessions function.");
+                }
+              } catch (e: any) {
+                console.error("Exception invoking sign-out-other-sessions function:", e.message);
+              }
+            }
           } else {
             setProfile(null);
           }
