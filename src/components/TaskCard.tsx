@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/context/SessionContext";
-import { useTechnicians } from "@/hooks/use-technicians";
 import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from 'react-i18next';
@@ -52,7 +51,6 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
 const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }) => {
   const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
-  const { technicians } = useTechnicians();
   const { profiles } = useProfiles();
   const { t } = useTranslation();
 
@@ -171,7 +169,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
       return;
     }
 
-    const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
+    const assignedUser = profiles.find(p => p.id === task.assignee_id);
     const taskDetails = [
       `*${t('task_title')}*: ${task.title}`,
       task.description ? `${t('description_optional')}: ${task.description}` : '',
@@ -180,7 +178,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
       task.equipment_number ? `${t('equipment_number')}: ${task.equipment_number}` : '',
       task.notification_num ? `${t('notification_num')}: ${task.notification_num}` : '',
       task.priority ? `${t('priority')}: ${t(task.priority)}` : '',
-      assignedTechnician ? `${t('assigned_to')}: ${assignedTechnician.first_name} ${assignedTechnician.last_name}` : `${t('assigned_to')}: ${t('unassigned')}`
+      assignedUser ? `${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}` : `${t('assigned_to')}: ${t('unassigned')}`
     ].filter(Boolean).join('\n');
 
     try {
@@ -194,9 +192,9 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
         toast.error(t('share_failed'));
       }
     }
-  }, [canShare, task, technicians, t]);
+  }, [canShare, task, profiles, t]);
 
-  const assignedTechnician = technicians.find(tech => tech.id === task.assignee_id);
+  const assignedUser = profiles.find(p => p.id === task.assignee_id);
   const closedByUser = profiles.find(p => p.id === task.closed_by_id);
 
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
@@ -358,7 +356,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
               />
             )}
             
-            {assignedTechnician && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedTechnician.first_name} ${assignedTechnician.last_name}`} />}
+            {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
             {!task.assignee_id && task.status !== 'unassigned' && <DetailLine icon={<User />} text={t('unassigned')} />}
             
             {task.status === 'completed' && closedByUser && (

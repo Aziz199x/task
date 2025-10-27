@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Filter, Search, Trash2, User, BellRing, ListTodo } from "lucide-react";
-import { useTechnicians } from "@/hooks/use-technicians";
 import { Task } from "@/types/task";
 import { isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { toast } from "sonner";
+import { useProfiles } from "@/hooks/use-profiles";
 
 interface TaskListProps {
   hideForm?: boolean;
@@ -25,7 +25,7 @@ interface TaskListProps {
 
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
-  const { technicians } = useTechnicians(); // Keep for filter dropdown
+  const { profiles } = useProfiles();
   const { profile: currentUserProfile, user } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
@@ -225,9 +225,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectContent>
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
             <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            {technicians.map((tech) => (
-              <SelectItem key={tech.id} value={tech.id}>
-                {tech.first_name} {tech.last_name}
+            {profiles.map((profile) => (
+              <SelectItem key={profile.id} value={profile.id}>
+                {profile.first_name} {profile.last_name}
               </SelectItem>
             ))}
           </SelectContent>
