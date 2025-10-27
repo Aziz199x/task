@@ -67,7 +67,9 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const isPending = task.status === 'unassigned' || task.status === 'assigned';
   const isInProgress = task.status === 'in-progress';
   
-  const canStartProgress = isPending && (isCurrentUserAssigned || isPrivilegedReassigner);
+  // RESTRICTION: Only the assigned user OR an Admin can start progress.
+  const canStartProgress = isPending && (isCurrentUserAssigned || (isAdmin && isCurrentlyAssigned));
+  
   const canComplete = isInProgress && (isCurrentUserAssigned || isAdmin);
   
   // Editing/Deleting permissions remain largely the same, but adjusted for the new flow
