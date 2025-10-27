@@ -41,7 +41,7 @@ const ProfileSettingsForm: React.FC = () => {
     e.preventDefault();
     console.log("[ProfileSettingsForm] handleUpdateProfile called.");
     if (!user) {
-      console.log("[ProfileSettingsForm] No user found, cannot update profile.");
+      console.log("[ProfileSettingsForm] No user found, cannot update profile. Returning.");
       return;
     }
 
@@ -65,12 +65,11 @@ const ProfileSettingsForm: React.FC = () => {
 
       if (profileError) {
         console.error("[ProfileSettingsForm] Error updating public.profiles:", profileError);
-        throw profileError;
+        throw profileError; // Re-throw to be caught by the outer catch block
       }
       console.log("[ProfileSettingsForm] public.profiles updated successfully.");
 
       // 2. Update auth user metadata (NON-BLOCKING - fire and forget)
-      // This is less critical for immediate UI update, so we don't await it.
       console.log("[ProfileSettingsForm] Attempting to update auth user metadata (non-blocking).");
       supabase.auth.updateUser({
         data: {
@@ -89,8 +88,12 @@ const ProfileSettingsForm: React.FC = () => {
 
       // 3. Explicitly refetch profile to ensure UI updates immediately
       console.log("[ProfileSettingsForm] Attempting to refetch profile.");
-      await refetchProfile(user.id);
-      console.log("[ProfileSettingsForm] Profile refetched successfully.");
+      const fetchedProfile = await refetchProfile(user.id);
+      if (fetchedProfile) {
+        console.log("[ProfileSettingsForm] Profile refetched successfully.");
+      } else {
+        console.warn("[ProfileSettingsForm] Refetch profile returned null or undefined.");
+      }
 
       toast.success(t('profile_updated_successfully'));
       console.log("[ProfileSettingsForm] Success toast shown.");
