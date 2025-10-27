@@ -130,7 +130,7 @@
   "total_tasks": "إجمالي المهام",
   "completion_rate": "معدل الإنجاز",
   "task_status_overview": "نظرة عامة على حالة المهام",
-  "task_load_by_employee": "عبء المهام حسب الموظف",
+  "tasks_by_employee": "المهام حسب الموظف",
   "other": "أخرى",
   "new_task": "مهمة جديدة",
   "board_view": "عرض اللوحة",
