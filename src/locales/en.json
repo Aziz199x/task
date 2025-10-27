@@ -310,5 +310,7 @@
   "password_updated_short": "Password updated successfully!",
   "signed_out_due_to_inactivity": "You have been signed out due to inactivity.",
   "settings": "Settings",
-  "assigned_by": "Assigned by"
+  "assigned_by": "Assigned by",
+  "overall_task_status_overview": "Overall Task Status Overview",
+  "no_tasks_to_display": "No tasks to display."
 }

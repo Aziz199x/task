@@ -310,5 +310,7 @@
   "password_updated_short": "تم تحديث كلمة المرور بنجاح!",
   "signed_out_due_to_inactivity": "تم تسجيل خروجك بسبب عدم النشاط.",
   "settings": "الإعدادات",
-  "assigned_by": "عين بواسطة"
+  "assigned_by": "عين بواسطة",
+  "overall_task_status_overview": "نظرة عامة شاملة على حالة المهام",
+  "no_tasks_to_display": "لا توجد مهام لعرضها."
 }
