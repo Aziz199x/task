@@ -131,7 +131,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
-        let warningMessage = t('skipped_completed_tasks_warning', { count: originalCount - filteredCount }) || `Skipped ${originalCount - filteredCount} completed task(s) as they can only be modified by an admin.`;
+        // Ensure warningMessage is a string here (Case 1)
+        const warningMessage = String(t('skipped_completed_tasks_warning', { count: originalCount - filteredCount }) || `Skipped ${originalCount - filteredCount} completed task(s) as they can only be modified by an admin.`);
         
         // Defensive check for toast itself before calling
         if (toast && typeof toast.warning === 'function') {
@@ -165,7 +166,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            let warningMessage = t('tasks_could_not_be_updated_warning', { count: failCount }) || `${failCount} tasks could not be updated. They may be missing required photos.`;
+            // Ensure warningMessage is a string here (Case 2)
+            const warningMessage = String(t('tasks_could_not_be_updated_warning', { count: failCount }) || `${failCount} tasks could not be updated. They may be missing required photos.`);
             if (toast && typeof toast.warning === 'function') {
               toast.warning(warningMessage);
             } else {
@@ -193,7 +195,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         if (tasksToActOn.length > assignableTasks.length) {
             const skippedCount = tasksToActOn.length - assignableTasks.length;
-            let warningMessage = t('skipped_ineligible_for_reassignment', { count: skippedCount }) || `${skippedCount} task(s) were skipped as they are not eligible for re-assignment.`;
+            // Ensure warningMessage is a string here (Case 3)
+            const warningMessage = String(t('skipped_ineligible_for_reassignment', { count: skippedCount }) || `${skippedCount} task(s) were skipped as they are not eligible for re-assignment.`);
             if (toast && typeof toast.warning === 'function') {
               toast.warning(warningMessage);
             } else {
@@ -219,7 +222,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         const assignFailCount = assignableTasks.length - assignSuccessCount;
         if (assignFailCount > 0) {
-          let warningMessage = t('tasks_could_not_be_assigned_warning', { count: assignFailCount }) || `${assignFailCount} tasks could not be assigned.`;
+          // Ensure warningMessage is a string here (Case 4)
+          const warningMessage = String(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }) || `${assignFailCount} tasks could not be assigned.`);
           if (toast && typeof toast.warning === 'function') {
             toast.warning(warningMessage);
           } else {
