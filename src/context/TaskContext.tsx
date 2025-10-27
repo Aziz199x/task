@@ -89,6 +89,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                 }
               }
+              // Check for photo array length changes
               if ((oldRecord.photo_before_urls?.length || 0) < (newRecord.photo_before_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
               if ((oldRecord.photo_after_urls?.length || 0) < (newRecord.photo_after_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
               if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
@@ -174,7 +175,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const taskPayload: Omit<Task, 'id' | 'photo_before_urls' | 'photo_after_urls'> & { photo_before_urls?: string[], photo_after_urls?: string[] } = {
+    const taskPayload: Omit<Task, 'id'> = {
       created_at: new Date().toISOString(),
       title,
       description: description || null,
@@ -190,6 +191,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       creator_id: user?.id || null,
       photo_before_urls: [],
       photo_after_urls: [],
+      photo_permit_url: null,
     };
 
     // Optimistic update
@@ -284,6 +286,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         creator_id: user?.id || null,
         photo_before_urls: [],
         photo_after_urls: [],
+        photo_permit_url: null,
       };
       tasksToInsert.push(fullTaskPayload);
 
@@ -332,7 +335,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("permission_denied_complete_task"));
         return false;
       }
-      if (!taskToUpdate.notification_num || !taskToUpdate.photo_before_urls || taskToUpdate.photo_before_urls.length === 0 || !taskToUpdate.photo_after_urls || taskToUpdate.photo_after_urls.length === 0 || !taskToUpdate.photo_permit_url) {
+      // Check for at least one photo in each array, plus permit and notification num
+      if (!taskToUpdate.notification_num || (taskToUpdate.photo_before_urls?.length || 0) === 0 || (taskToUpdate.photo_after_urls?.length || 0) === 0 || !taskToUpdate.photo_permit_url) {
         toast.error(t("photos_and_permit_required_to_complete"));
         return false;
       }
@@ -375,7 +379,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
     try {
-      const urlParts = photoUrl.split('/public/task_photos/');
+      const urlParts = photoUrl.split('/task_photos/');
       if (urlParts.length < 2) return;
       const filePath = urlParts[1];
       const { error } = await supabase.storage.from('task_photos').remove([filePath]);
@@ -418,17 +422,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.filter(task => task.id !== id));
     }
 
-    if (taskToDelete?.photo_before_urls) {
-      for (const url of taskToDelete.photo_before_urls) {
-        await deleteTaskPhoto(url);
-      }
+    // Delete all associated photos
+    const allPhotos = [
+      ...(taskToDelete.photo_before_urls || []),
+      ...(taskToDelete.photo_after_urls || []),
+      ...(taskToDelete.photo_permit_url ? [taskToDelete.photo_permit_url] : []),
+    ];
+    
+    for (const url of allPhotos) {
+      await deleteTaskPhoto(url);
     }
-    if (taskToDelete?.photo_after_urls) {
-      for (const url of taskToDelete.photo_after_urls) {
-        await deleteTaskPhoto(url);
-      }
-    }
-    if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
     
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {

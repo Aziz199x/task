@@ -64,7 +64,11 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const isCreator = user && task.creator_id === user.id;
 
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isCurrentUserAssigned || isAdmin);
-  const canEditTask = isAdmin || (!isCompleted && (isPrivilegedReassigner || isCurrentUserAssigned));
+  
+  // Define canEditOrDelete here
+  const canEditOrDelete = isAdmin || (!isCompleted && (isPrivilegedReassigner || isCurrentUserAssigned));
+  
+  const canEditTask = canEditOrDelete; // Use the defined variable
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
   const canStartProgress = (isCurrentUserAssigned || isPrivilegedReassigner) && task.status === 'assigned';
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
