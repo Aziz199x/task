@@ -17,16 +17,19 @@ interface ProfileWithPhone extends UserProfile {
 }
 
 const ProfileSettingsForm: React.FC = () => {
-  const { profile, user, loading: sessionLoading, refetchProfile } = useSession(); // Get refetchProfile
+  const { profile, user, loading: sessionLoading, refetchProfile } = useSession();
   const { t } = useTranslation();
 
-  // Cast profile to include phone_number for easier access
   const currentProfile = profile as ProfileWithPhone | null;
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (currentProfile) {
@@ -38,12 +41,9 @@ const ProfileSettingsForm: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
-
     const updates = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
@@ -52,26 +52,39 @@ const ProfileSettingsForm: React.FC = () => {
     };
 
     try {
-      // 1. Update the public profile table (This is the source of truth)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      // 2. Explicitly refetch profile to ensure UI updates immediately
+      const { error: profileError } = await supabase.from('profiles').update(updates).eq('id', user.id);
+      if (profileError) throw profileError;
       await refetchProfile(user.id);
-
       toast.success(t('profile_updated_successfully'));
     } catch (error: any) {
-      console.error("[ProfileSettingsForm] Caught error during profile update:", error);
       toast.error(`${t('failed_to_update_profile')}: ${error.message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error(t('passwords_do_not_match'));
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error(t('password_too_short'));
+      return;
+    }
+    setPasswordLoading(true);
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t('password_updated_short'));
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+    setPasswordLoading(false);
   };
 
   if (sessionLoading || !currentProfile) {
@@ -97,38 +110,37 @@ const ProfileSettingsForm: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="firstName">{t('first_name')}</Label>
-            <Input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-            />
+            <Input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="lastName">{t('last_name')}</Label>
-            <Input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
+            <Input id="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="phoneNumber">{t('phone_number_optional')}</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder={t('phone_number_placeholder')}
-            />
+            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder={t('phone_number_placeholder')} />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('save_changes')}
           </Button>
         </form>
+
+        <div className="mt-6 pt-6 border-t">
+          <form onSubmit={handlePasswordUpdate} className="space-y-4">
+            <h3 className="text-lg font-medium text-center">{t('change_password')}</h3>
+            <div>
+              <Label htmlFor="newPassword">{t('new_password')}</Label>
+              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required />
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">{t('confirm_new_password')}</Label>
+              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
+            </div>
+            <Button type="submit" className="w-full" disabled={passwordLoading}>
+              {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('update_password')}
+            </Button>
+          </form>
+        </div>
       </CardContent>
     </Card>
   );

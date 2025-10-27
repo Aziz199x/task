@@ -306,5 +306,7 @@
   "task_list": "Task List",
   "task_must_be_pending_to_start_progress": "Task must be pending (unassigned or assigned) to start progress.",
   "task_must_be_in_progress_to_complete": "Task must be in progress to be marked as completed.",
-  "ready_to_perform": "Ready to Perform"
+  "ready_to_perform": "Ready to Perform",
+  "change_password": "Change Password",
+  "password_updated_short": "Password updated successfully!"
 }

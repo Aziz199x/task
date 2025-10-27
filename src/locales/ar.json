@@ -306,5 +306,7 @@
   "task_list": "قائمة المهام",
   "task_must_be_pending_to_start_progress": "يجب أن تكون المهمة معلقة (غير معينة أو معينة) لبدء التقدم.",
   "task_must_be_in_progress_to_complete": "يجب أن تكون المهمة قيد التقدم لوضع علامة مكتمل.",
-  "ready_to_perform": "جاهز للتنفيذ"
+  "ready_to_perform": "جاهز للتنفيذ",
+  "change_password": "تغيير كلمة المرور",
+  "password_updated_short": "تم تحديث كلمة المرور بنجاح!"
 }
