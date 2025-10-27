@@ -71,7 +71,11 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const taskUiStatus: FilterStatus = (task.status === 'unassigned' || task.status === 'assigned') ? 'pending' : task.status;
       const matchesStatus = filterStatus === "all" || taskUiStatus === filterStatus;
       
-      const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
+      // FIX: Correctly handle 'unassigned' filter
+      const matchesAssignee = filterAssignee === "all" || 
+                              (filterAssignee === "unassigned" && task.assignee_id === null) ||
+                              (filterAssignee !== "unassigned" && task.assignee_id === filterAssignee);
+
       const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
       const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
 
