@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
-import { toast } from "sonner";
+import { toast } from "sonner"; // Ensure this is the sonner toast
 import { useProfiles } from "@/hooks/use-profiles";
 
 interface TaskListProps {
@@ -132,12 +132,21 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
-        // Ensure warningMessage is always a string
-        let warningMessage = t('skipped_completed_tasks_warning', { count: skippedCount });
+        let warningMessage: string | undefined = t('skipped_completed_tasks_warning', { count: skippedCount });
+        
+        // Ensure warningMessage is a string, provide a fallback if t() returns null/undefined or non-string
         if (typeof warningMessage !== 'string' || warningMessage.trim() === '') {
-          warningMessage = `Skipped ${skippedCount} completed tasks.`; // Fallback to a guaranteed string
+          warningMessage = `Skipped ${skippedCount} completed task(s) as they can only be modified by an admin.`; // Hardcoded fallback
         }
-        toast.warning(warningMessage);
+        
+        // Defensive check for toast itself before calling
+        if (toast && typeof toast.warning === 'function') {
+          toast.warning(warningMessage); // This is the line in question
+        } else {
+          console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
+          // Fallback to a native alert if toast is broken
+          alert(`Warning: ${warningMessage}`);
+        }
       }
     }
     
@@ -162,7 +171,16 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            toast.warning(t('tasks_could_not_be_updated_warning', { count: failCount }));
+            let warningMessage: string | undefined = t('tasks_could_not_be_updated_warning', { count: failCount });
+            if (typeof warningMessage !== 'string' || warningMessage.trim() === '') {
+              warningMessage = `${failCount} tasks could not be updated. They may be missing required photos.`;
+            }
+            if (toast && typeof toast.warning === 'function') {
+              toast.warning(warningMessage);
+            } else {
+              console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
+              alert(`Warning: ${warningMessage}`);
+            }
           }
         }
         break;
@@ -184,7 +202,16 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         if (tasksToActOn.length > assignableTasks.length) {
             const skippedCount = tasksToActOn.length - assignableTasks.length;
-            toast.warning(t('skipped_ineligible_for_reassignment', { count: skippedCount }));
+            let warningMessage: string | undefined = t('skipped_ineligible_for_reassignment', { count: skippedCount });
+            if (typeof warningMessage !== 'string' || warningMessage.trim() === '') {
+              warningMessage = `${skippedCount} task(s) were skipped as they are not eligible for re-assignment.`;
+            }
+            if (toast && typeof toast.warning === 'function') {
+              toast.warning(warningMessage);
+            } else {
+              console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
+              alert(`Warning: ${warningMessage}`);
+            }
         }
 
         if (assignableTasks.length === 0) {
@@ -204,7 +231,16 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         const assignFailCount = assignableTasks.length - assignSuccessCount;
         if (assignFailCount > 0) {
-          toast.warning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
+          let warningMessage: string | undefined = t('tasks_could_not_be_assigned_warning', { count: assignFailCount });
+          if (typeof warningMessage !== 'string' || warningMessage.trim() === '') {
+            warningMessage = `${assignFailCount} tasks could not be assigned.`;
+          }
+          if (toast && typeof toast.warning === 'function') {
+            toast.warning(warningMessage);
+          } else {
+            console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
+            alert(`Warning: ${warningMessage}`);
+          }
         }
         break;
       case 'delete':
