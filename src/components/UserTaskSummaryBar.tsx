@@ -36,7 +36,7 @@ const UserTaskSummaryBar: React.FC = () => {
           <CircleDotDashed className="h-5 w-5 text-amber-600" />
           <span><strong>{tasksToAccomplish}</strong> {t('tasks_to_accomplish')}</span>
         </div>
-        <Link to="/" className="text-primary hover:underline font-medium">
+        <Link to="/?filterAssignee=me" className="text-primary hover:underline font-medium">
           {t('view_my_tasks')}
         </Link>
       </div>

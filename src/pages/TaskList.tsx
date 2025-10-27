@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useTasks } from "@/context/TaskContext";
 import TaskCard from "@/components/TaskCard";
 import TaskForm from "@/components/TaskForm";
@@ -18,6 +18,7 @@ import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { toast } from "sonner";
 import { useProfiles } from "@/hooks/use-profiles";
+import { useSearchParams } from "react-router-dom"; // Import useSearchParams
 
 interface TaskListProps {
   hideForm?: boolean;
@@ -32,6 +33,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { profile: currentUserProfile, user } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams(); // Initialize useSearchParams
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -40,6 +42,18 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set<string>());
+
+  // Effect to read URL parameters and set initial filters
+  useEffect(() => {
+    const assigneeParam = searchParams.get('filterAssignee');
+    if (assigneeParam === 'me' && user?.id) {
+      setFilterAssignee(user.id);
+    } else if (assigneeParam === 'unassigned') {
+      setFilterAssignee('unassigned');
+    } else {
+      setFilterAssignee('all');
+    }
+  }, [searchParams, user?.id]);
 
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const canBulkDelete = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
