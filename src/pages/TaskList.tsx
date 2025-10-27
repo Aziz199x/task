@@ -157,8 +157,33 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         break;
       case 'assign':
+        const assignableTasks = tasksToActOn.filter(taskId => {
+            const task = tasksByIdMap.get(taskId);
+            if (!task) return false;
+
+            const isCurrentlyAssigned = !!task.assignee_id;
+            const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) : false;
+            const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+
+            if (currentUserProfile?.role === 'admin') return true;
+            if (!isCurrentlyAssigned) return true;
+            if (isDueDatePassed && isPrivilegedReassigner) return true;
+            
+            return false;
+        });
+
+        if (tasksToActOn.length > assignableTasks.length) {
+            const skippedCount = tasksToActOn.length - assignableTasks.length;
+            toast.warning(t('skipped_ineligible_for_reassignment', { count: skippedCount }));
+        }
+
+        if (assignableTasks.length === 0) {
+            toast.info(t('no_eligible_tasks_for_assignment'));
+            break;
+        }
+
         let assignSuccessCount = 0;
-        for (const taskId of tasksToActOn) {
+        for (const taskId of assignableTasks) {
           const success = await assignTask(taskId, value === undefined ? null : value);
           if (success) {
             assignSuccessCount++;
@@ -167,7 +192,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         if (assignSuccessCount > 0) {
           toast.success(t('assignee_updated_for_tasks', { count: assignSuccessCount }));
         }
-        const assignFailCount = tasksToActOn.length - assignSuccessCount;
+        const assignFailCount = assignableTasks.length - assignSuccessCount;
         if (assignFailCount > 0) {
           toast.warning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
         }

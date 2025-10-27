@@ -69,20 +69,25 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
 
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
-  const canEditOrDelete = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
-  const isTechOrContractor = currentUserProfile && ['technician', 'contractor'].includes(currentUserProfile.role);
-  const isAssignedToCurrentUser = user && task.assignee_id === user.id;
+  const isCurrentlyAssigned = !!task.assignee_id;
+  const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) : false;
+  const isCurrentUserAssigned = user && task.assignee_id === user.id;
+  const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+  
   const isCreator = user && task.creator_id === user.id;
 
   const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isAssignedToCurrentUser || isAdmin);
-  const canEditTask = isAdmin || (!isCompleted && (canEditOrDelete || (isTechOrContractor && isAssignedToCurrentUser)));
+  const canEditTask = isAdmin || (!isCompleted && (isPrivilegedReassigner || (isCurrentUserAssigned)));
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
-  const canUnassignTask = (isAdmin || isCreator) && task.assignee_id !== null;
-  const canStartProgress = (isAssignedToCurrentUser || canEditOrDelete) && task.status === 'assigned';
+  const canStartProgress = (isAssignedToCurrentUser || isPrivilegedReassigner) && task.status === 'assigned';
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
                     (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress');
   const canShare = typeof navigator !== 'undefined' && navigator.share;
-  const canAssignToMe = user && !isAssignedToCurrentUser && (!isCompleted || isAdmin);
+  
+  // New assignment logic
+  const canAssignToMe = user && !isCurrentlyAssigned && (!isCompleted || isAdmin);
+  const canUnassignTask = isCurrentlyAssigned && (isCurrentUserAssigned || isAdmin);
+
 
   const handleDelete = React.useCallback(() => {
     deleteTask(task.id);
@@ -199,7 +204,6 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
 
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
   const now = new Date();
-  const isOverdue = dueDateObj && isPast(dueDateObj) && !isToday(dueDateObj) && task.status !== 'completed' && task.status !== 'cancelled';
   const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';
 
   const getPriorityColor = (priority: Task['priority'] | undefined) => {
@@ -221,7 +225,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   );
 
   return (
-    <Card className={`w-full flex items-start p-4 ${task.status === 'completed' ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isOverdue ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isOverdue ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
+    <Card className={`w-full flex items-start p-4 ${task.status === 'completed' ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isDueDatePassed ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isDueDatePassed ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
       {onSelect && (
         <div className="mr-4 mt-1">
           <Checkbox
@@ -276,10 +280,10 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
                   {canCancel && (
                     <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>
                   )}
-                  {(canStartProgress || canCancel || isCompleted) && ((user && !isAssignedToCurrentUser) || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  {(canStartProgress || canCancel || isCompleted) && (canAssignToMe || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   {canAssignToMe && <DropdownMenuItem onClick={handleAssignToMe} disabled={isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
                   {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isSaving}>{t('unassign')}</DropdownMenuItem>}
-                  {((user && !isAssignedToCurrentUser) || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  {(canAssignToMe || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   {canShare && (
                     <DropdownMenuItem onClick={handleShare}>
                       <Share2 className="h-4 w-4 mr-2" /> {t('share')}
@@ -307,8 +311,8 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             }`}>
               {t(task.status.replace('-', '_'))}
             </span>
-            {isOverdue && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
-            {isDueSoon && !isOverdue && <BellRing className="h-4 w-4 text-yellow-500" />}
+            {isDueDatePassed && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
+            {isDueSoon && !isDueDatePassed && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
         </CardHeader>
         <CardContent className="space-y-1 p-0 pt-2">
@@ -340,8 +344,8 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             {task.due_date && (
               <DetailLine 
                 icon={<CalendarDays />} 
-                text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isOverdue ? `(${t('overdue')})` : ''} ${isDueSoon && !isOverdue ? `(${t('due_soon')})` : ''}`}
-                className={isOverdue ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}
+                text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isDueDatePassed ? `(${t('overdue')})` : ''} ${isDueSoon && !isDueDatePassed ? `(${t('due_soon')})` : ''}`}
+                className={isDueDatePassed ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"}
               />
             )}
             

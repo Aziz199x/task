@@ -145,6 +145,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
     toast.success(t('photo_removed_successfully'));
   }, [currentTask.id, deleteTaskPhoto, updateTask, t, currentTask]);
 
+  const isCurrentlyAssigned = !!currentTask.assignee_id;
+  const isDueDatePassed = currentTask.due_date ? isPast(new Date(currentTask.due_date)) && !isToday(new Date(currentTask.due_date)) : false;
+  const isCurrentUserAssigned = currentUserProfile?.id === currentTask.assignee_id;
+  const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+
+  const canChangeAssignment = 
+    currentUserProfile?.role === 'admin' ||
+    !isCurrentlyAssigned ||
+    isCurrentUserAssigned ||
+    (isDueDatePassed && isPrivilegedReassigner);
+
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
       <div className="grid grid-cols-4 items-center gap-4">
@@ -235,7 +246,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="assignee" className="text-right">{t('assign_to')}</Label>
-        <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={!canEditOrDelete}>
+        <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={!canEditOrDelete || !canChangeAssignment}>
           <SelectTrigger id="assignee" className="col-span-3">
             <SelectValue placeholder={t('select_a_user_to_assign')} />
           </SelectTrigger>

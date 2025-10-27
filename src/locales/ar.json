@@ -293,5 +293,7 @@
   "profile_updated_successfully": "تم تحديث الملف الشخصي بنجاح!",
   "failed_to_update_profile": "فشل تحديث الملف الشخصي",
   "profile_updated_realtime_notification": "تم تحديث ملفك الشخصي في الوقت الفعلي!",
-  "failed_to_generate_unique_task_id_after_attempts": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى."
+  "failed_to_generate_unique_task_id_after_attempts": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى.",
+  "skipped_ineligible_for_reassignment": "تم تخطي {{count}} مهمة لأنها غير مؤهلة لإعادة التعيين.",
+  "no_eligible_tasks_for_assignment": "لا توجد مهام محددة مؤهلة للتعيين."
 }
