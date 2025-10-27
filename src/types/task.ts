@@ -6,6 +6,7 @@ export type Task = {
   status: 'unassigned' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   assignee_id?: string | null;
   creator_id?: string | null;
+  assigned_by_id?: string | null; // New field
   closed_by_id?: string | null;
   closed_at?: string | null;
   location?: string | null;

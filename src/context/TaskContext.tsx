@@ -176,6 +176,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Use 'unassigned' as the default status for new tasks
     const initialStatus: Task['status'] = assigneeId ? 'assigned' : 'unassigned';
+    
+    // Set assigned_by_id if an assignee is selected
+    const assignedById = assigneeId ? user?.id || null : null;
 
     const taskPayload: Omit<Task, 'id'> = {
       created_at: new Date().toISOString(),
@@ -185,6 +188,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       task_id: taskId,
       due_date: dueDate || null,
       assignee_id: assigneeId || null,
+      assigned_by_id: assignedById, // Set assigned_by_id
       type_of_work: typeOfWork || null,
       equipment_number: equipmentNumber,
       notification_num: notificationNum || null,
@@ -271,6 +275,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       const initialStatus: Task['status'] = task.assignee_id ? 'assigned' : 'unassigned';
+      const assignedById = task.assignee_id ? user?.id || null : null; // Set assigned_by_id if an assignee is selected
 
       const fullTaskPayload: Omit<Task, 'id'> = {
         created_at: new Date().toISOString(),
@@ -280,6 +285,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         task_id: taskId,
         due_date: task.due_date || null,
         assignee_id: task.assignee_id || null,
+        assigned_by_id: assignedById, // Set assigned_by_id
         type_of_work: task.type_of_work || null,
         equipment_number: task.equipment_number,
         notification_num: task.notification_num || null,
@@ -367,6 +373,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (newStatus === 'unassigned') {
       updates.assignee_id = null;
+      updates.assigned_by_id = null; // Clear assigned_by_id when unassigned
     }
 
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
@@ -471,6 +478,19 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
+    // If assignee_id is being updated, also update assigned_by_id
+    if (finalUpdates.assignee_id !== undefined && finalUpdates.assignee_id !== taskToUpdate.assignee_id) {
+      finalUpdates.assigned_by_id = finalUpdates.assignee_id ? user?.id || null : null;
+      
+      // If assigning, set status to 'assigned' if it was 'unassigned'.
+      if (finalUpdates.assignee_id && taskToUpdate.status === 'unassigned') {
+        finalUpdates.status = 'assigned';
+      } else if (!finalUpdates.assignee_id && taskToUpdate.status === 'assigned') {
+        // If unassigning, set status to 'unassigned'
+        finalUpdates.status = 'unassigned';
+      }
+    }
+
     if (finalUpdates.notification_num && finalUpdates.notification_num.trim() !== "") {
       try {
         const { data: existingTask, error: checkError } = await supabase
@@ -511,7 +531,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [tasksByIdMap, profile, t, queryClient]);
+  }, [tasksByIdMap, profile, user, t, queryClient]);
 
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
@@ -540,6 +560,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       delete updates.status;
     }
 
+    // Set assigned_by_id if assignment is changing
+    if (taskToUpdate.assignee_id !== assigneeId) {
+      updates.assigned_by_id = assigneeId ? user?.id || null : null;
+    }
+
     if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === updates.status) {
       toast.info(t("no_change_in_assignment"));
       return false;
@@ -561,7 +586,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
-  }, [tasksByIdMap, profile, t, queryClient]);
+  }, [tasksByIdMap, profile, user, t, queryClient]);
 
   const contextValue = useMemo(() => ({
     tasks,

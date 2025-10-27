@@ -4,7 +4,7 @@ import React, { memo } from "react";
 import { Task } from "@/types/task";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock, Share2 } from "lucide-react";
+import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock, Share2, UserPlus } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -177,6 +177,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   }, [canShare, task, profiles, t]);
 
   const assignedUser = profiles.find(p => p.id === task.assignee_id);
+  const assignedByUser = profiles.find(p => p.id === task.assigned_by_id); // Find the user who assigned it
   const closedByUser = profiles.find(p => p.id === task.closed_by_id);
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
   const now = new Date();
@@ -279,6 +280,9 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
               {task.priority && <DetailLine icon={<Flag />} text={`${t('priority')}: ${t(task.priority)}`} className={getPriorityColor(task.priority)} />}
               {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
               {!task.assignee_id && <DetailLine icon={<User />} text={t('unassigned')} />}
+              {assignedByUser && task.assignee_id && task.assigned_by_id && (
+                <DetailLine icon={<UserPlus />} text={`${t('assigned_by')}: ${assignedByUser.first_name} ${assignedByUser.last_name}`} />
+              )}
               {isCompleted && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
               {isCompleted && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
             </div>

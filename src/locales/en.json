@@ -309,5 +309,6 @@
   "change_password": "Change Password",
   "password_updated_short": "Password updated successfully!",
   "signed_out_due_to_inactivity": "You have been signed out due to inactivity.",
-  "settings": "Settings"
+  "settings": "Settings",
+  "assigned_by": "Assigned by"
 }
