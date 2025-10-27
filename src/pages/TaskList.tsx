@@ -31,12 +31,13 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<Task['status'] | "all">("all");
+  const [filterCompletionStatus, setFilterCompletionStatus] = useState<"all" | "completed" | "in-progress" | "cancelled">("all");
+  const [filterAssignmentStatus, setFilterAssignmentStatus] = useState<"all" | "assigned" | "unassigned">("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [selectedTaskIds, setSelectedTaskIds] = new Set<string>();
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
@@ -52,7 +53,11 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      const matchesCompletionStatus = filterCompletionStatus === "all" || task.status === filterCompletionStatus;
+      const matchesAssignmentStatus = filterAssignmentStatus === "all" || 
+                                      (filterAssignmentStatus === "assigned" && task.status === "assigned") ||
+                                      (filterAssignmentStatus === "unassigned" && task.status === "unassigned");
+      
       const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
       const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
       const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
@@ -66,7 +71,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         (filterReminder === "overdue" && isOverdue) ||
         (filterReminder === "due-soon" && isDueSoon && !isOverdue);
 
-      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
+      return matchesSearch && matchesCompletionStatus && matchesAssignmentStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
     });
 
     // Sort the filtered tasks
@@ -85,7 +90,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       // If both are assigned to me, or neither are, sort by creation date (newest first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
+  }, [tasks, searchTerm, filterCompletionStatus, filterAssignmentStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
 
   const handleSelectTask = useCallback((taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -229,17 +234,28 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
       {/* Filters - Organized wrapping layout */}
       <div className="flex flex-wrap gap-4">
-        <Select onValueChange={(value: Task['status'] | "all") => setFilterStatus(value)} value={filterStatus}>
+        {/* New Completion Status Filter */}
+        <Select onValueChange={(value: "all" | "completed" | "in-progress" | "cancelled") => setFilterCompletionStatus(value)} value={filterCompletionStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_status')} />
+            <SelectValue placeholder={t('filter_by_completion_status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('all_statuses')}</SelectItem>
-            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            <SelectItem value="assigned">{t('assigned')}</SelectItem>
+            <SelectItem value="all">{t('all_completion_statuses')}</SelectItem>
             <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
             <SelectItem value="completed">{t('completed')}</SelectItem>
             <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* New Assignment Status Filter */}
+        <Select onValueChange={(value: "all" | "assigned" | "unassigned") => setFilterAssignmentStatus(value)} value={filterAssignmentStatus}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder={t('filter_by_assignment_status')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('all_assignment_statuses')}</SelectItem>
+            <SelectItem value="assigned">{t('assigned')}</SelectItem>
+            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
           </SelectContent>
         </Select>
 
