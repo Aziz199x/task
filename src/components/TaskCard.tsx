@@ -235,7 +235,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {/* Start Progress is the primary action for pending tasks */}
-                  {canStartProgress && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>}
+                  {canStartProgress && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('ready_to_perform')}</DropdownMenuItem>}
                   {isCompleted && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress')}</DropdownMenuItem>}
                   {canCancel && <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>}
                   
@@ -258,29 +258,29 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             {isDueSoon && !isDueDatePassed && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
         </CardHeader>
-        <CardContent className="space-y-1 p-0 pt-2">
-          {task.description && <p className={`text-xs text-gray-700 dark:text-gray-300 ${isCompleted ? "line-through" : ""}`}>{task.description}</p>}
-          <div className="space-y-1 pt-1">
-            <DetailLine icon={<Clock />} text={`${t('created_on')}: ${format(new Date(task.created_at), 'PPP p')}`} />
-            {task.location && <DetailLine icon={<MapPin />} text={validateLocationUrl(task.location) === null ? <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{task.location}</a> : task.location} />}
-            {task.task_id && <DetailLine icon={<Hash />} text={`${t('task_id')}: ${task.task_id}`} />}
-            {task.notification_num && <DetailLine icon={<Bell />} text={`${t('notification_num')}: ${task.notification_num}`} />}
-            {task.due_date && <DetailLine icon={<CalendarDays />} text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isDueDatePassed ? `(${t('overdue')})` : ''} ${isDueSoon && !isDueDatePassed ? `(${t('due_soon')})` : ''}`} className={isDueDatePassed ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"} />}
-            {task.type_of_work && <DetailLine icon={<Wrench />} text={`${t('type')}: ${t(task.type_of_work.replace(' ', '_').toLowerCase())}`} />}
-            {task.equipment_number && <DetailLine icon={<HardHat />} text={`${t('equipment_number')}: ${task.equipment_number}`} />}
-            {task.priority && <DetailLine icon={<Flag />} text={`${t('priority')}: ${t(task.priority)}`} className={getPriorityColor(task.priority)} />}
-            {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
-            {!task.assignee_id && <DetailLine icon={<User />} text={t('unassigned')} />}
-            {isCompleted && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
-            {isCompleted && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
-          </div>
-          {isInProgress && <TaskPhotoGallery photoBeforeUrls={task.photo_before_urls} photoAfterUrls={task.photo_after_urls} photoPermitUrl={task.photo_permit_url} />}
-        </CardContent>
+          <CardContent className="space-y-1 p-0 pt-2">
+            {task.description && <p className={`text-xs text-gray-700 dark:text-gray-300 ${isCompleted ? "line-through" : ""}`}>{task.description}</p>}
+            <div className="space-y-1 pt-1">
+              <DetailLine icon={<Clock />} text={`${t('created_on')}: ${format(new Date(task.created_at), 'PPP p')}`} />
+              {task.location && <DetailLine icon={<MapPin />} text={validateLocationUrl(task.location) === null ? <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{task.location}</a> : task.location} />}
+              {task.task_id && <DetailLine icon={<Hash />} text={`${t('task_id')}: ${task.task_id}`} />}
+              {task.notification_num && <DetailLine icon={<Bell />} text={`${t('notification_num')}: ${task.notification_num}`} />}
+              {task.due_date && <DetailLine icon={<CalendarDays />} text={`${t('due_date')}: ${format(dueDateObj!, 'PPP')} ${isDueDatePassed ? `(${t('overdue')})` : ''} ${isDueSoon && !isDueDatePassed ? `(${t('due_soon')})` : ''}`} className={isDueDatePassed ? "text-red-500 font-semibold" : isDueSoon ? "text-yellow-600 font-semibold" : "text-muted-foreground"} />}
+              {task.type_of_work && <DetailLine icon={<Wrench />} text={`${t('type')}: ${t(task.type_of_work.replace(' ', '_').toLowerCase())}`} />}
+              {task.equipment_number && <DetailLine icon={<HardHat />} text={`${t('equipment_number')}: ${task.equipment_number}`} />}
+              {task.priority && <DetailLine icon={<Flag />} text={`${t('priority')}: ${t(task.priority)}`} className={getPriorityColor(task.priority)} />}
+              {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
+              {!task.assignee_id && <DetailLine icon={<User />} text={t('unassigned')} />}
+              {isCompleted && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
+              {isCompleted && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
+            </div>
+            {isInProgress && <TaskPhotoGallery photoBeforeUrls={task.photo_before_urls} photoAfterUrls={task.photo_after_urls} photoPermitUrl={task.photo_permit_url} />}
+          </CardContent>
         {/* Primary Action Button */}
         <CardFooter className="p-0 pt-4 mt-4 border-t">
           {canStartProgress && (
             <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>
-              <Wrench className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
+              <Wrench className="mr-2 h-4 w-4" /> {t('ready_to_perform')}
             </Button>
           )}
           {canComplete && (
