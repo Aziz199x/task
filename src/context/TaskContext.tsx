@@ -365,6 +365,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updates.closed_at = null;
     }
 
+    if (newStatus === 'unassigned') {
+      updates.assignee_id = null;
+    }
+
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {

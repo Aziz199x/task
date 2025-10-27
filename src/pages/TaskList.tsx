@@ -344,10 +344,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
               <DropdownMenuContent align="start">
                 {/* Bulk status actions use the actual DB status values */}
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'unassigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_unassigned')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleBulkAction('status', 'assigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_assigned')}
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_pending')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'in-progress')}>
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
