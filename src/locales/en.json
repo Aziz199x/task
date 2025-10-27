@@ -77,6 +77,7 @@
   "in_progress": "In Progress",
   "completed": "Completed",
   "cancelled": "Cancelled",
+  "pending": "Pending",
   "filter_by_assignee": "Filter by Assignee",
   "all_assignees": "All Assignees",
   "filter_by_type_of_work": "Filter by Type of Work",
@@ -92,6 +93,7 @@
   "bulk_actions": "Bulk Actions",
   "mark_as_unassigned": "Mark as Unassigned",
   "mark_as_assigned": "Mark as Assigned",
+  "mark_as_pending": "Mark as Pending",
   "mark_as_in_progress": "Mark as In Progress",
   "mark_as_completed": "Mark as Completed",
   "mark_as_cancelled": "Mark as Cancelled",
@@ -125,8 +127,6 @@
   "return_to_home": "Return to Home",
   "dashboard": "Dashboard",
   "total_tasks": "Total Tasks",
-  "pending": "Pending",
-  "in_progress": "In Progress",
   "completion_rate": "Completion Rate",
   "task_status_overview": "Task Status Overview",
   "task_load_by_employee": "Task Load by Employee",
@@ -300,5 +300,8 @@
   "no_eligible_tasks_for_assignment": "None of the selected tasks are eligible for assignment.",
   "active_task_overview": "Active Task Overview",
   "no_assigned_or_pending_tasks": "No assigned or pending tasks to display.",
-  "no_completed_in_progress_or_cancelled_tasks": "No completed, in-progress, or cancelled tasks to display."
+  "no_completed_in_progress_or_cancelled_tasks": "No completed, in-progress, or cancelled tasks to display.",
+  "manage_users": "Manage Users",
+  "unassigned_tasks": "Unassigned Tasks",
+  "task_list": "Task List"
 }

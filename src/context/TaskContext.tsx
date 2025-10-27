@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskContextType {
   tasks: Task[];
-  tasksByIdMap: Map<string, Task>; // Expose the map
+  tasksByIdMap: Map<string, Task>;
   loading: boolean;
   addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
@@ -20,19 +20,18 @@ interface TaskContextType {
   updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   assignTask: (id: string, assigneeId: string | null) => Promise<boolean>;
   deleteTaskPhoto: (photoUrl: string) => Promise<void>;
-  refetchTasks: () => Promise<void>; // Expose refetch function
+  refetchTasks: () => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-const TASKS_QUERY_KEY = ['tasks']; // Define key locally for use in context
+const TASKS_QUERY_KEY = ['tasks'];
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user, profile } = useSession();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   
-  // Use the new query hook to manage tasks state
   const { data: tasks = [], isLoading: loading, refetch: refetchTasks } = useTasksQuery();
 
   const tasksByIdMap = useMemo(() => {
@@ -41,7 +40,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const playNotificationSound = useCallback(() => {
     try {
-      // Check if AudioContext is available and if user interaction has occurred (though we can't check interaction directly here)
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
 
@@ -52,7 +50,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Simple beep sound pattern
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
@@ -67,8 +64,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // 1. Real-time notifications (Keep notifications, but rely on query invalidation for state)
-  // We need a separate effect to listen for changes and trigger toasts, as the state is now managed by TanStack Query.
   useEffect(() => {
     if (!user) return;
 
@@ -79,7 +74,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         { event: '*', schema: 'public', table: 'tasks' },
         (payload) => {
           const newRecord = payload.new as Task;
-          const oldRecord = payload.old as Task; // Use Task type for old record too, for comparison
+          const oldRecord = payload.old as Task;
 
           if (payload.eventType === 'INSERT') {
             if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
@@ -98,14 +93,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                 }
               }
-              // Check for photo array length changes
               if ((oldRecord.photo_before_urls?.length || 0) < (newRecord.photo_before_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
               if ((oldRecord.photo_after_urls?.length || 0) < (newRecord.photo_after_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
               if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
             }
-          } else if (payload.eventType === 'DELETE') {
-            // Notifications for delete are handled optimistically in deleteTask, 
-            // but we keep the channel open for general system notifications.
           }
         }
       )
@@ -116,12 +107,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [user, t, playNotificationSound]);
 
-
   const generateUniqueTaskId = useCallback(async (): Promise<string> => {
     let unique = false;
     let newTaskId = '';
     let attempts = 0;
-    const MAX_ATTEMPTS = 5; // Prevent infinite loops
+    const MAX_ATTEMPTS = 5;
 
     while (!unique && attempts < MAX_ATTEMPTS) {
       newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
@@ -136,7 +126,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (e: any) {
         console.error("Exception during unique task ID generation:", e.message);
-        throw e; // Re-throw to be caught by addTask's try-catch
+        throw e;
       }
       attempts++;
     }
@@ -154,7 +144,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (notificationNum && notificationNum.trim() !== "") {
-      try { // Added try-catch here
+      try {
         const { data, error: checkError } = await supabase
           .from('tasks')
           .select('id')
@@ -196,14 +186,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       equipment_number: equipmentNumber,
       notification_num: notificationNum || null,
       priority: priority || 'medium',
-      status: assigneeId ? 'assigned' : 'unassigned',
+      status: 'pending', // Always start as pending
       creator_id: user?.id || null,
       photo_before_urls: [],
       photo_after_urls: [],
       photo_permit_url: null,
     };
 
-    // Optimistic update
     const tempId = 'temp-' + Date.now();
     const optimisticTask = { ...taskPayload, id: tempId } as Task;
 
@@ -221,14 +210,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (error) {
       toast.error(t("failed_to_add_task") + error.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
       return false;
     }
     
-    // Invalidate cache to fetch the final record (real-time listener will also handle this)
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     return true;
   }, [user, generateUniqueTaskId, t, queryClient]);
@@ -245,7 +232,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      try { // Added try-catch here
+      try {
         const { data, error } = await supabase
           .from('tasks')
           .select('notification_num')
@@ -291,15 +278,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         equipment_number: task.equipment_number,
         notification_num: task.notification_num || null,
         priority: task.priority || 'medium',
-        status: task.assignee_id ? 'assigned' : 'unassigned',
+        status: task.status || 'pending', // Default to pending if not specified
         creator_id: user?.id || null,
         photo_before_urls: [],
         photo_after_urls: [],
         photo_permit_url: null,
       };
       tasksToInsert.push(fullTaskPayload);
-
-      // For optimistic update, generate a temporary client-side ID
       optimisticTasks.push({ ...fullTaskPayload, id: 'temp-' + Date.now() + Math.random() } as Task);
     }
     if (tasksToInsert.length === 0) {
@@ -307,7 +292,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    // Optimistic update
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
@@ -318,12 +302,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (insertError) {
       toast.error(t("failed_to_add_tasks_bulk") + insertError.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
     } else {
-      // Invalidate cache to fetch the final records
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     }
   }, [user, generateUniqueTaskId, t, queryClient]);
@@ -344,7 +326,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("permission_denied_complete_task"));
         return false;
       }
-      // Check for at least one photo in each array, plus permit and notification num
       if (!taskToUpdate.notification_num || (taskToUpdate.photo_before_urls?.length || 0) === 0 || (taskToUpdate.photo_after_urls?.length || 0) === 0 || !taskToUpdate.photo_permit_url) {
         toast.error(t("photos_and_permit_required_to_complete"));
         return false;
@@ -366,7 +347,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updates.closed_at = null;
     }
 
-    // Optimistic update
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
@@ -376,7 +356,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_status") + error.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -424,14 +403,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    // Optimistic update
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.filter(task => task.id !== id));
     }
 
-    // Delete all associated photos
     const allPhotos = [
       ...(taskToDelete.photo_before_urls || []),
       ...(taskToDelete.photo_after_urls || []),
@@ -445,7 +422,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
       toast.error(t("failed_to_delete_task") + error.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -474,7 +450,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (finalUpdates.notification_num && finalUpdates.notification_num.trim() !== "") {
-      try { // Added try-catch here
+      try {
         const { data: existingTask, error: checkError } = await supabase
           .from('tasks')
           .select('id')
@@ -497,7 +473,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    // Optimistic update
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
@@ -507,7 +482,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').update(finalUpdates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_update_task") + error.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -531,16 +505,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("completed_tasks_admin_only_assign"));
         return false;
       }
-    } else {
-      updates.status = assigneeId ? 'assigned' : 'unassigned';
     }
+    // Status remains as is when assigning/unassigning
 
-    if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === (updates.status || taskToUpdate.status)) {
+    if (taskToUpdate.assignee_id === assigneeId) {
       toast.info(t("no_change_in_assignment"));
       return false;
     }
 
-    // Optimistic update
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
@@ -550,7 +522,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
       toast.error(t("failed_to_assign_task") + error.message);
-      // Revert optimistic update
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }

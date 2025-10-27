@@ -63,16 +63,13 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isCreator = user && task.creator_id === user.id;
 
-  const canComplete = (task.status !== 'completed' && task.status !== 'cancelled') && (isCurrentUserAssigned || isAdmin);
-  
-  // Define canEditOrDelete here
+  const canComplete = (task.status === 'in-progress') && (isCurrentUserAssigned || isAdmin);
   const canEditOrDelete = isAdmin || (!isCompleted && (isPrivilegedReassigner || isCurrentUserAssigned));
-  
-  const canEditTask = canEditOrDelete; // Use the defined variable
+  const canEditTask = canEditOrDelete;
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
-  const canStartProgress = (isCurrentUserAssigned || isPrivilegedReassigner) && task.status === 'assigned';
+  const canStartProgress = (isCurrentUserAssigned || isPrivilegedReassigner) && task.status === 'pending';
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
-                    (task.status === 'unassigned' || task.status === 'assigned' || task.status === 'in-progress');
+                    (task.status === 'pending' || task.status === 'in-progress');
   const canShare = typeof navigator !== 'undefined' && navigator.share;
   const canAssignToMe = user && !isCurrentlyAssigned && (!isCompleted || isAdmin);
   const canUnassignTask = isCurrentlyAssigned && (isCurrentUserAssigned || isAdmin);
@@ -185,6 +182,16 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
   };
 
+  const getStatusColor = () => {
+    switch (task.status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const DetailLine: React.FC<{ icon: React.ReactNode; text: React.ReactNode; className?: string }> = ({ icon, text, className = "text-muted-foreground" }) => (
     <div className={`flex items-start text-xs ${className}`}>
       {React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5 mr-2 mt-0.5 flex-shrink-0" })}
@@ -232,7 +239,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             </div>
           </div>
           <div className="flex items-center space-x-2 pt-2">
-            <span className={`text-xs px-2 py-1 rounded-full capitalize ${task.status === 'completed' ? 'bg-green-100 text-green-800' : task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' : task.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' : task.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>{t(task.status.replace('-', '_'))}</span>
+            <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusColor()}`}>{t(task.status.replace('-', '_'))}</span>
             {isDueDatePassed && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isDueDatePassed && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
@@ -249,7 +256,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             {task.equipment_number && <DetailLine icon={<HardHat />} text={`${t('equipment_number')}: ${task.equipment_number}`} />}
             {task.priority && <DetailLine icon={<Flag />} text={`${t('priority')}: ${t(task.priority)}`} className={getPriorityColor(task.priority)} />}
             {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
-            {!task.assignee_id && task.status !== 'unassigned' && <DetailLine icon={<User />} text={t('unassigned')} />}
+            {!task.assignee_id && <DetailLine icon={<User />} text={t('unassigned')} />}
             {task.status === 'completed' && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
             {task.status === 'completed' && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
           </div>

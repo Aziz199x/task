@@ -77,6 +77,7 @@
   "in_progress": "قيد التقدم",
   "completed": "مكتمل",
   "cancelled": "ملغى",
+  "pending": "معلقة",
   "filter_by_assignee": "التصفية حسب المعين",
   "all_assignees": "جميع المعينين",
   "filter_by_type_of_work": "التصفية حسب نوع العمل",
@@ -92,6 +93,7 @@
   "bulk_actions": "إجراءات مجمعة",
   "mark_as_unassigned": "وضع علامة غير معين",
   "mark_as_assigned": "وضع علامة معين",
+  "mark_as_pending": "وضع علامة معلقة",
   "mark_as_in_progress": "وضع علامة قيد التقدم",
   "mark_as_completed": "وضع علامة مكتمل",
   "mark_as_cancelled": "وضع علامة ملغى",
@@ -125,8 +127,6 @@
   "return_to_home": "العودة إلى الصفحة الرئيسية",
   "dashboard": "لوحة التحكم",
   "total_tasks": "إجمالي المهام",
-  "pending": "معلقة",
-  "in_progress": "قيد التقدم",
   "completion_rate": "معدل الإنجاز",
   "task_status_overview": "نظرة عامة على حالة المهام",
   "task_load_by_employee": "عبء المهام حسب الموظف",
@@ -300,5 +300,8 @@
   "no_eligible_tasks_for_assignment": "لا توجد مهام محددة مؤهلة للتعيين.",
   "active_task_overview": "نظرة عامة على المهام النشطة",
   "no_assigned_or_pending_tasks": "لا توجد مهام معينة أو معلقة لعرضها.",
-  "no_completed_in_progress_or_cancelled_tasks": "لا توجد مهام مكتملة أو قيد التقدم أو ملغاة لعرضها."
+  "no_completed_in_progress_or_cancelled_tasks": "لا توجد مهام مكتملة أو قيد التقدم أو ملغاة لعرضها.",
+  "manage_users": "إدارة المستخدمين",
+  "unassigned_tasks": "مهام غير معينة",
+  "task_list": "قائمة المهام"
 }

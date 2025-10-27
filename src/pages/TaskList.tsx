@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Filter, Search, Trash2, User, BellRing, ListTodo } from "lucide-react";
+import { ChevronDown, Search, Trash2, User, ListTodo } from "lucide-react";
 import { Task } from "@/types/task";
 import { isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
-import { toast } from "sonner"; // Ensure this is the sonner toast
+import { toast } from "sonner";
 import { useProfiles } from "@/hooks/use-profiles";
 
 interface TaskListProps {
@@ -31,19 +31,16 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCompletionStatus, setFilterCompletionStatus] = useState<"all" | "completed" | "in-progress" | "cancelled">("all");
-  const [filterAssignmentStatus, setFilterAssignmentStatus] = useState<"all" | "assigned" | "unassigned">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "in-progress" | "completed" | "cancelled">("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set<string>());
 
-  // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const canBulkDelete = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
 
-  // Define filteredTasks first, as it's a dependency for other callbacks
   const filteredTasks = useMemo(() => {
     const filtered = tasks.filter((task) => {
       const matchesSearch = searchTerm === "" ||
@@ -53,11 +50,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCompletionStatus = filterCompletionStatus === "all" || task.status === filterCompletionStatus;
-      const matchesAssignmentStatus = filterAssignmentStatus === "all" || 
-                                      (filterAssignmentStatus === "assigned" && task.status === "assigned") ||
-                                      (filterAssignmentStatus === "unassigned" && task.status === "unassigned");
-      
+      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
       const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
       const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
       const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
@@ -71,26 +64,24 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         (filterReminder === "overdue" && isOverdue) ||
         (filterReminder === "due-soon" && isDueSoon && !isOverdue);
 
-      return matchesSearch && matchesCompletionStatus && matchesAssignmentStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
+      return matchesSearch && matchesStatus && matchesAssignee && matchesTypeOfWork && matchesReminder && matchesPriority;
     });
 
-    // Sort the filtered tasks
     const currentUserId = user?.id;
     return filtered.sort((a, b) => {
       const aIsAssignedToMe = a.assignee_id === currentUserId;
       const bIsAssignedToMe = b.assignee_id === currentUserId;
 
       if (aIsAssignedToMe && !bIsAssignedToMe) {
-        return -1; // a comes first
+        return -1;
       }
       if (!aIsAssignedToMe && bIsAssignedToMe) {
-        return 1; // b comes first
+        return 1;
       }
 
-      // If both are assigned to me, or neither are, sort by creation date (newest first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [tasks, searchTerm, filterCompletionStatus, filterAssignmentStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
+  }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
 
   const handleSelectTask = useCallback((taskId: string, isSelected: boolean) => {
     setSelectedTaskIds(prev => {
@@ -125,21 +116,18 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
     if (!isAdminOrManager) {
       tasksToActOn = tasksToActOn.filter(taskId => {
-        const task = tasksByIdMap.get(taskId); // Use map for efficient lookup
+        const task = tasksByIdMap.get(taskId);
         return task && task.status !== 'completed';
       });
 
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
-        // Ensure warningMessage is a string here (Case 1)
         const warningMessage = String(t('skipped_completed_tasks_warning', { count: originalCount - filteredCount }) || `Skipped ${originalCount - filteredCount} completed task(s) as they can only be modified by an admin.`);
         
-        // Defensive check for toast itself before calling
         if (toast && typeof toast.warning === 'function') {
           toast.warning(warningMessage);
         } else {
           console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
-          // Fallback to a native alert if toast is broken
           alert(`Warning: ${warningMessage}`);
         }
       }
@@ -166,7 +154,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           }
           const failCount = tasksToActOn.length - successCount;
           if (failCount > 0) {
-            // Ensure warningMessage is a string here (Case 2)
             const warningMessage = String(t('tasks_could_not_be_updated_warning', { count: failCount }) || `${failCount} tasks could not be updated. They may be missing required photos.`);
             if (toast && typeof toast.warning === 'function') {
               toast.warning(warningMessage);
@@ -195,7 +182,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         if (tasksToActOn.length > assignableTasks.length) {
             const skippedCount = tasksToActOn.length - assignableTasks.length;
-            // Ensure warningMessage is a string here (Case 3)
             const warningMessage = String(t('skipped_ineligible_for_reassignment', { count: skippedCount }) || `${skippedCount} task(s) were skipped as they are not eligible for re-assignment.`);
             if (toast && typeof toast.warning === 'function') {
               toast.warning(warningMessage);
@@ -222,7 +208,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         const assignFailCount = assignableTasks.length - assignSuccessCount;
         if (assignFailCount > 0) {
-          // Ensure warningMessage is a string here (Case 4)
           const warningMessage = String(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }) || `${assignFailCount} tasks could not be assigned.`);
           if (toast && typeof toast.warning === 'function') {
             toast.warning(warningMessage);
@@ -233,7 +218,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         }
         break;
       case 'delete':
-        // Delete tasks sequentially to ensure optimistic updates and error handling per task
         for (const taskId of tasksToActOn) {
           await deleteTask(taskId);
         }
@@ -251,7 +235,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     <div className="space-y-8">
       {!hideForm && canAddTask && <TaskForm />}
 
-      {/* Search Input (Always full width on mobile) */}
       <div className="relative w-full mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -262,30 +245,17 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         />
       </div>
 
-      {/* Filters - Organized wrapping layout */}
       <div className="flex flex-wrap gap-4">
-        {/* New Completion Status Filter */}
-        <Select onValueChange={(value: "all" | "completed" | "in-progress" | "cancelled") => setFilterCompletionStatus(value)} value={filterCompletionStatus}>
+        <Select onValueChange={(value: "all" | "pending" | "in-progress" | "completed" | "cancelled") => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('all_statuses')}</SelectItem>
+            <SelectItem value="pending">{t('pending')}</SelectItem>
             <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
             <SelectItem value="completed">{t('completed')}</SelectItem>
             <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* New Assignment Status Filter */}
-        <Select onValueChange={(value: "all" | "assigned" | "unassigned") => setFilterAssignmentStatus(value)} value={filterAssignmentStatus}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_assignment_status')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all_assignment_statuses')}</SelectItem>
-            <SelectItem value="assigned">{t('assigned')}</SelectItem>
-            <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -362,11 +332,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => handleBulkAction('status', 'unassigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_unassigned')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleBulkAction('status', 'assigned')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_assigned')}
+                <DropdownMenuItem onClick={() => handleBulkAction('status', 'pending')}>
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_pending')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'in-progress')}>
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
@@ -416,7 +383,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
-              taskId={task.id} // Pass taskId instead of the full task object
+              taskId={task.id}
               onSelect={handleSelectTask}
               isSelected={selectedTaskIds.has(task.id)}
             />
