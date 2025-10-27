@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground p-4 shadow-md">
+      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-50">
         <div className="container mx-auto flex flex-wrap justify-between items-center gap-4">
           {/* App Logo and Title (Always visible) */}
           <div className="flex items-center gap-4 flex-shrink-0">
@@ -135,7 +135,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           )}
         </div>
       </header>
-      <UserTaskSummaryBar />
+      {session && (
+        <div className="sticky top-[4.25rem] z-40"> {/* This value is calculated based on the header's height (p-4 + h-9 content = 1rem + 2.25rem + 1rem = 4.25rem) */}
+          <UserTaskSummaryBar />
+        </div>
+      )}
       <main className="flex-grow container mx-auto p-4">
         {children}
       </main>
