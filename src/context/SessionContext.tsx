@@ -37,6 +37,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
+    // Ensure there's an active session before trying to fetch profile
+    const currentSession = await supabase.auth.getSession();
+    if (!currentSession.data.session) {
+      console.warn("[SessionProvider] No active session found, cannot fetch profile.");
+      setProfile(null);
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -46,7 +54,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (error) {
       console.error("[SessionProvider] Error fetching profile:", error.message);
       setProfile(null);
-      return null;
+      throw error; // Re-throw the error for callers to handle
     } else if (data) {
       console.log("[SessionProvider] Profile fetched successfully:", data);
       setProfile(data as UserProfile);
@@ -87,7 +95,11 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         setUser(initialSession?.user ?? null);
 
         if (initialSession?.user) {
-          await fetchUserProfile(initialSession.user.id);
+          try {
+            await fetchUserProfile(initialSession.user.id);
+          } catch (e) {
+            console.error("[SessionProvider] Error fetching initial user profile:", e);
+          }
         } else {
           setProfile(null);
         }
@@ -107,7 +119,11 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           setUser(currentSession?.user ?? null);
 
           if (currentSession?.user) {
-            await fetchUserProfile(currentSession.user.id);
+            try {
+              await fetchUserProfile(currentSession.user.id);
+            } catch (e) {
+              console.error("[SessionProvider] Error fetching user profile on auth state change:", e);
+            }
           } else {
             setProfile(null);
           }

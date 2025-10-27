@@ -88,11 +88,16 @@ const ProfileSettingsForm: React.FC = () => {
 
       // 3. Explicitly refetch profile to ensure UI updates immediately
       console.log("[ProfileSettingsForm] Attempting to refetch profile.");
-      const fetchedProfile = await refetchProfile(user.id);
-      if (fetchedProfile) {
-        console.log("[ProfileSettingsForm] Profile refetched successfully.");
-      } else {
-        console.warn("[ProfileSettingsForm] Refetch profile returned null or undefined.");
+      try {
+        const fetchedProfile = await refetchProfile(user.id);
+        if (fetchedProfile) {
+          console.log("[ProfileSettingsForm] Profile refetched successfully.");
+        } else {
+          console.warn("[ProfileSettingsForm] Refetch profile returned null or undefined.");
+        }
+      } catch (refetchError: any) {
+        console.error("[ProfileSettingsForm] Error during refetchProfile:", refetchError);
+        // Don't re-throw here, just log and continue to finally block
       }
 
       toast.success(t('profile_updated_successfully'));
