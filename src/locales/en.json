@@ -309,7 +309,7 @@
   "change_password": "Change Password",
   "password_updated_short": "Password updated successfully!",
   "signed_out_due_to_inactivity": "You have been signed out due to inactivity.",
-  "settings": "Settings",
+  "settings": "الإعدادات",
   "assigned_by": "Assigned by",
   "overall_task_status_overview": "Overall Task Status Overview",
   "no_tasks_to_display": "No tasks to display.",
@@ -319,5 +319,10 @@
   "deleting": "Deleting...",
   "undo": "Undo",
   "failed_to_restore_task": "Failed to restore task: ",
-  "task_restored_successfully": "Task '{{title}}' restored successfully!"
+  "task_restored_successfully": "Task '{{title}}' restored successfully!",
+  "error_boundary_title": "عذراً! حدث خطأ ما.",
+  "error_boundary_description": "نحن آسفون، ولكن حدث خطأ غير متوقع.",
+  "error_details": "تفاصيل الخطأ:",
+  "error_boundary_refresh_prompt": "يرجى محاولة تحديث الصفحة أو الاتصال بالدعم إذا استمرت المشكلة.",
+  "refresh_page": "تحديث الصفحة"
 }
