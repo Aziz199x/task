@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'; // Import Drawer components
 import TaskForm from '@/components/TaskForm';
 import TaskList from '@/pages/TaskList'; // Re-using the existing TaskList
 import TaskStatusColumn from '@/components/TaskStatusColumn'; // Re-using the existing TaskStatusColumn
@@ -16,12 +17,14 @@ import { useSession } from '@/context/SessionContext';
 import ExcelUploadButton from '@/components/ExcelUploadButton'; // Import the ExcelUploadButton
 import ChatImportButton from '@/components/ChatImportButton'; // Import the new ChatImportButton
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
 
 const AllTasksSection: React.FC = () => {
   const { tasks } = useTasks();
   const { t } = useTranslation();
   const { profile: currentUserProfile } = useSession();
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
+  const { isMobile } = useIsMobile(); // Use the hook to detect mobile
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
@@ -31,6 +34,12 @@ const AllTasksSection: React.FC = () => {
   const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
   const completedTasks = useMemo(() => tasks.filter(task => task.status === 'completed'), [tasks]);
 
+  const TaskFormWrapper = isMobile ? Drawer : Dialog;
+  const TaskFormContentWrapper = isMobile ? DrawerContent : DialogContent;
+  const TaskFormHeaderWrapper = isMobile ? DrawerHeader : DialogHeader;
+  const TaskFormTitleWrapper = isMobile ? DrawerTitle : DialogTitle;
+  const TaskFormTriggerWrapper = isMobile ? DrawerTrigger : DialogTrigger;
+
   return (
     <Card className="col-span-full">
       <CardHeader className="flex flex-row items-start justify-between">
@@ -38,19 +47,21 @@ const AllTasksSection: React.FC = () => {
         {/* Updated class names for responsiveness: flex-wrap and gap-2 */}
         <div className="flex flex-wrap items-center gap-2 justify-end max-w-full">
           {canAddTask && (
-            <Dialog open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
-              <DialogTrigger asChild>
+            <TaskFormWrapper open={isNewTaskDialogOpen} onOpenChange={setIsNewTaskDialogOpen}>
+              <TaskFormTriggerWrapper asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" /> {t('new_task')}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>{t('add_new_task')}</DialogTitle>
-                </DialogHeader>
-                <TaskForm />
-              </DialogContent>
-            </Dialog>
+              </TaskFormTriggerWrapper>
+              <TaskFormContentWrapper className={isMobile ? "h-full" : "sm:max-w-[425px]"}>
+                <TaskFormHeaderWrapper className={isMobile ? "text-left" : ""}>
+                  <TaskFormTitleWrapper>{t('add_new_task')}</TaskFormTitleWrapper>
+                </TaskFormHeaderWrapper>
+                <div className={isMobile ? "p-4 overflow-y-auto" : ""}>
+                  <TaskForm />
+                </div>
+              </TaskFormContentWrapper>
+            </TaskFormWrapper>
           )}
           {canAddTask && (
             <Tooltip>
