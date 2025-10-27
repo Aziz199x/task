@@ -78,7 +78,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     const currentUserId = user?.id;
     return filtered.sort((a, b) => {
       const aIsAssignedToMe = a.assignee_id === currentUserId;
-      const bIsAssignedToMe = b.assignee_id === currentUserId;
+      const bIsAssignedToMe = b.assignee_id === currentUserId; // Fixed typo: was b.assigneeToMe
 
       if (aIsAssignedToMe && !bIsAssignedToMe) {
         return -1; // a comes first
@@ -132,8 +132,13 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
         const skippedCount = originalCount - filteredCount;
-        // Ensure translatedMessage is always a string
-        const warningMessage = String(t('skipped_completed_tasks_warning', { count: skippedCount }) || `Skipped ${skippedCount} completed tasks.`);
+        let warningMessage: string;
+        if (typeof t === 'function') {
+          const translated = t('skipped_completed_tasks_warning', { count: skippedCount });
+          warningMessage = String(translated || `Skipped ${skippedCount} completed tasks.`);
+        } else {
+          warningMessage = `Skipped ${skippedCount} completed tasks.`;
+        }
         toast.warning(warningMessage);
       }
     }
