@@ -192,16 +192,22 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
   };
 
-  const getStatusColor = () => {
+  const getStatusDisplay = () => {
+    if (task.status === 'unassigned' || task.status === 'assigned') {
+      return {
+        text: t('pending'),
+        color: 'bg-yellow-100 text-yellow-800',
+      };
+    }
     switch (task.status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'assigned': return 'bg-yellow-100 text-yellow-800'; // Assigned is yellow
-      case 'unassigned': return 'bg-gray-100 text-gray-800'; // Unassigned is gray
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return { text: t('completed'), color: 'bg-green-100 text-green-800' };
+      case 'in-progress': return { text: t('in_progress'), color: 'bg-blue-100 text-blue-800' };
+      case 'cancelled': return { text: t('cancelled'), color: 'bg-red-100 text-red-800' };
+      default: return { text: t('unassigned'), color: 'bg-gray-100 text-gray-800' };
     }
   };
+
+  const statusDisplay = getStatusDisplay();
 
   const DetailLine: React.FC<{ icon: React.ReactNode; text: React.ReactNode; className?: string }> = ({ icon, text, className = "text-muted-foreground" }) => (
     <div className={`flex items-start text-xs ${className}`}>
@@ -255,7 +261,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             </div>
           </div>
           <div className="flex items-center space-x-2 pt-2">
-            <span className={`text-xs px-2 py-1 rounded-full capitalize ${getStatusColor()}`}>{t(task.status.replace('-', '_'))}</span>
+            <span className={`text-xs px-2 py-1 rounded-full capitalize ${statusDisplay.color}`}>{statusDisplay.text}</span>
             {isDueDatePassed && <BellRing className="h-4 w-4 text-red-500 animate-pulse" />}
             {isDueSoon && !isDueDatePassed && <BellRing className="h-4 w-4 text-yellow-500" />}
           </div>
