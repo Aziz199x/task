@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 interface TaskPhotoGalleryProps {
-  photoBeforeUrl?: string | null;
-  photoAfterUrl?: string | null;
+  photoBeforeUrls?: string[] | null;
+  photoAfterUrls?: string[] | null;
   photoPermitUrl?: string | null;
 }
 
@@ -41,77 +41,58 @@ const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, al
   );
 };
 
-const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, photoAfterUrl, photoPermitUrl }) => {
+const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrls, photoAfterUrls, photoPermitUrl }) => {
   const { t } = useTranslation();
-  const [signedUrls, setSignedUrls] = useState({ before: null, after: null, permit: null });
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSignedUrls = async () => {
       setLoading(true);
-      const urlsToFetch: { key: 'before' | 'after' | 'permit'; url: string }[] = [];
-      if (photoBeforeUrl) urlsToFetch.push({ key: 'before', url: photoBeforeUrl });
-      if (photoAfterUrl) urlsToFetch.push({ key: 'after', url: photoAfterUrl });
-      if (photoPermitUrl) urlsToFetch.push({ key: 'permit', url: photoPermitUrl });
+      const urlsToFetch: { originalUrl: string; path: string }[] = [];
+
+      const processUrl = (url: string) => {
+        try {
+          const urlObj = new URL(url);
+          const pathParts = urlObj.pathname.split('/task_photos/');
+          if (pathParts.length > 1) {
+            urlsToFetch.push({ originalUrl: url, path: pathParts[1] });
+          }
+        } catch (e) {
+          console.error("Invalid URL stored in database:", url);
+        }
+      };
+
+      (photoBeforeUrls || []).forEach(processUrl);
+      (photoAfterUrls || []).forEach(processUrl);
+      if (photoPermitUrl) processUrl(photoPermitUrl);
 
       if (urlsToFetch.length === 0) {
         setLoading(false);
         return;
       }
 
-      const filePaths = urlsToFetch.map(item => {
-        try {
-          const url = new URL(item.url);
-          const pathParts = url.pathname.split('/task_photos/');
-          if (pathParts.length > 1) {
-            return pathParts[1];
-          }
-          return '';
-        } catch (e) {
-          console.error("Invalid URL stored in database:", item.url);
-          return '';
-        }
-      }).filter(path => path);
-
-      if (filePaths.length === 0) {
-        toast.error("Could not extract valid photo paths to generate secure links.");
-        setLoading(false);
-        return;
-      }
+      const filePaths = urlsToFetch.map(item => item.path);
 
       try {
         const { data, error } = await supabase.functions.invoke('get-signed-urls', {
           body: { filePaths },
         });
 
-        if (error) {
-          throw new Error(error.message);
-        }
-        
-        if (!data || data.length === 0) {
-          throw new Error("The security function returned no data.");
-        }
+        if (error) throw new Error(error.message);
+        if (!data) throw new Error("The security function returned no data.");
 
-        const newSignedUrls: any = { before: null, after: null, permit: null };
-        let urlsFound = 0;
+        const newSignedUrls: Record<string, string> = {};
         data.forEach((signed: { signedUrl: string; path: string; error: string | null }) => {
           if (signed.error) {
             console.error(`Error generating signed URL for ${signed.path}:`, signed.error);
-            toast.error(`Failed to get secure link for one of the photos.`);
             return;
           }
-          
-          const originalItem = urlsToFetch.find(item => item.url.includes(signed.path));
+          const originalItem = urlsToFetch.find(item => item.path === signed.path);
           if (originalItem) {
-            newSignedUrls[originalItem.key] = signed.signedUrl;
-            urlsFound++;
+            newSignedUrls[originalItem.originalUrl] = signed.signedUrl;
           }
         });
-
-        if (urlsFound === 0) {
-            toast.error("Could not match any secure links back to the photos.");
-        }
-
         setSignedUrls(newSignedUrls);
 
       } catch (error: any) {
@@ -123,9 +104,9 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
     };
 
     fetchSignedUrls();
-  }, [photoBeforeUrl, photoAfterUrl, photoPermitUrl]);
+  }, [photoBeforeUrls, photoAfterUrls, photoPermitUrl]);
 
-  const hasPhotos = photoBeforeUrl || photoAfterUrl || photoPermitUrl;
+  const hasPhotos = (photoBeforeUrls && photoBeforeUrls.length > 0) || (photoAfterUrls && photoAfterUrls.length > 0) || photoPermitUrl;
 
   if (!hasPhotos) {
     return null;
@@ -133,10 +114,10 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrl, pho
 
   return (
     <div className="mt-2 pt-2 border-t">
-      <div className="flex items-center gap-4">
-        {photoBeforeUrl && <PhotoThumbnail url={loading ? null : signedUrls.before} alt={t('before')} />}
-        {photoAfterUrl && <PhotoThumbnail url={loading ? null : signedUrls.after} alt={t('after')} />}
-        {photoPermitUrl && <PhotoThumbnail url={loading ? null : signedUrls.permit} alt={t('permit')} />}
+      <div className="flex items-center gap-4 flex-wrap">
+        {(photoBeforeUrls || []).map((url, i) => <PhotoThumbnail key={url} url={loading ? null : signedUrls[url]} alt={`${t('before')} ${i + 1}`} />)}
+        {(photoAfterUrls || []).map((url, i) => <PhotoThumbnail key={url} url={loading ? null : signedUrls[url]} alt={`${t('after')} ${i + 1}`} />)}
+        {photoPermitUrl && <PhotoThumbnail url={loading ? null : signedUrls[photoPermitUrl]} alt={t('permit')} />}
       </div>
     </div>
   );

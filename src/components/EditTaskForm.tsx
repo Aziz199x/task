@@ -13,19 +13,17 @@ import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
 import PhotoUploader from "./PhotoUploader";
+import MultiPhotoUploader from "./MultiPhotoUploader";
 import { isPast, isToday } from 'date-fns';
-import { DatePicker } from "./DatePicker"; // Import the new DatePicker
+import { DatePicker } from "./DatePicker";
 
 interface EditTaskFormProps {
-  task: Task; // Initial task data, will be updated from context
+  task: Task;
   onClose: () => void;
   canEditOrDelete: boolean;
   canComplete: boolean;
 }
 
-// Regex to validate Google Maps URL formats:
-// 1. https://www.google.com/maps?q=LATITUDE,LONGITUDE
-// 2. https://maps.app.goo.gl/SHORTCODE
 const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)|https:\/\/maps\.app\.goo\.gl\/[a-zA-Z0-9]+)$/;
 
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose, canEditOrDelete, canComplete }) => {
@@ -34,7 +32,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
 
-  // Get the current task from global state (real-time updates)
   const currentTask = tasksByIdMap.get(initialTask.id) || initialTask;
   
   const [editedTask, setEditedTask] = useState<Partial<Task>>(() => currentTask);
@@ -45,7 +42,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   const [notificationNumError, setNotificationNumError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Sync local state with global state when task updates
   useEffect(() => {
     setEditedTask(currentTask);
     setDueDateObject(currentTask.due_date ? new Date(currentTask.due_date) : undefined);
@@ -104,15 +100,8 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       return;
     }
 
-    // Convert Date object to ISO string date part (YYYY-MM-DD) for Supabase
     const dueDateString = dueDateObject ? dueDateObject.toISOString().split('T')[0] : null;
-
-    const updatesToSend: Partial<Task> = {
-        ...editedTask,
-        due_date: dueDateString,
-    };
-
-    // Note: The DatePicker already prevents past dates, so we remove the redundant date validation here.
+    const updatesToSend: Partial<Task> = { ...editedTask, due_date: dueDateString };
 
     const success = await updateTask(currentTask.id, updatesToSend);
     setIsSaving(false);
@@ -123,27 +112,32 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
     }
   };
 
-  const handlePhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after' | 'permit', url: string) => {
-    const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    
-    // Update the database immediately - this will trigger real-time updates
-    await updateTask(currentTask.id, { [photoUrlKey]: url });
-    toast.success(t('photo_uploaded_successfully'));
-  }, [currentTask.id, updateTask, t]);
+  const handleMultiPhotoUploadSuccess = useCallback(async (photoType: 'before' | 'after', url: string) => {
+    const photoUrlKey = `photo_${photoType}_urls` as 'photo_before_urls' | 'photo_after_urls';
+    const existingUrls = currentTask[photoUrlKey] || [];
+    const newUrls = [...existingUrls, url];
+    await updateTask(currentTask.id, { [photoUrlKey]: newUrls });
+  }, [currentTask, updateTask]);
 
-  const handlePhotoRemove = useCallback(async (photoType: 'before' | 'after' | 'permit') => {
-    const photoUrlKey = `photo_${photoType}_url` as keyof Task;
-    const currentUrl = currentTask[photoUrlKey] as string | null | undefined;
-    
-    // Delete from storage first
+  const handlePermitUploadSuccess = useCallback(async (url: string) => {
+    await updateTask(currentTask.id, { photo_permit_url: url });
+  }, [currentTask.id, updateTask]);
+
+  const handleMultiPhotoRemove = useCallback(async (photoType: 'before' | 'after', urlToRemove: string) => {
+    const photoUrlKey = `photo_${photoType}_urls` as 'photo_before_urls' | 'photo_after_urls';
+    const existingUrls = currentTask[photoUrlKey] || [];
+    const newUrls = existingUrls.filter(url => url !== urlToRemove);
+    await deleteTaskPhoto(urlToRemove);
+    await updateTask(currentTask.id, { [photoUrlKey]: newUrls });
+  }, [currentTask, updateTask, deleteTaskPhoto]);
+
+  const handlePermitRemove = useCallback(async () => {
+    const currentUrl = currentTask.photo_permit_url;
     if (currentUrl) {
       await deleteTaskPhoto(currentUrl);
     }
-    
-    // Update the database - this will trigger real-time updates
-    await updateTask(currentTask.id, { [photoUrlKey]: null });
-    toast.success(t('photo_removed_successfully'));
-  }, [currentTask.id, deleteTaskPhoto, updateTask, t, currentTask]);
+    await updateTask(currentTask.id, { photo_permit_url: null });
+  }, [currentTask.id, currentTask.photo_permit_url, updateTask, deleteTaskPhoto]);
 
   const isCurrentlyAssigned = !!currentTask.assignee_id;
   const isDueDatePassed = currentTask.due_date ? isPast(new Date(currentTask.due_date)) && !isToday(new Date(currentTask.due_date)) : false;
@@ -180,23 +174,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="taskId" className="text-right">{t('task_id')}</Label>
-        <Input
-          id="taskId"
-          value={editedTask.task_id || ''}
-          className="col-span-3"
-          readOnly
-          disabled={true}
-        />
+        <Input id="taskId" value={editedTask.task_id || ''} className="col-span-3" readOnly disabled={true} />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
         <div className="col-span-3">
-          <DatePicker 
-            date={dueDateObject} 
-            setDate={setDueDateObject} 
-            disabled={!canEditOrDelete} 
-            placeholder={t('pick_a_date')}
-          />
+          <DatePicker date={dueDateObject} setDate={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pick_a_date')} />
         </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
@@ -271,29 +254,29 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       {canComplete && (
         <>
-          <PhotoUploader
+          <MultiPhotoUploader
             label={t('before_work_photo')}
             taskId={currentTask.id}
             photoType="before"
-            currentUrl={currentTask.photo_before_url}
-            onUploadSuccess={(url) => handlePhotoUploadSuccess('before', url)}
-            onRemove={() => handlePhotoRemove('before')}
+            currentUrls={currentTask.photo_before_urls}
+            onUploadSuccess={(url) => handleMultiPhotoUploadSuccess('before', url)}
+            onRemove={(url) => handleMultiPhotoRemove('before', url)}
           />
-          <PhotoUploader
+          <MultiPhotoUploader
             label={t('after_work_photo')}
             taskId={currentTask.id}
             photoType="after"
-            currentUrl={currentTask.photo_after_url}
-            onUploadSuccess={(url) => handlePhotoUploadSuccess('after', url)}
-            onRemove={() => handlePhotoRemove('after')}
+            currentUrls={currentTask.photo_after_urls}
+            onUploadSuccess={(url) => handleMultiPhotoUploadSuccess('after', url)}
+            onRemove={(url) => handleMultiPhotoRemove('after', url)}
           />
           <PhotoUploader
             label={t('permit_photo')}
             taskId={currentTask.id}
             photoType="permit"
             currentUrl={currentTask.photo_permit_url}
-            onUploadSuccess={(url) => handlePhotoUploadSuccess('permit', url)}
-            onRemove={() => handlePhotoRemove('permit')}
+            onUploadSuccess={handlePermitUploadSuccess}
+            onRemove={handlePermitRemove}
           />
         </>
       )}

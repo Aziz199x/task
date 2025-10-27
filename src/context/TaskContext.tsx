@@ -89,8 +89,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                   toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                 }
               }
-              if (!oldRecord.photo_before_url && newRecord.photo_before_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
-              if (!oldRecord.photo_after_url && newRecord.photo_after_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
+              if ((oldRecord.photo_before_urls?.length || 0) < (newRecord.photo_before_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
+              if ((oldRecord.photo_after_urls?.length || 0) < (newRecord.photo_after_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
               if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
             }
           } else if (payload.eventType === 'DELETE') {
@@ -174,7 +174,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const taskPayload: Omit<Task, 'id'> = {
+    const taskPayload: Omit<Task, 'id' | 'photo_before_urls' | 'photo_after_urls'> & { photo_before_urls?: string[], photo_after_urls?: string[] } = {
       created_at: new Date().toISOString(),
       title,
       description: description || null,
@@ -188,6 +188,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       priority: priority || 'medium',
       status: assigneeId ? 'assigned' : 'unassigned',
       creator_id: user?.id || null,
+      photo_before_urls: [],
+      photo_after_urls: [],
     };
 
     // Optimistic update
@@ -280,6 +282,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         priority: task.priority || 'medium',
         status: task.assignee_id ? 'assigned' : 'unassigned',
         creator_id: user?.id || null,
+        photo_before_urls: [],
+        photo_after_urls: [],
       };
       tasksToInsert.push(fullTaskPayload);
 
@@ -328,7 +332,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(t("permission_denied_complete_task"));
         return false;
       }
-      if (!taskToUpdate.notification_num || !taskToUpdate.photo_before_url || !taskToUpdate.photo_after_url || !taskToUpdate.photo_permit_url) {
+      if (!taskToUpdate.notification_num || !taskToUpdate.photo_before_urls || taskToUpdate.photo_before_urls.length === 0 || !taskToUpdate.photo_after_urls || taskToUpdate.photo_after_urls.length === 0 || !taskToUpdate.photo_permit_url) {
         toast.error(t("photos_and_permit_required_to_complete"));
         return false;
       }
@@ -414,8 +418,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.filter(task => task.id !== id));
     }
 
-    if (taskToDelete?.photo_before_url) await deleteTaskPhoto(taskToDelete.photo_before_url);
-    if (taskToDelete?.photo_after_url) await deleteTaskPhoto(taskToDelete.photo_after_url);
+    if (taskToDelete?.photo_before_urls) {
+      for (const url of taskToDelete.photo_before_urls) {
+        await deleteTaskPhoto(url);
+      }
+    }
+    if (taskToDelete?.photo_after_urls) {
+      for (const url of taskToDelete.photo_after_urls) {
+        await deleteTaskPhoto(url);
+      }
+    }
     if (taskToDelete?.photo_permit_url) await deleteTaskPhoto(taskToDelete.photo_permit_url);
     
     const { error } = await supabase.from('tasks').delete().eq('id', id);
