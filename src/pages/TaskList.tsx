@@ -239,10 +239,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         {/* New Completion Status Filter */}
         <Select onValueChange={(value: "all" | "completed" | "in-progress" | "cancelled") => setFilterCompletionStatus(value)} value={filterCompletionStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder={t('filter_by_completion_status')} />
+            <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('all_completion_statuses')}</SelectItem>
+            <SelectItem value="all">{t('all_statuses')}</SelectItem>
             <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
             <SelectItem value="completed">{t('completed')}</SelectItem>
             <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
