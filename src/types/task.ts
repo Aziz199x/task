@@ -3,7 +3,7 @@ export type Task = {
   created_at: string;
   title: string;
   description?: string | null;
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+  status: 'unassigned' | 'assigned' | 'in-progress' | 'completed' | 'cancelled';
   assignee_id?: string | null;
   creator_id?: string | null;
   closed_by_id?: string | null;

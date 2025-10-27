@@ -196,7 +196,7 @@
   "excel_header_status": "Status",
   "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
   "notification_num_required_to_complete": "رقم الإشعار مطلوب لإكمال هذه المهمة.",
-  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد. الرجاء المحاولة مرة أخرى.",
+  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى.",
   "notification_num_not_unique": "يجب أن يكون رقم الإشعار فريدًا. توجد مهمة بهذا الرقم بالفعل.",
   "import_tasks_from_excel_tooltip": "رفع ملف Excel لإنشاء مهام متعددة دفعة واحدة.",
   "forgot_password": "هل نسيت كلمة المرور؟",
@@ -303,5 +303,7 @@
   "no_completed_in_progress_or_cancelled_tasks": "لا توجد مهام مكتملة أو قيد التقدم أو ملغاة لعرضها.",
   "manage_users": "إدارة المستخدمين",
   "unassigned_tasks": "مهام غير معينة",
-  "task_list": "قائمة المهام"
+  "task_list": "قائمة المهام",
+  "task_must_be_pending_to_start_progress": "يجب أن تكون المهمة معلقة (غير معينة أو معينة) لبدء التقدم.",
+  "task_must_be_in_progress_to_complete": "يجب أن تكون المهمة قيد التقدم لوضع علامة مكتمل."
 }

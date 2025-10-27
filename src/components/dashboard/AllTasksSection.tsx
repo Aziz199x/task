@@ -26,6 +26,7 @@ const AllTasksSection: React.FC = () => {
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
 
+  // Group 'unassigned' and 'assigned' tasks under 'pending' for the board view
   const pendingTasks = useMemo(() => tasks.filter(task => task.status === 'unassigned' || task.status === 'assigned'), [tasks]);
   const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
   const completedTasks = useMemo(() => tasks.filter(task => task.status === 'completed'), [tasks]);

@@ -174,6 +174,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
+    // Use 'unassigned' as the default status for new tasks
+    const initialStatus: Task['status'] = assigneeId ? 'assigned' : 'unassigned';
+
     const taskPayload: Omit<Task, 'id'> = {
       created_at: new Date().toISOString(),
       title,
@@ -186,7 +189,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       equipment_number: equipmentNumber,
       notification_num: notificationNum || null,
       priority: priority || 'medium',
-      status: 'pending', // Always start as pending
+      status: initialStatus, // Set initial status based on assignment
       creator_id: user?.id || null,
       photo_before_urls: [],
       photo_after_urls: [],
@@ -266,6 +269,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toast.error(error.message);
         return;
       }
+      
+      const initialStatus: Task['status'] = task.assignee_id ? 'assigned' : 'unassigned';
+
       const fullTaskPayload: Omit<Task, 'id'> = {
         created_at: new Date().toISOString(),
         title: task.title || '',
@@ -278,7 +284,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         equipment_number: task.equipment_number,
         notification_num: task.notification_num || null,
         priority: task.priority || 'medium',
-        status: task.status || 'pending', // Default to pending if not specified
+        status: initialStatus, // Set initial status based on assignment
         creator_id: user?.id || null,
         photo_before_urls: [],
         photo_after_urls: [],
@@ -316,10 +322,21 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.error(t("task_not_found"));
       return false;
     }
+    
+    // Enforce the flow: unassigned/assigned -> in-progress -> completed
+    if (newStatus === 'in-progress' && taskToUpdate.status !== 'unassigned' && taskToUpdate.status !== 'assigned') {
+        toast.error(t("task_must_be_pending_to_start_progress"));
+        return false;
+    }
+    if (newStatus === 'completed' && taskToUpdate.status !== 'in-progress') {
+        toast.error(t("task_must_be_in_progress_to_complete"));
+        return false;
+    }
     if (taskToUpdate.status === 'completed' && newStatus !== 'in-progress' && profile?.role !== 'admin') {
       toast.error(t("completed_tasks_admin_only"));
       return false;
     }
+    
     if (newStatus === 'completed') {
       const canCurrentUserComplete = (profile?.id === taskToUpdate.assignee_id) || (profile?.role === 'admin');
       if (!canCurrentUserComplete) {
@@ -338,6 +355,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
     }
+    
     const updates: Partial<Task> = { status: newStatus };
     if (newStatus === 'completed' && user?.id) {
       updates.closed_by_id = user.id;
@@ -499,16 +517,26 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const updates: Partial<Task> = { assignee_id: assigneeId };
+    
+    // If assigning, set status to 'assigned' if it was 'unassigned'.
+    // If unassigning, set status to 'unassigned' if it was 'assigned'.
+    if (assigneeId && taskToUpdate.status === 'unassigned') {
+        updates.status = 'assigned';
+    } else if (!assigneeId && taskToUpdate.status === 'assigned') {
+        updates.status = 'unassigned';
+    }
+    // If status is already in-progress/completed/cancelled, assignment change does not affect status.
 
     if (taskToUpdate.status === 'completed') {
       if (profile?.role !== 'admin') {
         toast.error(t("completed_tasks_admin_only_assign"));
         return false;
       }
+      // Admin can reassign completed tasks, but status remains 'completed'
+      delete updates.status;
     }
-    // Status remains as is when assigning/unassigning
 
-    if (taskToUpdate.assignee_id === assigneeId) {
+    if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === updates.status) {
       toast.info(t("no_change_in_assignment"));
       return false;
     }

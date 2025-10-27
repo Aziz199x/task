@@ -23,6 +23,9 @@ interface TaskListProps {
   hideForm?: boolean;
 }
 
+// Map the old statuses to the new conceptual UI statuses for filtering
+type FilterStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'cancelled';
+
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
   const { profiles } = useProfiles();
@@ -31,7 +34,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { t } = useTranslation();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "in-progress" | "completed" | "cancelled">("all");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
   const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
@@ -50,7 +53,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         task.task_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.notification_num?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      // Map DB statuses ('unassigned', 'assigned') to UI 'pending' status
+      const taskUiStatus: FilterStatus = (task.status === 'unassigned' || task.status === 'assigned') ? 'pending' : task.status;
+      const matchesStatus = filterStatus === "all" || taskUiStatus === filterStatus;
+      
       const matchesAssignee = filterAssignee === "all" || task.assignee_id === filterAssignee;
       const matchesTypeOfWork = filterTypeOfWork === "all" || task.type_of_work === filterTypeOfWork;
       const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
@@ -144,7 +150,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         if (value) {
           let successCount = 0;
           for (const taskId of tasksToActOn) {
-            const success = await changeTaskStatus(taskId, value as Task['status']);
+            // When bulk changing status, we must use the actual DB status values
+            const dbStatus = value as Task['status'];
+            const success = await changeTaskStatus(taskId, dbStatus);
             if (success) {
               successCount++;
             }
@@ -198,6 +206,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
         let assignSuccessCount = 0;
         for (const taskId of assignableTasks) {
+          // When assigning, the TaskContext handles setting the status to 'assigned' or 'unassigned' if applicable.
           const success = await assignTask(taskId, value === undefined ? null : value);
           if (success) {
             assignSuccessCount++;
@@ -246,7 +255,8 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        <Select onValueChange={(value: "all" | "pending" | "in-progress" | "completed" | "cancelled") => setFilterStatus(value)} value={filterStatus}>
+        {/* Status Filter: Maps unassigned/assigned to pending */}
+        <Select onValueChange={(value: FilterStatus) => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
@@ -332,8 +342,12 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => handleBulkAction('status', 'pending')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_pending')}
+                {/* Bulk status actions use the actual DB status values */}
+                <DropdownMenuItem onClick={() => handleBulkAction('status', 'unassigned')}>
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_unassigned')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleBulkAction('status', 'assigned')}>
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_assigned')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'in-progress')}>
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}

@@ -63,13 +63,21 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isCreator = user && task.creator_id === user.id;
 
-  const canComplete = (task.status === 'in-progress') && (isCurrentUserAssigned || isAdmin);
+  // New Status Flow Logic:
+  const isPending = task.status === 'unassigned' || task.status === 'assigned';
+  const isInProgress = task.status === 'in-progress';
+  
+  const canStartProgress = isPending && (isCurrentUserAssigned || isPrivilegedReassigner);
+  const canComplete = isInProgress && (isCurrentUserAssigned || isAdmin);
+  
+  // Editing/Deleting permissions remain largely the same, but adjusted for the new flow
   const canEditOrDelete = isAdmin || (!isCompleted && (isPrivilegedReassigner || isCurrentUserAssigned));
   const canEditTask = canEditOrDelete;
   const canDeleteTask = currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role);
-  const canStartProgress = (isCurrentUserAssigned || isPrivilegedReassigner) && task.status === 'pending';
+  
   const canCancel = (isCreator || (currentUserProfile && ['admin', 'manager'].includes(currentUserProfile.role))) &&
-                    (task.status === 'pending' || task.status === 'in-progress');
+                    (isPending || isInProgress);
+  
   const canShare = typeof navigator !== 'undefined' && navigator.share;
   const canAssignToMe = user && !isCurrentlyAssigned && (!isCompleted || isAdmin);
   const canUnassignTask = isCurrentlyAssigned && (isCurrentUserAssigned || isAdmin);
@@ -186,7 +194,8 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     switch (task.status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800'; // Assigned is yellow
+      case 'unassigned': return 'bg-gray-100 text-gray-800'; // Unassigned is gray
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -200,7 +209,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   );
 
   return (
-    <Card className={`w-full flex items-start p-4 ${task.status === 'completed' ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isDueDatePassed ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isDueDatePassed ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
+    <Card className={`w-full flex items-start p-4 ${isCompleted ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isDueDatePassed ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isDueDatePassed ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
       {onSelect && (
         <div className="mr-4 mt-1">
           <Checkbox checked={isSelected} onCheckedChange={(checked) => onSelect(task.id, checked === true)} />
@@ -210,7 +219,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
         <CardHeader className="p-0 pb-2">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-2 min-w-0">
-              <CardTitle className={`text-base font-semibold break-words ${task.status === 'completed' ? "line-through" : ""}`}>{task.title}</CardTitle>
+              <CardTitle className={`text-base font-semibold break-words ${isCompleted ? "line-through" : ""}`}>{task.title}</CardTitle>
             </div>
             <div className="flex items-center flex-shrink-0">
               {canEditTask && (
@@ -225,13 +234,18 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {/* Start Progress is the primary action for pending tasks */}
                   {canStartProgress && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('mark_as_in_progress')}</DropdownMenuItem>}
                   {isCompleted && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress')}</DropdownMenuItem>}
                   {canCancel && <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>}
+                  
                   {(canStartProgress || canCancel || isCompleted) && (canAssignToMe || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  
                   {canAssignToMe && <DropdownMenuItem onClick={handleAssignToMe} disabled={isSaving}>{t('assign_to_me')}</DropdownMenuItem>}
                   {canUnassignTask && <DropdownMenuItem onClick={handleUnassign} disabled={isSaving}>{t('unassign')}</DropdownMenuItem>}
+                  
                   {(canAssignToMe || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
+                  
                   {canShare && <DropdownMenuItem onClick={handleShare}><Share2 className="h-4 w-4 mr-2" /> {t('share')}</DropdownMenuItem>}
                   {canDeleteTask && (<><DropdownMenuSeparator /><DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}><Trash2 className="h-4 w-4 mr-2" /> {t('delete')}</DropdownMenuItem></>)}
                 </DropdownMenuContent>
@@ -245,7 +259,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
           </div>
         </CardHeader>
         <CardContent className="space-y-1 p-0 pt-2">
-          {task.description && <p className={`text-xs text-gray-700 dark:text-gray-300 ${task.status === 'completed' ? "line-through" : ""}`}>{task.description}</p>}
+          {task.description && <p className={`text-xs text-gray-700 dark:text-gray-300 ${isCompleted ? "line-through" : ""}`}>{task.description}</p>}
           <div className="space-y-1 pt-1">
             <DetailLine icon={<Clock />} text={`${t('created_on')}: ${format(new Date(task.created_at), 'PPP p')}`} />
             {task.location && <DetailLine icon={<MapPin />} text={validateLocationUrl(task.location) === null ? <a href={task.location} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">{task.location}</a> : task.location} />}
@@ -257,16 +271,24 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             {task.priority && <DetailLine icon={<Flag />} text={`${t('priority')}: ${t(task.priority)}`} className={getPriorityColor(task.priority)} />}
             {assignedUser && <DetailLine icon={<User />} text={`${t('assigned_to')}: ${assignedUser.first_name} ${assignedUser.last_name}`} />}
             {!task.assignee_id && <DetailLine icon={<User />} text={t('unassigned')} />}
-            {task.status === 'completed' && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
-            {task.status === 'completed' && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
+            {isCompleted && closedByUser && <DetailLine icon={<UserCheck />} text={`${t('closed_by')}: ${`${closedByUser.first_name || ''} ${closedByUser.last_name || ''}`.trim() || `(${t(closedByUser.role)})`}`} />}
+            {isCompleted && task.closed_at && <DetailLine icon={<CalendarDays />} text={`${t('closed_on')}: ${format(new Date(task.closed_at), 'PPP p')}`} />}
           </div>
-          <TaskPhotoGallery photoBeforeUrls={task.photo_before_urls} photoAfterUrls={task.photo_after_urls} photoPermitUrl={task.photo_permit_url} />
+          {isInProgress && <TaskPhotoGallery photoBeforeUrls={task.photo_before_urls} photoAfterUrls={task.photo_after_urls} photoPermitUrl={task.photo_permit_url} />}
         </CardContent>
-        {canComplete && (
-          <CardFooter className="p-0 pt-4 mt-4 border-t">
-            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleCompleteClick} disabled={isSaving}><CheckCircle className="mr-2 h-4 w-4" /> {t('complete_task')}</Button>
-          </CardFooter>
-        )}
+        {/* Primary Action Button */}
+        <CardFooter className="p-0 pt-4 mt-4 border-t">
+          {canStartProgress && (
+            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>
+              <Wrench className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
+            </Button>
+          )}
+          {canComplete && (
+            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleCompleteClick} disabled={isSaving}>
+              <CheckCircle className="mr-2 h-4 w-4" /> {t('complete_task')}
+            </Button>
+          )}
+        </CardFooter>
       </div>
       <AlertDialog open={showRevertConfirmation} onOpenChange={setShowRevertConfirmation}>
         <AlertDialogContent>

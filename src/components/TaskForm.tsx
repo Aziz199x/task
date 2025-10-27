@@ -86,9 +86,17 @@ const TaskForm: React.FC = () => {
     // Convert Date object to ISO string date part (YYYY-MM-DD) for Supabase
     const dueDateString = dueDate ? dueDate.toISOString().split('T')[0] : undefined;
 
-    // Note: The DatePicker already prevents past dates, so we remove the redundant date validation here.
-
-    const success = await addTask(title, description, location.trim() === "" ? undefined : location, dueDateString, assigneeId, typeOfWork, equipmentNumber, notificationNum.trim() === "" ? undefined : notificationNum, priority);
+    const success = await addTask(
+      title, 
+      description, 
+      location.trim() === "" ? undefined : location, 
+      dueDateString, 
+      assigneeId, 
+      typeOfWork, 
+      equipmentNumber, 
+      notificationNum.trim() === "" ? undefined : notificationNum, 
+      priority
+    );
     setLoading(false);
 
     if (success) {
