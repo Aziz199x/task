@@ -312,5 +312,12 @@
   "settings": "الإعدادات",
   "assigned_by": "عين بواسطة",
   "overall_task_status_overview": "نظرة عامة شاملة على حالة المهام",
-  "no_tasks_to_display": "لا توجد مهام لعرضها."
+  "no_tasks_to_display": "لا توجد مهام لعرضها.",
+  "confirm_delete_task_title": "تأكيد حذف المهمة",
+  "confirm_delete_task_description": "هل أنت متأكد أنك تريد حذف المهمة '{{title}}'؟ لا يمكن التراجع عن هذا الإجراء.",
+  "confirm_delete_action": "نعم، حذف المهمة",
+  "deleting": "جارٍ الحذف...",
+  "undo": "تراجع",
+  "failed_to_restore_task": "فشل استعادة المهمة: ",
+  "task_restored_successfully": "تم استعادة المهمة '{{title}}' بنجاح!"
 }

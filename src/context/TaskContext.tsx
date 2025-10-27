@@ -16,10 +16,11 @@ interface TaskContextType {
   addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
-  deleteTask: (id: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<Task | null>; // Modified to return deleted task
   updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>;
   assignTask: (id: string, assigneeId: string | null) => Promise<boolean>;
   deleteTaskPhoto: (photoUrl: string) => Promise<void>;
+  restoreTask: (task: Task) => Promise<boolean>; // New function for undo
   refetchTasks: () => Promise<void>;
 }
 
@@ -406,11 +407,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [t]);
 
-  const deleteTask = useCallback(async (id: string) => {
+  const deleteTask = useCallback(async (id: string): Promise<Task | null> => {
     const taskToDelete = tasksByIdMap.get(id);
     if (!taskToDelete) {
       toast.error(t("task_not_found"));
-      return;
+      return null;
     }
 
     const isCreator = user?.id === taskToDelete.creator_id;
@@ -420,16 +421,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isAdminOrManager) {
       if (taskToDelete.status === 'completed' && profile?.role !== 'admin') {
         toast.error(t("completed_tasks_admin_only_delete"));
-        return;
+        return null;
       }
     } else if (isTechnician && isCreator) {
       if (taskToDelete.status === 'completed' || taskToDelete.status === 'cancelled') {
         toast.error(t("technician_cannot_delete_completed_or_cancelled_task"));
-        return;
+        return null;
       }
     } else {
       toast.error(t("permission_denied_delete_task"));
-      return;
+      return null;
     }
 
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
@@ -454,9 +455,41 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
+      return null;
     }
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+    return taskToDelete; // Return the deleted task for undo
   }, [tasksByIdMap, profile, user, t, deleteTaskPhoto, queryClient]);
+
+  const restoreTask = useCallback(async (task: Task): Promise<boolean> => {
+    // Remove the 'id' field as Supabase will generate a new one on insert
+    // Or, if we want to restore with the same ID, we need to ensure it's not a conflict
+    // For simplicity and to avoid potential ID conflicts, let's re-insert as a new task
+    // If the original ID is truly unique and we want to restore it, we'd need to handle that carefully.
+    // For now, let's assume a new ID is fine for "undo" as it's more about restoring the data.
+    const { id, ...taskToInsert } = task;
+
+    // Optimistic update: add the task back to the cache
+    await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
+    const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
+    if (previousTasks) {
+      queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, [task, ...previousTasks]);
+    }
+
+    const { error } = await supabase.from('tasks').insert(taskToInsert);
+
+    if (error) {
+      toast.error(t("failed_to_restore_task") + error.message);
+      // Revert optimistic update if insert fails
+      if (previousTasks) {
+        queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+      }
+      return false;
+    }
+    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+    toast.success(t('task_restored_successfully', { title: task.title }));
+    return true;
+  }, [t, queryClient]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
@@ -599,8 +632,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateTask,
     assignTask,
     deleteTaskPhoto,
+    restoreTask, // Add restoreTask to context
     refetchTasks: refetchTasks as () => Promise<void>,
-  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, refetchTasks]);
+  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, restoreTask, refetchTasks]);
 
   return (
     <TaskContext.Provider value={contextValue}>

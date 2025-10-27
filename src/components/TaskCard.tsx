@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useSession } from "@/context/SessionContext";
 import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 import TaskPhotoGallery from "./TaskPhotoGallery";
 import EditTaskForm from "./EditTaskForm";
@@ -42,7 +43,7 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
 };
 
 const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }) => {
-  const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask } = useTasks();
+  const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask, restoreTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
   const { profiles } = useProfiles();
   const { t } = useTranslation();
@@ -54,6 +55,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const [isSaving, setIsSaving] = React.useState(false);
   const [showRevertConfirmation, setShowRevertConfirmation] = React.useState(false);
   const [showCancelConfirmation, setShowCancelConfirmation] = React.useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false); // New state for delete confirmation
 
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
@@ -84,10 +86,30 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const canAssignToMe = user && !isCurrentlyAssigned && (!isCompleted || isAdmin);
   const canUnassignTask = isCurrentlyAssigned && (isCurrentUserAssigned || isAdmin);
 
-  const handleDelete = React.useCallback(() => {
-    deleteTask(task.id);
-    toast.success(t('task_deleted_successfully'));
-  }, [deleteTask, task.id, t]);
+  const confirmDelete = React.useCallback(async () => {
+    setShowDeleteConfirmation(false);
+    setIsSaving(true);
+    const deletedTask = await deleteTask(task.id);
+    setIsSaving(false);
+
+    if (deletedTask) {
+      const toastId = toast.info(t('task_deleted_successfully'), {
+        action: {
+          label: t('undo'),
+          onClick: async () => {
+            setIsSaving(true);
+            await restoreTask(deletedTask);
+            setIsSaving(false);
+          },
+        },
+        duration: 5000, // Toast visible for 5 seconds to allow undo
+      });
+    }
+  }, [deleteTask, restoreTask, task, t]);
+
+  const handleDeleteClick = React.useCallback(() => {
+    setShowDeleteConfirmation(true);
+  }, []);
 
   const handleStatusChange = React.useCallback(async (newStatus: Task['status']) => {
     if (task.status === 'completed' && newStatus === 'in-progress') {
@@ -256,7 +278,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
                   {(canAssignToMe || canUnassignTask) && (canDeleteTask || canShare) && <DropdownMenuSeparator />}
                   
                   {canShare && <DropdownMenuItem onClick={handleShare}><Share2 className="h-4 w-4 mr-2" /> {t('share')}</DropdownMenuItem>}
-                  {canDeleteTask && (<><DropdownMenuSeparator /><DropdownMenuItem onClick={handleDelete} className="text-destructive" disabled={isSaving}><Trash2 className="h-4 w-4 mr-2" /> {t('delete')}</DropdownMenuItem></>)}
+                  {canDeleteTask && (<><DropdownMenuSeparator /><DropdownMenuItem onClick={handleDeleteClick} className="text-destructive" disabled={isSaving}><Trash2 className="h-4 w-4 mr-2" /> {t('delete')}</DropdownMenuItem></>)}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -312,6 +334,21 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
         <AlertDialogContent>
           <AlertDialogHeader><AlertDialogTitle>{t('confirm_cancel_task_title')}</AlertDialogTitle><AlertDialogDescription>{t('confirm_cancel_task_description', { title: task.title })}</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter><AlertDialogCancel>{t('cancel')}</AlertDialogCancel><AlertDialogAction onClick={confirmCancelTask} disabled={isSaving}>{isSaving ? t('cancelling') : t('confirm_cancel_action')}</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* New Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirm_delete_task_title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('confirm_delete_task_description', { title: task.title })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isSaving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isSaving ? t('deleting') : t('confirm_delete_action')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </Card>

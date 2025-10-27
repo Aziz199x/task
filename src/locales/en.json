@@ -312,5 +312,12 @@
   "settings": "Settings",
   "assigned_by": "Assigned by",
   "overall_task_status_overview": "Overall Task Status Overview",
-  "no_tasks_to_display": "No tasks to display."
+  "no_tasks_to_display": "No tasks to display.",
+  "confirm_delete_task_title": "Confirm Delete Task",
+  "confirm_delete_task_description": "Are you sure you want to delete the task '{{title}}'? This action cannot be undone.",
+  "confirm_delete_action": "Yes, Delete Task",
+  "deleting": "Deleting...",
+  "undo": "Undo",
+  "failed_to_restore_task": "Failed to restore task: ",
+  "task_restored_successfully": "Task '{{title}}' restored successfully!"
 }
