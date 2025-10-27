@@ -74,17 +74,24 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     });
 
     const currentUserId = user?.id;
+    const isInactive = (status: Task['status']) => status === 'completed' || status === 'cancelled';
+
     return filtered.sort((a, b) => {
+      const aIsInactive = isInactive(a.status);
+      const bIsInactive = isInactive(b.status);
+
+      // Group active tasks before inactive tasks
+      if (!aIsInactive && bIsInactive) return -1;
+      if (aIsInactive && !bIsInactive) return 1;
+
+      // Within groups, prioritize tasks assigned to the current user
       const aIsAssignedToMe = a.assignee_id === currentUserId;
       const bIsAssignedToMe = b.assignee_id === currentUserId;
 
-      if (aIsAssignedToMe && !bIsAssignedToMe) {
-        return -1;
-      }
-      if (!aIsAssignedToMe && bIsAssignedToMe) {
-        return 1;
-      }
+      if (aIsAssignedToMe && !bIsAssignedToMe) return -1;
+      if (!aIsAssignedToMe && bIsAssignedToMe) return 1;
 
+      // Finally, sort by creation date descending (newest first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [tasks, searchTerm, filterStatus, filterAssignee, filterTypeOfWork, filterReminder, filterPriority, user]);
