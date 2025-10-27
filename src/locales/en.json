@@ -309,5 +309,6 @@
   "task_must_be_in_progress_to_complete": "Task must be in progress to be marked as completed.",
   "ready_to_perform": "Ready to Perform",
   "change_password": "Change Password",
-  "password_updated_short": "Password updated successfully!"
+  "password_updated_short": "Password updated successfully!",
+  "signed_out_due_to_inactivity": "You have been signed out due to inactivity."
 }

@@ -146,10 +146,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           } else {
             setProfile(null);
           }
-
-          if (event === 'SIGNED_OUT') {
-            toast.info(t("you_have_been_signed_out"));
-          }
         }
       );
 
@@ -212,7 +208,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         setSession(null);
         setUser(null);
         setProfile(null);
-        toast.info(t("you_have_been_signed_out"));
       } else {
         console.error("[SessionProvider] Failed to sign out:", error.message);
         toast.error(t("failed_to_sign_out") + error.message);

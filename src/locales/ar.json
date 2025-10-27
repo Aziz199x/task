@@ -309,5 +309,6 @@
   "task_must_be_in_progress_to_complete": "يجب أن تكون المهمة قيد التقدم لوضع علامة مكتمل.",
   "ready_to_perform": "جاهز للتنفيذ",
   "change_password": "تغيير كلمة المرور",
-  "password_updated_short": "تم تحديث كلمة المرور بنجاح!"
+  "password_updated_short": "تم تحديث كلمة المرور بنجاح!",
+  "signed_out_due_to_inactivity": "تم تسجيل خروجك بسبب عدم النشاط."
 }

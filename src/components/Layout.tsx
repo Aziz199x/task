@@ -9,15 +9,27 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
 import UserTaskSummaryBar from "./UserTaskSummaryBar";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import useIdleTimeout from "@/hooks/use-idle-timeout";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
+const FOUR_HOURS_IN_SECONDS = 4 * 60 * 60;
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { session, user, profile, signOut } = useSession();
   const { t } = useTranslation();
   const location = useLocation();
+
+  // Sign out user after 4 hours of inactivity
+  useIdleTimeout(signOut, FOUR_HOURS_IN_SECONDS);
+
+  const handleSignOut = () => {
+    toast.success(t('signed_out_successfully'));
+    signOut();
+  };
 
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
   const allowedToManageUsers = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
@@ -115,7 +127,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
                 <ThemeSwitcher />
                 <LanguageSwitcher />
-                <Button variant="destructive" size="icon" onClick={signOut} title={t('logout')}>
+                <Button variant="destructive" size="icon" onClick={handleSignOut} title={t('logout')}>
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
