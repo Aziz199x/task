@@ -38,7 +38,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
     <Button
       variant={"outline"}
       className={cn(
-        "w-full justify-start text-left font-normal",
+        "w-full justify-start text-start font-normal",
         !date && "text-muted-foreground"
       )}
       disabled={disabled || !isClientLoaded}
@@ -53,7 +53,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
       mode="single"
       selected={date}
       onSelect={handleSelect}
-      initialFocus
+      // Removed initialFocus prop
       disabled={(day) => day < today}
       fromDate={today}
     />
@@ -69,7 +69,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent>
-          <DrawerHeader className="text-left">
+          <DrawerHeader className="text-start">
             <DrawerTitle>{placeholder || t("pick_a_date")}</DrawerTitle>
           </DrawerHeader>
           {/* Ensure calendar is centered and has padding for mobile */}
