@@ -120,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     variant="ghost" 
                     size="icon" 
                     className={isActive('/settings') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
-                    title={t('profile_settings')}
+                    title={t('settings')}
                   >
                     <User className="h-4 w-4" />
                   </Button>

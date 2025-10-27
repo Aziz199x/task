@@ -9,7 +9,7 @@ const ProfileSettings: React.FC = () => {
   const { t } = useTranslation();
   return (
     <Layout>
-      <h2 className="text-3xl font-bold mb-6 text-center">{t('profile_settings')}</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">{t('settings')}</h2>
       <ProfileSettingsForm />
     </Layout>
   );
