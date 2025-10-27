@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Skeleton } from "@/components/ui/skeleton"; // Use Skeleton for initial render placeholder
 
 interface DatePickerProps {
   date: Date | undefined;
@@ -21,7 +22,7 @@ interface DatePickerProps {
 
 export function DatePicker({ date, setDate, disabled = false, placeholder }: DatePickerProps) {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const { isMobile, isClientLoaded } = useIsMobile();
   const [open, setOpen] = React.useState(false);
   
   // Set the minimum selectable date to today
@@ -40,7 +41,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
         "w-full justify-start text-left font-normal",
         !date && "text-muted-foreground"
       )}
-      disabled={disabled}
+      disabled={disabled || !isClientLoaded}
     >
       <CalendarIcon className="mr-2 h-4 w-4" />
       {date ? format(date, "PPP") : (placeholder || t("pick_a_date"))}
@@ -58,6 +59,11 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
     />
   );
 
+  // If client hasn't loaded yet, render a placeholder to avoid hydration mismatch
+  if (!isClientLoaded) {
+    return <Skeleton className="w-full h-10" />;
+  }
+
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
@@ -68,7 +74,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
           </DrawerHeader>
           <div className="flex justify-center p-4">
             {calendarContent}
-          </div>
+          </div >
         </DrawerContent>
       </Drawer>
     );
