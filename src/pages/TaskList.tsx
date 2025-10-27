@@ -267,7 +267,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_status')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">{t('all_statuses')}</SelectItem>
             <SelectItem value="pending">{t('pending')}</SelectItem>
             <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
@@ -280,7 +280,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_assignee')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
             <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
             {profiles.map((profile) => (
@@ -295,7 +295,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">{t('all_types')}</SelectItem>
             <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
             <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
@@ -309,7 +309,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_reminder')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">{t('all_tasks')}</SelectItem>
             <SelectItem value="overdue">{t('overdue')}</SelectItem>
             <SelectItem value="due-soon">{t('due_soon')}</SelectItem>
@@ -320,7 +320,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={t('filter_by_priority')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
             <SelectItem value="all">{t('all_priorities')}</SelectItem>
             <SelectItem value="low">{t('low')}</SelectItem>
             <SelectItem value="medium">{t('medium')}</SelectItem>

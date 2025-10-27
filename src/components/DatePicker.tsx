@@ -72,7 +72,8 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
           <DrawerHeader className="text-left">
             <DrawerTitle>{placeholder || t("pick_a_date")}</DrawerTitle>
           </DrawerHeader>
-          <div className="flex justify-center p-4">
+          {/* Ensure calendar is centered and has padding for mobile */}
+          <div className="flex justify-center p-4 pb-10">
             {calendarContent}
           </div >
         </DrawerContent>
