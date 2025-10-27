@@ -58,7 +58,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const isAdmin = currentUserProfile?.role === 'admin';
   const isCompleted = task.status === 'completed';
   const isCurrentlyAssigned = !!task.assignee_id;
-  const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) : false;
+  const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) && task.status !== 'completed' && task.status !== 'cancelled' : false;
   const isCurrentUserAssigned = user && task.assignee_id === user.id;
   const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
   const isCreator = user && task.creator_id === user.id;
