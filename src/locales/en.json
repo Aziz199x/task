@@ -64,6 +64,7 @@
   "urgent": "Urgent",
   "assign_technician": "Assign Technician",
   "unassigned": "Unassigned",
+  "unassign": "Unassign",
   "add_task": "Add Task",
   "task_title_cannot_be_empty": "Task title cannot be empty.",
   "equipment_number_mandatory": "Equipment number is mandatory.",

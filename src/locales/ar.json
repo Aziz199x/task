@@ -64,6 +64,7 @@
   "urgent": "عاجلة",
   "assign_technician": "تعيين فني",
   "unassigned": "غير معين",
+  "unassign": "إلغاء التعيين",
   "add_task": "إضافة مهمة",
   "task_title_cannot_be_empty": "لا يمكن أن يكون عنوان المهمة فارغًا.",
   "equipment_number_mandatory": "رقم المعدة إلزامي.",
