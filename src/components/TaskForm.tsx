@@ -164,7 +164,7 @@ const TaskForm: React.FC = () => {
               <SelectTrigger id="typeOfWork">
                 <SelectValue placeholder={t('select_type_of_work')} />
               </SelectTrigger>
-              <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+              <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
                 <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
                 <SelectItem value="Civil Work">{t('civil_work')}</SelectItem>
                 <SelectItem value="Overhead Maintenance">{t('overhead_maintenance')}</SelectItem>
@@ -199,7 +199,7 @@ const TaskForm: React.FC = () => {
               <SelectTrigger id="priority">
                 <SelectValue placeholder={t('select_priority')} />
               </SelectTrigger>
-              <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+              <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
                 <SelectItem value="low">{t('low')}</SelectItem>
                 <SelectItem value="medium">{t('medium')}</SelectItem>
                 <SelectItem value="high">{t('high')}</SelectItem>
@@ -213,7 +213,7 @@ const TaskForm: React.FC = () => {
               <SelectTrigger id="assignee">
                 <SelectValue placeholder={t('select_a_user_to_assign')} />
               </SelectTrigger>
-              <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+              <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
                 <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
                 {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
                   <SelectItem value={currentUserProfile.id}>
