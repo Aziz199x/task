@@ -26,6 +26,18 @@ interface EditTaskFormProps {
 
 const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?),(-?\d+(\.\d+)?)|https:\/\/maps\.app\.goo\.gl\/[a-zA-Z0-9]+)$/;
 
+const validateLocationUrl = (url: string | null | undefined): string | null => {
+  if (!url || url.trim() === "") return null;
+  if (!googleMapsUrlRegex.test(url)) return t('location_url_invalid_format');
+  return null;
+};
+
+const validateNotificationNum = (num: string | null | undefined): string | null => {
+  if (!num || num.trim() === "") return null;
+  if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notification_num_invalid_format');
+  return null;
+};
+
 const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose, canEditOrDelete, canComplete }) => {
   const { tasksByIdMap, updateTask, deleteTaskPhoto } = useTasks();
   const { profile: currentUserProfile } = useSession();
@@ -46,18 +58,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
     setEditedTask(currentTask);
     setDueDateObject(currentTask.due_date ? new Date(currentTask.due_date) : undefined);
   }, [currentTask]);
-
-  const validateLocationUrl = (url: string | null | undefined): string | null => {
-    if (!url || url.trim() === "") return null;
-    if (!googleMapsUrlRegex.test(url)) return t('location_url_invalid_format');
-    return null;
-  };
-
-  const validateNotificationNum = (num: string | null | undefined): string | null => {
-    if (!num || num.trim() === "") return null;
-    if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notification_num_invalid_format');
-    return null;
-  };
 
   const handleNotificationNumChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -139,16 +139,13 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
     await updateTask(currentTask.id, { photo_permit_url: null });
   }, [currentTask.id, currentTask.photo_permit_url, updateTask, deleteTaskPhoto]);
 
-  const isCurrentlyAssigned = !!currentTask.assignee_id;
-  const isDueDatePassed = currentTask.due_date ? isPast(new Date(currentTask.due_date)) && !isToday(new Date(currentTask.due_date)) : false;
-  const isCurrentUserAssigned = currentUserProfile?.id === currentTask.assignee_id;
-  const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+  const isPendingStatus = currentTask.status === 'unassigned' || currentTask.status === 'assigned';
+  const isManagerOrSupervisor = currentUserProfile && ['manager', 'supervisor'].includes(currentUserProfile.role);
 
-  const canChangeAssignment = 
-    currentUserProfile?.role === 'admin' ||
-    !isCurrentlyAssigned ||
-    isCurrentUserAssigned ||
-    (isDueDatePassed && isPrivilegedReassigner);
+  // The assignee dropdown should be disabled if:
+  // 1. The user does not have general edit permissions for the task (`!canEditOrDelete`).
+  // 2. OR, if the current user is a 'manager' or 'supervisor' AND the task is *not* in a 'pending' status.
+  const isAssigneeDropdownDisabled = !canEditOrDelete || (isManagerOrSupervisor && !isPendingStatus);
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
@@ -229,7 +226,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="assignee" className="text-right">{t('assign_to')}</Label>
-        <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={!canEditOrDelete || !canChangeAssignment}>
+        <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={isAssigneeDropdownDisabled}>
           <SelectTrigger id="assignee" className="col-span-3">
             <SelectValue placeholder={t('select_a_user_to_assign')} />
           </SelectTrigger>
