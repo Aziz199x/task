@@ -200,20 +200,21 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const signOut = async () => {
     console.log("[SessionProvider] Attempting to sign out.");
     
+    // 1. Optimistically clear local state immediately
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    
+    // 2. Attempt network sign out
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      if (error.message.includes('Auth session missing')) {
-        console.warn("[SessionProvider] Sign out failed because session was already missing. Clearing local state manually.");
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-      } else {
-        console.error("[SessionProvider] Failed to sign out:", error.message);
-        toast.error(t("failed_to_sign_out") + error.message);
-      }
+      console.error("[SessionProvider] Failed to sign out on network:", error.message);
+      // If network sign out fails, we rely on the local state clear and the auth listener eventually catching up.
+      // We inform the user but don't revert the local state change.
+      toast.error(t("failed_to_sign_out") + error.message);
     } else {
-      console.log("[SessionProvider] Signed out successfully.");
+      console.log("[SessionProvider] Signed out successfully on network.");
     }
   };
 
