@@ -28,7 +28,7 @@ const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?
 
 const validateLocationUrl = (url: string | null | undefined): string | null => {
   if (!url || url.trim() === "") return null;
-  if (!googleMapsUrlRegex.test(url)) return t('location_url_invalid_format');
+  if (!googleMapsUrlRegex.test(url)) return "location_url_invalid_format";
   return null;
 };
 
@@ -149,40 +149,40 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
 
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="title" className="text-right">{t('task_title')}</Label>
-        <Input id="title" value={editedTask.title || ''} onChange={(e) => setEditedTask({...editedTask, title: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="title" className="md:text-right">{t('task_title')}</Label>
+        <Input id="title" value={editedTask.title || ''} onChange={(e) => setEditedTask({...editedTask, title: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="description" className="text-right">{t('description_optional')}</Label>
-        <Textarea id="description" value={editedTask.description || ""} onChange={(e) => setEditedTask({...editedTask, description: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="description" className="md:text-right">{t('description_optional')}</Label>
+        <Textarea id="description" value={editedTask.description || ""} onChange={(e) => setEditedTask({...editedTask, description: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="location" className="text-right">{t('location')}</Label>
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="location" className="md:text-right">{t('location')}</Label>
         <Input
           id="location"
           value={editedTask.location || ''}
           onChange={handleLocationChange}
           placeholder={t('location_placeholder')}
-          className="col-span-3"
+          className="md:col-span-3"
           disabled={!canEditOrDelete}
         />
         {locationError && <p className="col-span-4 text-right text-destructive text-sm">{locationError}</p>}
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="taskId" className="text-right">{t('task_id')}</Label>
-        <Input id="taskId" value={editedTask.task_id || ''} className="col-span-3" readOnly disabled={true} />
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="taskId" className="md:text-right">{t('task_id')}</Label>
+        <Input id="taskId" value={editedTask.task_id || ''} className="md:col-span-3" readOnly disabled={true} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="dueDate" className="text-right">{t('due_date')}</Label>
-        <div className="col-span-3">
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="dueDate" className="md:text-right">{t('due_date')}</Label>
+        <div className="md:col-span-3">
           <DatePicker date={dueDateObject} setDate={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pick_a_date')} />
         </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="typeOfWork" className="text-right">{t('type_of_work')}</Label>
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="typeOfWork" className="md:text-right">{t('type_of_work')}</Label>
         <Select onValueChange={(value: Task['typeOfWork']) => setEditedTask({...editedTask, type_of_work: value})} value={editedTask.type_of_work || ""} disabled={!canEditOrDelete}>
-          <SelectTrigger id="typeOfWork" className="col-span-3">
+          <SelectTrigger id="typeOfWork" className="md:col-span-3">
             <SelectValue placeholder={t('select_type_of_work')} />
           </SelectTrigger>
           <SelectContent>
@@ -194,26 +194,26 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="equipmentNumber" className="text-right">{t('equipment_number')}</Label>
-        <Input id="equipmentNumber" value={editedTask.equipment_number || ''} onChange={(e) => setEditedTask({...editedTask, equipment_number: e.target.value})} className="col-span-3" disabled={!canEditOrDelete} />
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="equipmentNumber" className="md:text-right">{t('equipment_number')}</Label>
+        <Input id="equipmentNumber" value={editedTask.equipment_number || ''} onChange={(e) => setEditedTask({...editedTask, equipment_number: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="notificationNum" className="text-right">{t('notification_num')}</Label>
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="notificationNum" className="md:text-right">{t('notification_num')}</Label>
         <Input
           id="notificationNum"
           value={editedTask.notification_num || ''}
           onChange={handleNotificationNumChange}
-          className="col-span-3"
+          className="md:col-span-3"
           maxLength={10}
           disabled={!(canEditOrDelete || canComplete)}
         />
         {notificationNumError && <p className="col-span-4 text-right text-destructive text-sm">{notificationNumError}</p>}
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="priority" className="text-right">{t('priority')}</Label>
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="priority" className="md:text-right">{t('priority')}</Label>
         <Select onValueChange={(value: Task['priority']) => setEditedTask({...editedTask, priority: value})} value={editedTask.priority || "medium"} disabled={!canEditOrDelete}>
-          <SelectTrigger id="priority" className="col-span-3">
+          <SelectTrigger id="priority" className="md:col-span-3">
             <SelectValue placeholder={t('select_priority')} />
           </SelectTrigger>
           <SelectContent>
@@ -224,10 +224,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="assignee" className="text-right">{t('assign_to')}</Label>
+      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+        <Label htmlFor="assignee" className="md:text-right">{t('assign_to')}</Label>
         <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={isAssigneeDropdownDisabled}>
-          <SelectTrigger id="assignee" className="col-span-3">
+          <SelectTrigger id="assignee" className="md:col-span-3">
             <SelectValue placeholder={t('select_a_user_to_assign')} />
           </SelectTrigger>
           <SelectContent>
