@@ -121,7 +121,7 @@
   "tasks_by_technician": "المهام حسب الفني",
   "no_unassigned_tasks": "لا توجد مهام غير مسندة.",
   "no_technicians_found": "لم يتم العثور على فنيين.",
-  "no_tasks_assigned_to_this_technician": "لم يتم تعيين مهام لهذا الفني.",
+  "no_tasks_assigned_to_this_technician": "لا يتم تعيين مهام لهذا الفني.",
   "loading_technicians": "جارٍ تحميل الفنيين...",
   "error_loading_technicians": "خطأ في تحميل الفنيين:",
   "oops_page_not_found": "عذراً! الصفحة غير موجودة",
