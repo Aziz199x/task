@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 import TaskPhotoGallery from "./TaskPhotoGallery";
 import EditTaskForm from "./EditTaskForm";
-import { useProfiles } from "@/hooks/use-profiles";
+import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,7 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
 const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }) => {
   const { tasksByIdMap, changeTaskStatus, deleteTask, assignTask, restoreTask } = useTasks();
   const { user, profile: currentUserProfile } = useSession();
-  const { profiles } = useProfiles();
+  const { profiles } = useProfiles(); // profiles is now ProfileWithEmail[]
   const { t } = useTranslation();
 
   const task = tasksByIdMap.get(taskId);
@@ -180,7 +180,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
       toast.error(t('share_not_supported'));
       return;
     }
-    const assignedUser = profiles.find(p => p.id === task.assignee_id);
+    const assignedUser = (profiles as ProfileWithEmail[]).find(p => p.id === task.assignee_id);
     const taskDetails = [
       `*${t('task_title')}*: ${task.title}`,
       task.description ? `${t('description_optional')}: ${task.description}` : '',
@@ -198,9 +198,9 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
   }, [canShare, task, profiles, t]);
 
-  const assignedUser = profiles.find(p => p.id === task.assignee_id);
-  const assignedByUser = profiles.find(p => p.id === task.assigned_by_id); // Find the user who assigned it
-  const closedByUser = profiles.find(p => p.id === task.closed_by_id);
+  const assignedUser = (profiles as ProfileWithEmail[]).find(p => p.id === task.assignee_id);
+  const assignedByUser = (profiles as ProfileWithEmail[]).find(p => p.id === task.assigned_by_id); // Find the user who assigned it
+  const closedByUser = (profiles as ProfileWithEmail[]).find(p => p.id === task.closed_by_id);
   const dueDateObj = task.due_date ? new Date(task.due_date) : null;
   const now = new Date();
   const isDueSoon = dueDateObj && (isToday(dueDateObj) || isTomorrow(dueDateObj) || (dueDateObj > now && dueDateObj <= addDays(now, 2))) && task.status !== 'completed' && task.status !== 'cancelled';

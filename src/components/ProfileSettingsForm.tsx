@@ -104,21 +104,21 @@ const ProfileSettingsForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <div>
-            <Label htmlFor="email">{t('email')}</Label>
-            <Input id="email" type="email" value={user?.email || ''} disabled className="bg-muted" />
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="email" className="md:text-right">{t('email')}</Label>
+            <Input id="email" type="email" value={user?.email || ''} disabled className="bg-muted md:col-span-3" />
           </div>
-          <div>
-            <Label htmlFor="firstName">{t('first_name')}</Label>
-            <Input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="firstName" className="md:text-right">{t('first_name')}</Label>
+            <Input id="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required className="md:col-span-3" />
           </div>
-          <div>
-            <Label htmlFor="lastName">{t('last_name')}</Label>
-            <Input id="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="lastName" className="md:text-right">{t('last_name')}</Label>
+            <Input id="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required className="md:col-span-3" />
           </div>
-          <div>
-            <Label htmlFor="phoneNumber">{t('phone_number_optional')}</Label>
-            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder={t('phone_number_placeholder')} />
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="phoneNumber" className="md:text-right">{t('phone_number_optional')}</Label>
+            <Input id="phoneNumber" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder={t('phone_number_placeholder')} className="md:col-span-3" />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('save_changes')}
@@ -128,13 +128,13 @@ const ProfileSettingsForm: React.FC = () => {
         <div className="mt-6 pt-6 border-t">
           <form onSubmit={handlePasswordUpdate} className="space-y-4">
             <h3 className="text-lg font-medium text-center">{t('change_password')}</h3>
-            <div>
-              <Label htmlFor="newPassword">{t('new_password')}</Label>
-              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required />
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="newPassword" className="md:text-right">{t('new_password')}</Label>
+              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required className="md:col-span-3" />
             </div>
-            <div>
-              <Label htmlFor="confirmPassword">{t('confirm_new_password')}</Label>
-              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="confirmPassword" className="md:text-right">{t('confirm_new_password')}</Label>
+              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required className="md:col-span-3" />
             </div>
             <Button type="submit" className="w-full" disabled={passwordLoading}>
               {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('update_password')}

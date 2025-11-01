@@ -13,7 +13,7 @@ interface TaskContextType {
   tasks: Task[];
   tasksByIdMap: Map<string, Task>;
   loading: boolean;
-  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
+  addTask: (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']) => Promise<boolean>;
   addTasksBulk: (newTasks: Partial<Task>[]) => Promise<void>;
   changeTaskStatus: (id: string, newStatus: Task['status']) => Promise<boolean>;
   deleteTask: (id: string) => Promise<Task | null>; // Modified to return deleted task
@@ -33,7 +33,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   
-  const { data: tasks = [], isLoading: loading, refetch: refetchTasks } = useTasksQuery();
+  const { data: tasks = [], isLoading: loading, refetch: refetchTasksQuery } = useTasksQuery();
 
   const tasksByIdMap = useMemo(() => {
     return new Map(tasks.map(task => [task.id, task]));
@@ -138,7 +138,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newTaskId;
   }, [t]);
 
-  const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['typeOfWork'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']): Promise<boolean> => {
+  const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']): Promise<boolean> => {
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return false;
@@ -621,6 +621,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return true;
   }, [tasksByIdMap, profile, user, t, queryClient]);
 
+  const refetchTasks = useCallback(async () => {
+    await refetchTasksQuery();
+  }, [refetchTasksQuery]);
+
   const contextValue = useMemo(() => ({
     tasks,
     tasksByIdMap,
@@ -633,7 +637,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     assignTask,
     deleteTaskPhoto,
     restoreTask, // Add restoreTask to context
-    refetchTasks: refetchTasks as () => Promise<void>,
+    refetchTasks,
   }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, restoreTask, refetchTasks]);
 
   return (

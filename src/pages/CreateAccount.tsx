@@ -122,8 +122,8 @@ const CreateAccount: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">{t('email')}</Label>
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="email" className="md:text-right">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -131,10 +131,11 @@ const CreateAccount: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@example.com"
                 required
+                className="md:col-span-3"
               />
             </div>
-            <div>
-              <Label htmlFor="password">{t('password')}</Label>
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="password" className="md:text-right">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -142,10 +143,11 @@ const CreateAccount: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                className="md:col-span-3"
               />
             </div>
-            <div>
-              <Label htmlFor="firstName">{t('first_name')}</Label>
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="firstName" className="md:text-right">{t('first_name')}</Label>
               <Input
                 id="firstName"
                 type="text"
@@ -153,10 +155,11 @@ const CreateAccount: React.FC = () => {
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="John"
                 required
+                className="md:col-span-3"
               />
             </div>
-            <div>
-              <Label htmlFor="lastName">{t('last_name')}</Label>
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="lastName" className="md:text-right">{t('last_name')}</Label>
               <Input
                 id="lastName"
                 type="text"
@@ -164,12 +167,13 @@ const CreateAccount: React.FC = () => {
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Doe"
                 required
+                className="md:col-span-3"
               />
             </div>
-            <div>
-              <Label htmlFor="role">{t('role')}</Label>
-              <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role}>
-                <SelectTrigger id="role" disabled={availableRoles.length === 0}>
+            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+              <Label htmlFor="role" className="md:text-right">{t('role')}</Label>
+              <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role} disabled={availableRoles.length === 0}>
+                <SelectTrigger id="role" className="md:col-span-3">
                   <SelectValue placeholder={t('select_role')} />
                 </SelectTrigger>
                 <SelectContent>

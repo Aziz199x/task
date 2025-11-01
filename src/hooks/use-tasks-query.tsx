@@ -46,7 +46,9 @@ export const useTasksQuery = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks' },
         (payload) => {
-          console.log('Real-time task change received, invalidating cache:', payload.eventType, payload.new?.id || payload.old?.id);
+          const newRecord = payload.new as Partial<Task>;
+          const oldRecord = payload.old as Partial<Task>;
+          console.log('Real-time task change received, invalidating cache:', payload.eventType, newRecord?.id || oldRecord?.id);
           // Invalidate the query cache to trigger a background refetch
           queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
         }

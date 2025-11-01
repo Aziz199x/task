@@ -10,12 +10,12 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useTasks } from '@/context/TaskContext';
 import { Task } from '@/types/task';
-import { useProfiles } from '@/hooks/use-profiles'; // To resolve assignee names
+import { useProfiles, ProfileWithEmail } from '@/hooks/use-profiles'; // To resolve assignee names, import ProfileWithEmail
 
 const ChatImportButton: React.FC = () => {
   const { t } = useTranslation();
   const { addTasksBulk } = useTasks();
-  const { profiles } = useProfiles(); // Get all profiles to match assignees
+  const { profiles } = useProfiles(); // profiles is now ProfileWithEmail[]
   const [isOpen, setIsOpen] = useState(false);
   const [chatText, setChatText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,114 @@ const ChatImportButton: React.FC = () => {
             currentTask.title = value;
           } else if (field === 'assigneeName') {
             // Attempt to find assignee ID by name
-            const matchedProfile = profiles.find(p => 
+            const matchedProfile = (profiles as ProfileWithEmail[]).find(p => 
+              `${p.first_name} ${p.last_name}`.toLowerCase() === value.toLowerCase() ||
+              p.first_name?.toLowerCase() === value.toLowerCase() ||
+              p.last_name?.toLowerCase() === value.toLowerCase()
+            );
+            currentTask.assignee_id = matchedProfile?.id || null;
+          } else if (field === 'due_date') {
+            // Basic date parsing, assumes YYYY-MM-DD or similar
+            try {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                currentTask.due_date = date.toISOString().split('T')[0];
+              }
+            } catch (e) {
+              console.warn(`Could not parse due date: ${value}`);
+            }
+          } else if (field === 'priorityText<dyad-problem-report summary="2 problems">
+<problem file="src/components/ChatImportButton.tsx" line="85" column="36" code="2339">Property 'typeOfWork' does not exist on type 'Task'.</problem>
+<problem file="src/components/ui/sidebar.tsx" line="122" column="9" code="2322">Type '{ isMobile: boolean; isClientLoaded: boolean; }' is not assignable to type 'boolean'.</problem>
+</dyad-problem-report><think>**Debugging TypeScript Issues**
+
+I'm currently focused on resolving the TypeScript errors flagged in `ChatImportButton.tsx`. Specifically, I'm working on the `Task` type and ensuring that the `typeOfWork` property is correctly defined and accessible within the component. Initial investigation suggests a potential discrepancy between the expected and actual structure of the `Task` object. I'm exploring the type definition to pinpoint the root cause of this "does not exist" error.
+
+
+**Pinpointing the Root Cause**
+
+I've homed in on the core of the TypeScript issues. It's a simple casing mismatch in `ChatImportButton.tsx` –  `typeOfWork` should be `type_of_work`. Unfortunately, I still don't have the context for `sidebar.tsx`, so the second error remains unresolved. I'll need the contents of that file to provide a solution for that issue, as it is excluded from context.
+
+
+**Resolving Casing Mismatch**
+
+I've confirmed that the issue in `ChatImportButton.tsx` stems from a simple typo. The component incorrectly references `typeOfWork` when it should reference `type_of_work`. I will fix this. Regarding the `sidebar.tsx` error, I still can't address it directly without access to the file's content. Based on the error message, it looks like a component is expecting a boolean value, but is receiving an object. I would need to modify how the `isMobile` prop is passed or how the component uses that prop, but I can only describe the likely fix.
+
+
+**Identifying Necessary Changes**
+
+I've re-examined the error in `ChatImportButton.tsx`.  The issue is indeed a casing mismatch: the code references `typeOfWork` instead of the correct `type_of_work`. This is now the priority. I still can't address the `sidebar.tsx` error directly because that file's content is excluded from context. Based on the error, I would describe a potential fix if I had that context.
+
+
+</think>You're right, let's get these last two TypeScript errors sorted out!
+
+### 1. Fixing `src/components/ChatImportButton.tsx`
+
+The error `Property 'typeOfWork' does not exist on type 'Task'` is a casing issue. The `Task` type defines `type_of_work` (snake\_case), but the code was trying to use `typeOfWork` (camelCase). I'll correct this to match the type definition.
+
+<dyad-write path="src/components/ChatImportButton.tsx" description="Correcting the casing of 'type_of_work' to match the Task type definition.">
+"use client";
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Loader2, MessageSquareText } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { useTasks } from '@/context/TaskContext';
+import { Task } from '@/types/task';
+import { useProfiles, ProfileWithEmail } from '@/hooks/use-profiles'; // To resolve assignee names, import ProfileWithEmail
+
+const ChatImportButton: React.FC = () => {
+  const { t } = useTranslation();
+  const { addTasksBulk } = useTasks();
+  const { profiles } = useProfiles(); // profiles is now ProfileWithEmail[]
+  const [isOpen, setIsOpen] = useState(false);
+  const [chatText, setChatText] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const parseChatText = (text: string): Partial<Task>[] => {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const tasks: Partial<Task>[] = [];
+    let currentTask: Partial<Task> = {};
+
+    const keywords: { [key: string]: keyof Task | 'assigneeName' | 'priorityText' | 'typeOfWorkText' | 'statusText' } = {
+      'Task:': 'title',
+      'Title:': 'title',
+      'Description:': 'description',
+      'Assignee:': 'assigneeName', // Custom key for name resolution
+      'Due Date:': 'due_date',
+      'Location:': 'location',
+      'Equipment Number:': 'equipment_number',
+      'Notification Num:': 'notification_num',
+      'Priority:': 'priorityText', // Custom key for text mapping
+      'Type of Work:': 'typeOfWorkText', // Custom key for text mapping
+      'Status:': 'statusText', // Custom key for text mapping
+    };
+
+    const resetCurrentTask = () => {
+      if (Object.keys(currentTask).length > 0 && currentTask.title && currentTask.equipment_number) {
+        tasks.push(currentTask);
+      }
+      currentTask = {};
+    };
+
+    for (const line of lines) {
+      let matched = false;
+      for (const keyword in keywords) {
+        if (line.startsWith(keyword)) {
+          const value = line.substring(keyword.length).trim();
+          const field = keywords[keyword];
+
+          if (field === 'title') {
+            // If a new title is found, push the previous task if it's valid
+            resetCurrentTask();
+            currentTask.title = value;
+          } else if (field === 'assigneeName') {
+            // Attempt to find assignee ID by name
+            const matchedProfile = (profiles as ProfileWithEmail[]).find(p => 
               `${p.first_name} ${p.last_name}`.toLowerCase() === value.toLowerCase() ||
               p.first_name?.toLowerCase() === value.toLowerCase() ||
               p.last_name?.toLowerCase() === value.toLowerCase()
@@ -82,7 +189,7 @@ const ChatImportButton: React.FC = () => {
             }
           } else if (field === 'typeOfWorkText') {
             const normalizedValue = value.replace(/\s/g, ' ').trim(); // Normalize spaces
-            const validTypes: Task['typeOfWork'][] = ['Correction Maintenance', 'Civil Work', 'Overhead Maintenance', 'Termination Maintenance', 'Replacing Equipment'];
+            const validTypes: Task['type_of_work'][] = ['Correction Maintenance', 'Civil Work', 'Overhead Maintenance', 'Termination Maintenance', 'Replacing Equipment'];
             const matchedType = validTypes.find(type => type.toLowerCase() === normalizedValue.toLowerCase());
             currentTask.type_of_work = matchedType || null;
           } else if (field === 'statusText') {

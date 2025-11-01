@@ -28,7 +28,7 @@ const TaskForm: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined); // Change to Date object
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
-  const [typeOfWork, setTypeOfWork] = useState<Task['typeOfWork'] | undefined>(undefined);
+  const [typeOfWork, setTypeOfWork] = useState<Task['type_of_work'] | undefined>(undefined);
   const [equipmentNumber, setEquipmentNumber] = useState("");
   const [notificationNum, setNotificationNum] = useState("");
   const [priority, setPriority] = useState<Task['priority']>('medium');
@@ -160,7 +160,7 @@ const TaskForm: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="typeOfWork">{t('type_of_work')}</Label>
-            <Select onValueChange={(value: Task['typeOfWork']) => setTypeOfWork(value)} value={typeOfWork || ""}>
+            <Select onValueChange={(value: Task['type_of_work']) => setTypeOfWork(value)} value={typeOfWork || ""}>
               <SelectTrigger id="typeOfWork">
                 <SelectValue placeholder={t('select_type_of_work')} />
               </SelectTrigger>

@@ -32,7 +32,8 @@ const validateLocationUrl = (url: string | null | undefined): string | null => {
   return null;
 };
 
-const validateNotificationNum = (num: string | null | undefined): string | null => {
+// Define validateNotificationNum outside the component and pass 't'
+const validateNotificationNum = (num: string | null | undefined, t: (key: string) => string): string | null => {
   if (!num || num.trim() === "") return null;
   if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notification_num_invalid_format');
   return null;
@@ -62,7 +63,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   const handleNotificationNumChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEditedTask(prev => ({...prev, notification_num: value}));
-    setNotificationNumError(validateNotificationNum(value));
+    setNotificationNumError(validateNotificationNum(value, t)); // Pass 't' here
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +85,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       return;
     }
 
-    const numError = validateNotificationNum(editedTask.notification_num);
+    const numError = validateNotificationNum(editedTask.notification_num, t); // Pass 't' here
     if (numError) {
       setNotificationNumError(numError);
       toast.error(numError);
@@ -181,7 +182,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
         <Label htmlFor="typeOfWork" className="md:text-right">{t('type_of_work')}</Label>
-        <Select onValueChange={(value: Task['typeOfWork']) => setEditedTask({...editedTask, type_of_work: value})} value={editedTask.type_of_work || ""} disabled={!canEditOrDelete}>
+        <Select onValueChange={(value: Task['type_of_work']) => setEditedTask({...editedTask, type_of_work: value})} value={editedTask.type_of_work || ""} disabled={!canEditOrDelete}>
           <SelectTrigger id="typeOfWork" className="md:col-span-3">
             <SelectValue placeholder={t('select_type_of_work')} />
           </SelectTrigger>

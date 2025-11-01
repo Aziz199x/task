@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { toast } from "sonner";
-import { useProfiles } from "@/hooks/use-profiles";
+import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import { useSearchParams } from "react-router-dom"; // Import useSearchParams
 
 interface TaskListProps {
@@ -29,7 +29,7 @@ type FilterStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'cancelled
 
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
-  const { profiles } = useProfiles();
+  const { profiles } = useProfiles(); // profiles is now ProfileWithEmail[]
   const { profile: currentUserProfile, user } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
-  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['typeOfWork'] | "all">("all");
+  const [filterTypeOfWork, setFilterTypeOfWork] = useState<Task['type_of_work'] | "all">("all");
   const [filterReminder, setFilterReminder] = useState<"all" | "overdue" | "due-soon">("all");
   const [filterPriority, setFilterPriority] = useState<Task['priority'] | "all">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set<string>());
@@ -301,7 +301,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
             <SelectItem value="all">{t('all_assignees')}</SelectItem>
             <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
-            {profiles.map((profile) => (
+            {(profiles as ProfileWithEmail[]).map((profile) => (
               <SelectItem key={profile.id} value={profile.id}>
                 {profile.first_name} {profile.last_name}
               </SelectItem>
@@ -309,7 +309,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(value: Task['typeOfWork'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
+        <Select onValueChange={(value: Task['type_of_work'] | "all") => setFilterTypeOfWork(value)} value={filterTypeOfWork}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder={t('filter_by_type_of_work')} />
           </SelectTrigger>
@@ -339,7 +339,6 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
             <SelectValue placeholder={t('filter_by_priority')} />
           </SelectTrigger>
           <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
-            <SelectItem value="all">{t('all_priorities')}</SelectItem>
             <SelectItem value="low">{t('low')}</SelectItem>
             <SelectItem value="medium">{t('medium')}</SelectItem>
             <SelectItem value="high">{t('high')}</SelectItem>

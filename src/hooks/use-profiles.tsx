@@ -66,10 +66,14 @@ export const useProfiles = () => {
     queryFn: () => fetchAllProfiles(session?.access_token),
     enabled: !!session, // Only run query if session exists
     staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
-    onError: (err) => {
-      toast.error(err.message);
-    }
   });
+
+  // Use a useEffect to handle errors and display toasts
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
