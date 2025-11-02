@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TaskPhotoGalleryProps {
   photoBeforeUrls?: string[] | null;
@@ -14,6 +16,7 @@ interface TaskPhotoGalleryProps {
 }
 
 const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, alt }) => {
+  const { t } = useTranslation();
   if (!url) {
     return (
       <div>
@@ -36,6 +39,11 @@ const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, al
           <DialogTitle>{alt}</DialogTitle>
         </DialogHeader>
         <img src={url} alt={alt} className="w-full h-auto rounded-lg" />
+        <DialogClose asChild>
+          <Button variant="secondary" className="mt-4 w-full sm:w-auto sm:self-end">
+            <X className="h-4 w-4 mr-2" /> {t('close')}
+          </Button>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );

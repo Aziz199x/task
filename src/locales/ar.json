@@ -319,5 +319,6 @@
   "deleting": "جارٍ الحذف...",
   "undo": "تراجع",
   "failed_to_restore_task": "فشل استعادة المهمة: ",
-  "task_restored_successfully": "تم استعادة المهمة '{{title}}' بنجاح!"
+  "task_restored_successfully": "تم استعادة المهمة '{{title}}' بنجاح!",
+  "close": "إغلاق"
 }
