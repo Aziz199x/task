@@ -54,7 +54,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (error) {
       console.error("[SessionProvider] Error fetching profile:", error.message);
       setProfile(null);
-      throw error; // Re-throw the error for callers to handle
+      // Do NOT throw here, as a missing profile shouldn't block the entire app if the user object exists.
+      return null; 
     } else if (data) {
       console.log("[SessionProvider] Profile fetched successfully:", data);
       setProfile(data as UserProfile);
@@ -70,62 +71,24 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] Initializing auth listener...");
 
     const initializeAuth = async () => {
-      let initialSession: Session | null = null;
-      let sessionError: any = null;
-
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        initialSession = data.session;
-        sessionError = error;
-      } catch (e: any) {
-        console.error("[SessionProvider] Error during getSession:", e.message);
-        sessionError = e;
-      }
-
-      if (!isMounted) return;
-
-      if (sessionError) {
-        console.error("[SessionProvider] Error getting initial session:", sessionError.message);
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-      } else {
-        console.log("[SessionProvider] Initial session:", initialSession);
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-
-        if (initialSession?.user) {
-          try {
-            await fetchUserProfile(initialSession.user.id);
-          } catch (e) {
-            console.error("[SessionProvider] Error fetching initial user profile:", e);
-          }
-        } else {
-          setProfile(null);
-        }
-      }
+      // Initial session check is now handled by the listener below, 
+      // but we keep the initial loading state until the first event fires.
       
-      if (isMounted) {
-        setIsLoadingInitial(false);
-        console.log("[SessionProvider] Initial loading complete.");
-      }
-
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, currentSession) => {
           if (!isMounted) return;
           console.log(`[SessionProvider] Auth state change: ${event}`, currentSession);
 
+          // Always update session and user state immediately
           setSession(currentSession);
-          setUser(currentSession?.user ?? null);
+          const newUser = currentSession?.user ?? null;
+          setUser(newUser);
 
-          if (currentSession?.user) {
-            try {
-              await fetchUserProfile(currentSession.user.id);
-            } catch (e) {
-              console.error("[SessionProvider] Error fetching user profile on auth state change:", e);
-            }
+          if (newUser) {
+            // Fetch profile immediately
+            await fetchUserProfile(newUser.id);
 
-            // If a user just signed in, sign out other sessions
+            // If a user just signed in, attempt to sign out other sessions (non-blocking)
             if (event === 'SIGNED_IN' && currentSession?.access_token) {
               console.log("[SessionProvider] User signed in, attempting to sign out other sessions.");
               try {
@@ -146,8 +109,28 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           } else {
             setProfile(null);
           }
+          
+          // Mark loading complete after the first state change is processed
+          if (isMounted && isLoadingInitial) {
+            setIsLoadingInitial(false);
+            console.log("[SessionProvider] Initial loading complete.");
+          }
         }
       );
+
+      // Manually check initial session state if the listener hasn't fired yet (rare, but safe)
+      if (isLoadingInitial) {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        if (initialSession) {
+          setSession(initialSession);
+          setUser(initialSession.user);
+          await fetchUserProfile(initialSession.user.id);
+        }
+        if (isMounted) {
+          setIsLoadingInitial(false);
+        }
+      }
+
 
       return () => {
         console.log("[SessionProvider] Unsubscribing from auth listener.");

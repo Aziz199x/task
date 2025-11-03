@@ -12,9 +12,12 @@ if (!supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: localStorage, // Explicitly use localStorage for session storage
-    persistSession: true, // Ensure session persistence is enabled
-    autoRefreshToken: true, // Automatically refresh tokens
-    detectSessionInUrl: true, // Detect session from URL (useful for redirects)
+    // Using default storage (localStorage/sessionStorage) is usually fine, 
+    // but explicitly setting it to localStorage is what you had. We keep it 
+    // to ensure persistence, which is critical for hybrid apps.
+    storage: localStorage, 
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
   },
 });
