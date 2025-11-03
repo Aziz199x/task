@@ -8,6 +8,7 @@ import { useSession } from "./SessionContext";
 import { useTranslation } from 'react-i18next';
 import { useTasksQuery } from "@/hooks/use-tasks-query";
 import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react"; // Import Loader2 for loading state
 
 interface TaskContextType {
   tasks: Task[];
@@ -29,11 +30,15 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 const TASKS_QUERY_KEY = ['tasks'];
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, profile } = useSession();
+  // Access session context first
+  const sessionContext = useSession();
+  const { user, profile, loading: sessionLoading } = sessionContext;
+  
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   
-  const { data: tasks = [], isLoading: loading, refetch: refetchTasksQuery } = useTasksQuery();
+  // Only enable the task query if the session is loaded (not initial loading)
+  const { data: tasks = [], isLoading: tasksQueryLoading, refetch: refetchTasksQuery } = useTasksQuery();
 
   const tasksByIdMap = useMemo(() => {
     return new Map(tasks.map(task => [task.id, task]));
@@ -628,7 +633,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const contextValue = useMemo(() => ({
     tasks,
     tasksByIdMap,
-    loading,
+    loading: tasksQueryLoading,
     addTask,
     addTasksBulk,
     changeTaskStatus,
@@ -638,7 +643,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteTaskPhoto,
     restoreTask, // Add restoreTask to context
     refetchTasks,
-  }), [tasks, tasksByIdMap, loading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, restoreTask, refetchTasks]);
+  }), [tasks, tasksByIdMap, tasksQueryLoading, addTask, addTasksBulk, changeTaskStatus, deleteTask, updateTask, assignTask, deleteTaskPhoto, restoreTask, refetchTasks]);
+
+  // If the session is still loading, we should not proceed with task logic or render children.
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <span className="sr-only">{t('loading')}...</span>
+      </div>
+    );
+  }
 
   return (
     <TaskContext.Provider value={contextValue}>
