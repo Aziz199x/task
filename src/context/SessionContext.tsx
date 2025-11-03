@@ -53,7 +53,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Ensure there's an active session before trying to fetch profile
     const currentSession = await supabase.auth.getSession();
     if (!currentSession.data.session) {
-      console.warn("[SessionProvider] No active session found, cannot fetch profile.");
+      console.warn("[SessionProvider] No active session found, cannot fetch profile. Setting profile to null.");
       setProfile(null);
       return null;
     }
@@ -66,6 +66,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (error) {
       console.error("[SessionProvider] Error fetching profile:", error.message);
+      toast.error(`${t('error_loading_user_profiles')} ${error.message}`); // Add toast for profile fetch error
       setProfile(null);
       return null; 
     } else if (data) {
@@ -76,7 +77,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] No profile found for user:", userId);
     setProfile(null);
     return null;
-  }, []);
+  }, [t]); // Add t to dependencies
 
   useEffect(() => {
     let isMounted = true;
@@ -136,14 +137,22 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Manually check initial session state if the listener hasn't fired yet (rare, but safe)
       if (!loadingResolvedRef.current) {
         try {
+          console.log("[SessionProvider] Performing manual initial session check...");
           const { data: { session: initialSession } } = await supabase.auth.getSession();
           if (initialSession) {
             setSession(initialSession);
             setUser(initialSession.user);
             await fetchUserProfile(initialSession.user.id);
+          } else {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
           }
         } catch (e) {
-          console.error("[SessionProvider] Failed to retrieve initial session:", e);
+          console.error("[SessionProvider] Failed to retrieve initial session manually:", e);
+          setSession(null);
+          setUser(null);
+          setProfile(null);
         } finally {
           // Ensure loading resolves even if manual check fails
           if (isMounted) {
