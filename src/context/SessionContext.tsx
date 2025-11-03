@@ -37,12 +37,16 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const { t } = useTranslation();
 
+  // Use a ref to track if loading has been resolved to prevent multiple calls
+  const loadingResolvedRef = React.useRef(false);
+
   const resolveLoading = useCallback(() => {
-    if (isLoadingInitial) {
+    if (!loadingResolvedRef.current) {
+      loadingResolvedRef.current = true;
       setIsLoadingInitial(false);
-      console.log("[SessionProvider] Initial loading resolved by failsafe or completion.");
+      console.log("[SessionProvider] Initial loading resolved.");
     }
-  }, [isLoadingInitial]);
+  }, []);
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
@@ -78,9 +82,9 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     let isMounted = true;
     console.log("[SessionProvider] Initializing auth listener...");
 
-    // Failsafe timeout
+    // Failsafe timeout: Force resolution after 5 seconds
     const timeoutId = setTimeout(() => {
-      if (isMounted && isLoadingInitial) {
+      if (isMounted) {
         console.warn("[SessionProvider] Initial load timed out after 5 seconds. Forcing resolution.");
         resolveLoading();
       }
@@ -125,14 +129,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           }
           
           // Mark loading complete after the first state change is processed
-          if (isMounted && isLoadingInitial) {
-            resolveLoading();
-          }
+          resolveLoading();
         }
       );
 
       // Manually check initial session state if the listener hasn't fired yet (rare, but safe)
-      if (isLoadingInitial) {
+      if (!loadingResolvedRef.current) {
         try {
           const { data: { session: initialSession } } = await supabase.auth.getSession();
           if (initialSession) {
@@ -142,8 +144,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           }
         } catch (e) {
           console.error("[SessionProvider] Failed to retrieve initial session:", e);
-          // If session retrieval fails, we still need to stop loading.
         } finally {
+          // Ensure loading resolves even if manual check fails
           if (isMounted) {
             resolveLoading();
           }
@@ -165,7 +167,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       clearTimeout(timeoutId);
       console.log("[SessionProvider] Component unmounted, cleaning up.");
     };
-  }, [t, fetchUserProfile, resolveLoading]); // Depend on t, fetchUserProfile, and resolveLoading
+  }, [t, fetchUserProfile, resolveLoading]);
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
