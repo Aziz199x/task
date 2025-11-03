@@ -10,10 +10,11 @@ const config: CapacitorConfig = {
     },
     // Add Status Bar configuration
     StatusBar: {
-      style: 'DEFAULT', // Let the system decide based on the theme
-      backgroundColor: '#161616', // Set a dark background for the status bar area in dark mode (or primary color)
+      style: 'DARK', // Force dark icons/text on light background, or light icons/text on dark background (DEFAULT is usually fine, but let's try DARK)
+      backgroundColor: '#161616', // Set a dark background for the status bar area
       androidBackgroundColor: '#161616',
       iosStatusBarStyles: 'light',
+      overlay: false, // Crucial: Forces the web view to start below the status bar
     },
   },
 };
