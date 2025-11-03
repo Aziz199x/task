@@ -97,7 +97,13 @@ const CreateAccount: React.FC = () => {
       });
 
       if (error) {
+        // This handles network errors or function invocation failures
         throw new Error(error.message);
+      }
+      
+      // Check for errors returned within the Edge Function's JSON response body
+      if (data && data.error) {
+        throw new Error(data.error);
       }
 
       toast.success(t('account_created_successfully', { firstName, lastName, role: t(role) }));
