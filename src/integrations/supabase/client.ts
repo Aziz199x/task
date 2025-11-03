@@ -4,17 +4,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl) {
+  console.error('VITE_SUPABASE_URL is not set!');
   throw new Error('VITE_SUPABASE_URL is not set!');
 }
 if (!supabaseAnonKey) {
+  console.error('VITE_SUPABASE_ANON_KEY is not set!');
   throw new Error('VITE_SUPABASE_ANON_KEY is not set!');
 }
 
+console.log('Supabase URL being used:', supabaseUrl); // Added for debugging
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Using default storage (localStorage/sessionStorage) is usually fine, 
-    // but explicitly setting it to localStorage is what you had. We keep it 
-    // to ensure persistence, which is critical for hybrid apps.
     storage: localStorage, 
     persistSession: true,
     autoRefreshToken: true,
