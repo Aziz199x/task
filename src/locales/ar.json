@@ -320,5 +320,13 @@
   "undo": "تراجع",
   "failed_to_restore_task": "فشل استعادة المهمة: ",
   "task_restored_successfully": "تم استعادة المهمة '{{title}}' بنجاح!",
-  "close": "إغلاق"
+  "close": "إغلاق",
+  "email_verification_required_title": "التحقق من البريد الإلكتروني مطلوب",
+  "email_verification_required_description": "يرجى التحقق من صندوق الوارد الخاص بك على {{email}} للتحقق من حسابك قبل المتابعة.",
+  "resend_verification_email": "إعادة إرسال بريد التحقق",
+  "sign_out": "تسجيل الخروج",
+  "after_verification_sign_in_again": "بعد التحقق من بريدك الإلكتروني، يرجى تسجيل الدخول مرة أخرى.",
+  "no_email_found": "لم يتم العثور على بريد إلكتروني لهذا المستخدم.",
+  "verification_email_resent": "تمت إعادة إرسال بريد التحقق بنجاح!",
+  "your_account_email": "بريدك الإلكتروني"
 }

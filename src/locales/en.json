@@ -320,5 +320,13 @@
   "undo": "Undo",
   "failed_to_restore_task": "Failed to restore task: ",
   "task_restored_successfully": "Task '{{title}}' restored successfully!",
-  "close": "Close"
+  "close": "Close",
+  "email_verification_required_title": "Email Verification Required",
+  "email_verification_required_description": "Please check your inbox at {{email}} to verify your account before proceeding.",
+  "resend_verification_email": "Resend Verification Email",
+  "sign_out": "Sign Out",
+  "after_verification_sign_in_again": "After verifying your email, please sign in again.",
+  "no_email_found": "No email found for this user.",
+  "verification_email_resent": "Verification email resent successfully!",
+  "your_account_email": "your account email"
 }

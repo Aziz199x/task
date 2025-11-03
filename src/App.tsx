@@ -13,7 +13,8 @@ import ManageUsers from "./pages/ManageUsers";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Diagnostics from "./pages/Diagnostics";
-import ProfileSettings from "./pages/ProfileSettings"; // Import new page
+import ProfileSettings from "./pages/ProfileSettings";
+import EmailVerificationRequired from "./pages/EmailVerificationRequired"; // Import new page
 import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 import { I18nextProvider } from 'react-i18next';
@@ -41,6 +42,7 @@ const App = () => (
                   </Route>
 
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/verify-email" element={<EmailVerificationRequired />} /> {/* New Route */}
 
                   <Route element={<ProtectedRoute />}>
                     <Route path="/" element={<Index />} />
@@ -49,7 +51,7 @@ const App = () => (
                     <Route path="/create-account" element={<CreateAccount />} />
                     <Route path="/manage-users" element={<ManageUsers />} />
                     <Route path="/diagnostics" element={<Diagnostics />} />
-                    <Route path="/settings" element={<ProfileSettings />} /> {/* New Route */}
+                    <Route path="/settings" element={<ProfileSettings />} />
                   </Route>
                   
                   <Route path="*" element={<NotFound />} />
