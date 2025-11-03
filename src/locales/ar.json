@@ -328,5 +328,8 @@
   "after_verification_sign_in_again": "بعد التحقق من بريدك الإلكتروني، يرجى تسجيل الدخول مرة أخرى.",
   "no_email_found": "لم يتم العثور على بريد إلكتروني لهذا المستخدم.",
   "verification_email_resent": "تمت إعادة إرسال بريد التحقق بنجاح!",
-  "your_account_email": "بريدك الإلكتروني"
+  "your_account_email": "بريدك الإلكتروني",
+  "refresh_data": "تحديث البيانات",
+  "refreshing_data": "جارٍ تحديث البيانات...",
+  "data_refreshed_successfully": "تم تحديث البيانات بنجاح!"
 }

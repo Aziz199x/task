@@ -328,5 +328,8 @@
   "after_verification_sign_in_again": "After verifying your email, please sign in again.",
   "no_email_found": "No email found for this user.",
   "verification_email_resent": "Verification email resent successfully!",
-  "your_account_email": "your account email"
+  "your_account_email": "your account email",
+  "refresh_data": "Refresh Data",
+  "refreshing_data": "Refreshing data...",
+  "data_refreshed_successfully": "Data refreshed successfully!"
 }

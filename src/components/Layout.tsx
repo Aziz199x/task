@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings, User } from "lucide-react";
+import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings, User, RefreshCw } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import UserTaskSummaryBar from "./UserTaskSummaryBar";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import useIdleTimeout from "@/hooks/use-idle-timeout";
 import { toast } from "sonner";
+import { useTasks } from "@/context/TaskContext"; // Import useTasks
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ const FOUR_HOURS_IN_SECONDS = 4 * 60 * 60;
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { session, user, profile, signOut } = useSession();
+  const { refetchTasks, loading: tasksLoading } = useTasks(); // Use refetchTasks and tasksLoading
   const { t } = useTranslation();
   const location = useLocation();
 
@@ -29,6 +31,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleSignOut = () => {
     toast.success(t('signed_out_successfully'));
     signOut();
+  };
+
+  const handleRefresh = async () => {
+    toast.info(t('refreshing_data'));
+    await refetchTasks();
+    toast.success(t('data_refreshed_successfully'));
   };
 
   const allowedToCreateAccounts = profile && ['admin', 'manager', 'supervisor'].includes(profile.role);
@@ -70,6 +78,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               {/* Navigation and Utility Buttons */}
               <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
+                {/* Manual Refresh Button */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleRefresh}
+                  disabled={tasksLoading}
+                  className="text-primary-foreground hover:bg-primary-foreground/10"
+                  title={t('refresh_data')}
+                >
+                  <RefreshCw className={`h-4 w-4 ${tasksLoading ? 'animate-spin' : ''}`} />
+                </Button>
+
                 <Link to="/">
                   <Button 
                     variant="ghost" 
