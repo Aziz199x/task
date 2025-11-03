@@ -28,12 +28,21 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
+const INITIAL_LOAD_TIMEOUT_MS = 5000; // 5 seconds failsafe
+
 export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const { t } = useTranslation();
+
+  const resolveLoading = useCallback(() => {
+    if (isLoadingInitial) {
+      setIsLoadingInitial(false);
+      console.log("[SessionProvider] Initial loading resolved by failsafe or completion.");
+    }
+  }, [isLoadingInitial]);
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
@@ -54,7 +63,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (error) {
       console.error("[SessionProvider] Error fetching profile:", error.message);
       setProfile(null);
-      // Do NOT throw here, as a missing profile shouldn't block the entire app if the user object exists.
       return null; 
     } else if (data) {
       console.log("[SessionProvider] Profile fetched successfully:", data);
@@ -69,6 +77,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     let isMounted = true;
     console.log("[SessionProvider] Initializing auth listener...");
+
+    // Failsafe timeout
+    const timeoutId = setTimeout(() => {
+      if (isMounted && isLoadingInitial) {
+        console.warn("[SessionProvider] Initial load timed out after 5 seconds. Forcing resolution.");
+        resolveLoading();
+      }
+    }, INITIAL_LOAD_TIMEOUT_MS);
 
     const initializeAuth = async () => {
       
@@ -110,8 +126,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           
           // Mark loading complete after the first state change is processed
           if (isMounted && isLoadingInitial) {
-            setIsLoadingInitial(false);
-            console.log("[SessionProvider] Initial loading complete.");
+            resolveLoading();
           }
         }
       );
@@ -130,14 +145,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           // If session retrieval fails, we still need to stop loading.
         } finally {
           if (isMounted) {
-            setIsLoadingInitial(false);
-            console.log("[SessionProvider] Initial loading complete (via manual check).");
+            resolveLoading();
           }
         }
       }
 
 
       return () => {
+        clearTimeout(timeoutId);
         console.log("[SessionProvider] Unsubscribing from auth listener.");
         authListener.subscription.unsubscribe();
       };
@@ -147,9 +162,10 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
       console.log("[SessionProvider] Component unmounted, cleaning up.");
     };
-  }, [t, fetchUserProfile]); // Depend on t and fetchUserProfile
+  }, [t, fetchUserProfile, resolveLoading]); // Depend on t, fetchUserProfile, and resolveLoading
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
