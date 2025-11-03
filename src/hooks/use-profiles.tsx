@@ -65,8 +65,8 @@ export const useProfiles = () => {
     queryKey: PROFILES_QUERY_KEY,
     queryFn: () => fetchAllProfiles(session?.access_token),
     enabled: !!session, // Only run query if session exists
-    staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
-    refetchInterval: 1000 * 30, // Fallback polling every 30 seconds for native apps
+    staleTime: 1000 * 60 * 1, // Reduced stale time to 1 minute
+    refetchInterval: 1000 * 30, // Polling every 30 seconds
   });
 
   // Use a useEffect to handle errors and display toasts

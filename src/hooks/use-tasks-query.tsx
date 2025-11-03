@@ -28,9 +28,9 @@ export const useTasksQuery = () => {
     queryKey: TASKS_QUERY_KEY,
     queryFn: fetchAllTasks,
     enabled: !!user,
-    staleTime: 1000 * 60 * 1, // 1 minute stale time
-    refetchOnWindowFocus: true, // Refetch when app comes back into focus
-    refetchInterval: 1000 * 30, // Fallback polling every 30 seconds for native apps
+    staleTime: 1000 * 10, // Reduce stale time to 10 seconds
+    refetchOnWindowFocus: true,
+    refetchInterval: 1000 * 15, // Increase polling frequency to every 15 seconds
   });
 
   // Real-time subscription setup
