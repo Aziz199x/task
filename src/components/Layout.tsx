@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react"; // Import useState
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { LogOut, LayoutDashboard, ListTodo, UserPlus, Settings, User, RefreshCw, Menu } from "lucide-react";
@@ -12,8 +12,8 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import useIdleTimeout from "@/hooks/use-idle-timeout";
 import { toast } from "sonner";
 import { useTasks } from "@/context/TaskContext";
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,7 +26,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { refetchTasks, loading: tasksLoading } = useTasks();
   const { t } = useTranslation();
   const location = useLocation();
-  const { isMobile } = useIsMobile(); // Use the hook
+  const { isMobile } = useIsMobile();
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile sheet
 
   // Sign out user after 4 hours of inactivity
   useIdleTimeout(signOut, FOUR_HOURS_IN_SECONDS);
@@ -48,11 +49,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
 
   const NavLink: React.FC<{ to: string; icon: React.ReactNode; label: string }> = ({ to, icon, label }) => (
-    <Link to={to} className="w-full">
+    <Link to={to} className="w-full" onClick={() => isMobile && setIsSheetOpen(false)}> {/* Close sheet on click if mobile */}
       <Button 
         variant={isActive(to) ? "secondary" : "ghost"} 
         className="w-full justify-start"
-        onClick={isMobile ? () => {} : undefined} // Close sheet on click if mobile
       >
         {icon} <span className="ml-2">{label}</span>
       </Button>
@@ -136,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 
   const MobileSheet = (
-    <Sheet>
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}> {/* Control sheet state */}
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
           <Menu className="h-5 w-5" />
