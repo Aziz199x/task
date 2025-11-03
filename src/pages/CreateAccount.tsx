@@ -114,7 +114,17 @@ const CreateAccount: React.FC = () => {
       setRole(availableRoles.length > 0 ? availableRoles[0] : "technician"); // Reset to a valid default
     } catch (error: any) {
       console.error("Error creating account:", error.message);
-      toast.error(`${t('failed_to_create_account')} ${error.message}`);
+      // Attempt to parse JSON error message if it looks like one
+      let errorMessage = error.message;
+      try {
+        const errorObj = JSON.parse(error.message);
+        if (errorObj.error) {
+          errorMessage = errorObj.error;
+        }
+      } catch (e) {
+        // Ignore if not JSON
+      }
+      toast.error(`${t('failed_to_create_account')} ${errorMessage}`);
     } finally {
       setLoading(false);
     }
