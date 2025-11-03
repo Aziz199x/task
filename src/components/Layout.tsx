@@ -38,8 +38,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-50 pt-[max(1rem,env(safe-area-inset-top))]">
-        <div className="container mx-auto flex flex-wrap justify-between items-center gap-4 pb-[env(safe-area-inset-bottom)]">
+      <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
+        <div className="container mx-auto flex flex-wrap justify-between items-center gap-4 py-4">
           {/* App Logo and Title (Always visible) */}
           <div className="flex items-center gap-4 flex-shrink-0">
             {/* Logo for Light Mode */}
@@ -136,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
       {session && (
-        <div className="sticky top-[calc(4.25rem+env(safe-area-inset-top))] z-40"> {/* Adjust for header height and safe area */}
+        <div className="sticky top-[calc(4.25rem+env(safe-area-inset-top))] z-40">
           <UserTaskSummaryBar />
         </div>
       )}
