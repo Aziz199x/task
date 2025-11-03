@@ -14,7 +14,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Diagnostics from "./pages/Diagnostics";
 import ProfileSettings from "./pages/ProfileSettings";
-import EmailVerificationRequired from "./pages/EmailVerificationRequired"; // Import new page
+import EmailVerificationRequired from "./pages/EmailVerificationRequired";
 import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 import { I18nextProvider } from 'react-i18next';
@@ -22,12 +22,14 @@ import i18n from './i18n';
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
+import StatusBarManager from "./components/StatusBarManager"; // Import StatusBarManager
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <StatusBarManager /> {/* Place the manager here to access theme context */}
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -42,7 +44,7 @@ const App = () => (
                   </Route>
 
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<EmailVerificationRequired />} /> {/* New Route */}
+                  <Route path="/verify-email" element={<EmailVerificationRequired />} />
 
                   <Route element={<ProtectedRoute />}>
                     <Route path="/" element={<Index />} />
