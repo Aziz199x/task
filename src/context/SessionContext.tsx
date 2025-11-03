@@ -71,8 +71,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] Initializing auth listener...");
 
     const initializeAuth = async () => {
-      // Initial session check is now handled by the listener below, 
-      // but we keep the initial loading state until the first event fires.
       
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, currentSession) => {
@@ -120,14 +118,21 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       // Manually check initial session state if the listener hasn't fired yet (rare, but safe)
       if (isLoadingInitial) {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        if (initialSession) {
-          setSession(initialSession);
-          setUser(initialSession.user);
-          await fetchUserProfile(initialSession.user.id);
-        }
-        if (isMounted) {
-          setIsLoadingInitial(false);
+        try {
+          const { data: { session: initialSession } } = await supabase.auth.getSession();
+          if (initialSession) {
+            setSession(initialSession);
+            setUser(initialSession.user);
+            await fetchUserProfile(initialSession.user.id);
+          }
+        } catch (e) {
+          console.error("[SessionProvider] Failed to retrieve initial session:", e);
+          // If session retrieval fails, we still need to stop loading.
+        } finally {
+          if (isMounted) {
+            setIsLoadingInitial(false);
+            console.log("[SessionProvider] Initial loading complete (via manual check).");
+          }
         }
       }
 
