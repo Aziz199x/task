@@ -97,7 +97,7 @@
 
   body {
     @apply bg-background text-foreground;
-    padding-top: env(safe-area-inset-top);
+    /* Removed padding-top here, handled by header */
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
