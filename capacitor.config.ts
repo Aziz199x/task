@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     },
     // Add Status Bar configuration
     StatusBar: {
-      style: 'DARK', // Force dark icons/text on light background, or light icons/text on dark background (DEFAULT is usually fine, but let's try DARK)
+      style: 'LIGHT', // Changed from DARK to LIGHT: This forces white icons/text on Android/iOS
       backgroundColor: '#161616', // Set a dark background for the status bar area
       androidBackgroundColor: '#161616',
       iosStatusBarStyles: 'light',
