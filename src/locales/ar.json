@@ -331,5 +331,8 @@
   "your_account_email": "بريدك الإلكتروني",
   "refresh_data": "تحديث البيانات",
   "refreshing_data": "جارٍ تحديث البيانات...",
-  "data_refreshed_successfully": "تم تحديث البيانات بنجاح!"
+  "data_refreshed_successfully": "تم تحديث البيانات بنجاح!",
+  "profile_not_found_contact_admin": "تعذر تحميل ملفك الشخصي. يرجى الاتصال بالمسؤول.",
+  "profile_error": "خطأ في الملف الشخصي",
+  "profile_not_found_short": "لم يتم العثور على الملف الشخصي."
 }

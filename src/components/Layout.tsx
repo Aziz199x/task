@@ -154,6 +154,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <p className="text-sm text-muted-foreground capitalize">{t(profile.role)}</p>
             </div>
           )}
+          {!profile && user && ( // Added check for missing profile
+            <div className="pb-4 border-b text-destructive">
+              <p className="font-medium">{t('error_loading_user_profiles')}</p>
+              <p className="text-sm text-muted-foreground">{t('profile_not_found_contact_admin')}</p>
+            </div>
+          )}
 
           {/* Navigation Links */}
           <nav className="space-y-1">
@@ -223,6 +229,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="text-sm text-right flex-shrink-0 min-w-[100px]">
                   <p className="font-medium truncate">{profile.first_name} {profile.last_name || user?.email}</p>
                   <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
+                </div>
+              )}
+              {!profile && user && ( // Added check for missing profile
+                <div className="text-sm text-right flex-shrink-0 min-w-[100px] text-destructive">
+                  <p className="font-medium">{t('profile_error')}</p>
+                  <p className="text-xs opacity-80">{t('profile_not_found_short')}</p>
                 </div>
               )}
               {DesktopNav}
