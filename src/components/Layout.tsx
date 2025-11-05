@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionContext";
-import { usePathname } from "next/navigation";
+import { useLocation } from "react-router-dom"; // Changed from 'next/navigation'
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
@@ -14,7 +14,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
-  const pathname = usePathname();
+  const location = useLocation(); // Changed from usePathname
   const { t } = useTranslation();
   const { theme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,10 +26,10 @@ export default function Layout({ children }: LayoutProps) {
   // Close sidebar on route change
   useEffect(() => {
     setIsSidebarOpen(false);
-  }, [pathname]);
+  }, [location.pathname]); // Use location.pathname
 
   // Determine if the current path requires authentication
-  const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password'].includes(pathname);
+  const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname); // Use location.pathname
 
   // If session is loading or auth is required but no session, show loading or redirect
   if (loading) {

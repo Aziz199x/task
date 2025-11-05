@@ -335,5 +335,9 @@
   "profile_not_found_contact_admin": "Your profile could not be loaded. Please contact an administrator.",
   "profile_error": "Profile Error",
   "profile_not_found_short": "Profile not found.",
-  "failed_to_create_profile_fallback": "Failed to create a fallback profile:"
+  "failed_to_create_profile_fallback": "Failed to create a fallback profile:",
+  "home": "Home",
+  "diagnostics": "Diagnostics",
+  "toggle_sidebar": "Toggle Sidebar",
+  "close_sidebar": "Close Sidebar"
 }

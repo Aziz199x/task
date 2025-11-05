@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom'; // Changed from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -23,11 +23,11 @@ interface NavbarProps {
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const { user, profile, signOut } = useSession();
   const { t } = useTranslation();
-  const router = useRouter();
+  const navigate = useNavigate(); // Changed from useRouter
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/login');
+    navigate('/login'); // Use navigate for redirection
   };
 
   return (
@@ -76,7 +76,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/settings')}> {/* Use navigate for redirection */}
                 {t('profile_settings')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut}>

@@ -335,5 +335,9 @@
   "profile_not_found_contact_admin": "تعذر تحميل ملفك الشخصي. يرجى الاتصال بالمسؤول.",
   "profile_error": "خطأ في الملف الشخصي",
   "profile_not_found_short": "لم يتم العثور على الملف الشخصي.",
-  "failed_to_create_profile_fallback": "فشل في إنشاء ملف شخصي احتياطي:"
+  "failed_to_create_profile_fallback": "فشل في إنشاء ملف شخصي احتياطي:",
+  "home": "الرئيسية",
+  "diagnostics": "التشخيصات",
+  "toggle_sidebar": "تبديل الشريط الجانبي",
+  "close_sidebar": "إغلاق الشريط الجانبي"
 }
