@@ -67,7 +67,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         size="icon" 
         onClick={handleRefresh}
         disabled={tasksLoading}
-        className="text-primary-foreground hover:bg-primary-foreground/10"
         title={t('refresh_data')}
       >
         <RefreshCw className={`h-4 w-4 ${tasksLoading ? 'animate-spin' : ''}`} />
@@ -77,7 +76,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className={isActive('/') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+          className={isActive('/') ? "bg-secondary" : ""}
           title={t('task_list')}
         >
           <ListTodo className="h-4 w-4" />
@@ -87,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className={isActive('/dashboard') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+          className={isActive('/dashboard') ? "bg-secondary" : ""}
           title={t('dashboard')}
         >
           <LayoutDashboard className="h-4 w-4" />
@@ -98,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className={isActive('/create-account') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+            className={isActive('/create-account') ? "bg-secondary" : ""}
             title={t('create_new_user_account')}
         >
             <UserPlus className="h-4 w-4" />
@@ -110,7 +109,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className={isActive('/manage-users') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+            className={isActive('/manage-users') ? "bg-secondary" : ""}
             title={t('manage_user_roles')}
           >
             <Settings className="h-4 w-4" />
@@ -121,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className={isActive('/settings') ? "bg-primary-foreground text-primary" : "text-primary-foreground hover:bg-primary-foreground/10"}
+          className={isActive('/settings') ? "bg-secondary" : ""}
           title={t('settings')}
         >
           <User className="h-4 w-4" />
@@ -138,7 +137,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const MobileSheet = (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}> {/* Control sheet state */}
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+        <Button variant="ghost" size="icon">
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
@@ -203,7 +202,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground p-4 shadow-md sticky top-0 z-50 pt-[max(1rem,env(safe-area-inset-top))]">
+      <header className="bg-background text-foreground p-4 shadow-md sticky top-0 z-50 pt-[max(1rem,env(safe-area-inset-top))] border-b">
         <div className="container mx-auto flex justify-between items-center gap-4">
           {/* Left Side: Logo and Title */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -228,13 +227,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {profile && (
                 <div className="text-sm text-right flex-shrink-0 min-w-[100px]">
                   <p className="font-medium truncate">{profile.first_name} {profile.last_name || user?.email}</p>
-                  <p className="text-xs opacity-80 capitalize">{t(profile.role)}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{t(profile.role)}</p>
                 </div>
               )}
               {!profile && user && ( // Added check for missing profile
                 <div className="text-sm text-right flex-shrink-0 min-w-[100px] text-destructive">
                   <p className="font-medium">{t('profile_error')}</p>
-                  <p className="text-xs opacity-80">{t('profile_not_found_short')}</p>
+                  <p className="text-xs text-muted-foreground">{t('profile_not_found_short')}</p>
                 </div>
               )}
               {DesktopNav}
@@ -249,7 +248,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 size="icon" 
                 onClick={handleRefresh}
                 disabled={tasksLoading}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
                 title={t('refresh_data')}
               >
                 <RefreshCw className={`h-4 w-4 ${tasksLoading ? 'animate-spin' : ''}`} />
