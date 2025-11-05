@@ -30,7 +30,7 @@ export const useTasksQuery = () => {
     enabled: !!user,
     staleTime: 1000 * 10, // Keep stale time at 10 seconds
     refetchOnWindowFocus: true,
-    refetchInterval: 1000 * 1, // Set polling frequency to 1 second
+    refetchInterval: 1000 * 5, // Set polling frequency to 5 seconds
   });
 
   // Real-time subscription setup
