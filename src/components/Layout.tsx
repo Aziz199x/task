@@ -49,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
     )}>
       {session && <Navbar />}
       {/* Render persistent sidebar only on desktop (not mobile) */}
-      {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} toggleSidebar={() => {}} />} 
+      {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       <main className={cn(
         "flex-1 flex flex-col",
         // Apply left margin for sidebar on large screens, and top padding for fixed navbar + safe area
