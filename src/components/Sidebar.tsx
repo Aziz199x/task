@@ -15,15 +15,21 @@ import { useTheme } from 'next-themes';
 
 interface SidebarProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void; // Changed prop name and type
+  setIsOpen?: (isOpen: boolean) => void; // Made optional
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => { // Destructure setIsOpen
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { profile, signOut } = useSession();
   const { t } = useTranslation();
   const location = useLocation();
   const { refetchTasks } = useTasks();
   const { theme } = useTheme();
+
+  const handleClose = () => {
+    if (setIsOpen) {
+      setIsOpen(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -91,11 +97,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => { // Destruct
       )}
     >
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
-        <Link to="/" className="flex items-center gap-2 font-semibold" onClick={() => setIsOpen(false)}> {/* Call setIsOpen(false) */}
+        <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsOpen(false)}> {/* Call setIsOpen(false) */}
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={handleClose}>
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
@@ -113,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => { // Destruct
                       "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                       isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground"
                     )}
-                    onClick={() => setIsOpen(false)} // Call setIsOpen(false)
+                    onClick={handleClose}
                   >
                     <item.icon className="h-4 w-4" />
                     {item.name}
