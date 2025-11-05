@@ -52,8 +52,10 @@ export default function Layout({ children }: LayoutProps) {
       {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       <main className={cn(
         "flex-1 flex flex-col",
-        // Apply left margin for sidebar on large screens, and top padding for fixed navbar + safe area
-        session && isClientLoaded && !isMobile ? "lg:ml-64 pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]" 
+        // Apply top padding if session exists (to clear fixed Navbar)
+        session ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
+        // Apply left margin only on large screens where the sidebar is visible
+        "lg:ml-64" 
       )}>
         {children}
       </main>
