@@ -36,7 +36,7 @@ export default function Navbar() {
   const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png';
 
   return (
-    <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40">
+    <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:hidden">
       <div className="flex items-center">
         {/* Mobile sidebar toggle - Only render if it's mobile and client is loaded */}
         {isClientLoaded && isMobile && (

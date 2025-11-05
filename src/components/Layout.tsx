@@ -53,13 +53,15 @@ export default function Layout({ children }: LayoutProps) {
       {/* Navbar is only rendered on mobile (handled by isNavbarVisible logic) */}
       {isNavbarVisible && <Navbar />}
       
-      {/* Sidebar is now ONLY rendered inside the Sheet component in Navbar.tsx */}
+      {/* Render persistent sidebar only on desktop (lg breakpoint and above) */}
+      {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       
       <main className={cn(
         "flex-1 flex flex-col",
-        // Apply top padding if session exists (to clear fixed Navbar)
-        session ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
-        // Remove lg:ml-64 margin
+        // Apply top padding if Navbar is visible (on mobile)
+        isNavbarVisible ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
+        // Apply left margin only on large screens where the sidebar is visible
+        "lg:ml-64" 
       )}>
         {children}
       </main>

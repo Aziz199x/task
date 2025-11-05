@@ -92,9 +92,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <aside
       className={cn(
-        // Removed lg:translate-x-0 to ensure it stays hidden on desktop
         "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        isOpen ? 'translate-x-0' : '-translate-x-full',
+        "lg:translate-x-0" // Re-enable persistent visibility on large screens
       )}
     >
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
@@ -102,8 +102,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        {/* Removed lg:hidden from the close button as the entire sidebar is now mobile-only */}
-        <Button variant="ghost" size="icon" onClick={handleClose}>
+        {/* Hide close button on desktop */}
+        <Button variant="ghost" size="icon" onClick={handleClose} className="lg:hidden">
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
