@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">jade-lobster-sprint</string>
-    <string name="title_activity_main">jade-lobster-sprint</string>
-    <string name="package_name">com.example.jadelobstersprint</string>
-    <string name="custom_url_scheme">com.example.jadelobstersprint</string>
+    <string name="app_name">AbuMiral</string>
+    <string name="title_activity_main">AbuMiral</string>
+    <string name="package_name">com.abumiral.workflow</string>
+    <string name="custom_url_scheme">com.abumiral.workflow</string>
 </resources>

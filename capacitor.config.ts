@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.jadelobstersprint',
-  appName: 'jade-lobster-sprint',
+  appId: 'com.abumiral.workflow', // Changed app ID
+  appName: 'AbuMiral', // Changed app name
   webDir: 'dist',
   plugins: {
     SplashScreen: {
