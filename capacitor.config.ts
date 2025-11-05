@@ -8,14 +8,9 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
     },
-    // Add Status Bar configuration
-    StatusBar: {
-      style: 'LIGHT', // Changed from DARK to LIGHT: This forces white icons/text on Android/iOS
-      backgroundColor: '#161616', // Set a dark background for the status bar area
-      androidBackgroundColor: '#161616',
-      iosStatusBarStyles: 'light',
-      overlay: false, // Crucial: Forces the web view to start below the status bar
-    },
+    // Removed explicit StatusBar configuration here.
+    // The StatusBarManager component in src/components/StatusBarManager.tsx
+    // will now dynamically control the status bar style based on the app's theme.
   },
 };
 
