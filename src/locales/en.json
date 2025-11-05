@@ -334,5 +334,6 @@
   "data_refreshed_successfully": "Data refreshed successfully!",
   "profile_not_found_contact_admin": "Your profile could not be loaded. Please contact an administrator.",
   "profile_error": "Profile Error",
-  "profile_not_found_short": "Profile not found."
+  "profile_not_found_short": "Profile not found.",
+  "failed_to_create_profile_fallback": "Failed to create a fallback profile:"
 }

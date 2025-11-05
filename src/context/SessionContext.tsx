@@ -48,7 +48,33 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  // New function to create a profile if one is missing
+  const createProfileForUser = useCallback(async (user: User): Promise<UserProfile | null> => {
+    console.log(`[SessionProvider] Attempting to create profile for new/missing user: ${user.id}`);
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        first_name: user.user_metadata?.first_name || null,
+        last_name: user.user_metadata?.last_name || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
+        role: (user.user_metadata?.role as UserProfile['role']) || 'technician', // Default role
+        updated_at: new Date().toISOString(),
+        phone_number: user.user_metadata?.phone_number || null,
+      });
+
+    if (insertError) {
+      console.error("[SessionProvider] Error creating profile:", insertError.message);
+      toast.error(`${t('failed_to_create_profile_fallback')} ${insertError.message}`);
+      return null;
+    }
+    console.log("[SessionProvider] Profile created successfully via fallback.");
+    // After creating, try to fetch it again to get the full object
+    // This recursive call should now succeed as the profile exists
+    return fetchUserProfile(user.id); 
+  }, [t]);
+
+  const fetchUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
     // Ensure there's an active session before trying to fetch profile
     const currentSession = await supabase.auth.getSession();
@@ -65,19 +91,33 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       .single();
 
     if (error) {
-      console.error("[SessionProvider] Error fetching profile:", error.message);
-      toast.error(`${t('error_loading_user_profiles')} ${error.message}`); // Add toast for profile fetch error
-      setProfile(null);
-      return null; 
+      // Check if the error is specifically 'PGRST116' (no rows found for single())
+      if (error.code === 'PGRST116') {
+        console.warn(`[SessionProvider] Profile not found for user ${userId}. Attempting to create one.`);
+        // Attempt to create a profile for this user
+        const createdProfile = await createProfileForUser(currentSession.data.session.user);
+        if (createdProfile) {
+          setProfile(createdProfile);
+          return createdProfile;
+        }
+        // If creation also fails, then set profile to null
+        setProfile(null);
+        return null;
+      } else {
+        console.error("[SessionProvider] Error fetching profile:", error.message);
+        toast.error(`${t('error_loading_user_profiles')} ${error.message}`); // Add toast for profile fetch error
+        setProfile(null);
+        return null;
+      }
     } else if (data) {
       console.log("[SessionProvider] Profile fetched successfully:", data);
       setProfile(data as UserProfile);
       return data as UserProfile;
     }
-    console.log("[SessionProvider] No profile found for user:", userId);
+    console.log("[SessionProvider] No profile found for user (unexpected path):", userId);
     setProfile(null);
     return null;
-  }, [t]); // Add t to dependencies
+  }, [t, createProfileForUser]); // Add createProfileForUser to dependencies
 
   useEffect(() => {
     let isMounted = true;
