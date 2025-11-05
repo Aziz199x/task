@@ -402,9 +402,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteTaskPhoto = useCallback(async (photoUrl: string) => {
     try {
-      const urlParts = photoUrl.split('/task_photos/');
-      if (urlParts.length < 2) return;
-      const filePath = urlParts[1];
+      // Extract the file path from the URL
+      const url = new URL(photoUrl);
+      const pathParts = url.pathname.split('/task_photos/');
+      if (pathParts.length < 2) return;
+      
+      const filePath = pathParts[1];
       const { error } = await supabase.storage.from('task_photos').remove([filePath]);
       if (error) toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
     } catch (error: any) {
@@ -444,6 +447,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, previousTasks.filter(task => task.id !== id));
     }
 
+    // Delete all photos associated with the task
     const allPhotos = [
       ...(taskToDelete.photo_before_urls || []),
       ...(taskToDelete.photo_after_urls || []),

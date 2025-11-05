@@ -55,6 +55,7 @@ const MultiPhotoUploader: React.FC<MultiPhotoUploaderProps> = ({ label, taskId, 
       setUploadProgress(100);
       if (uploadError) throw uploadError;
 
+      // Get the public URL for the uploaded file
       const { data: publicUrlData } = supabase.storage.from('task_photos').getPublicUrl(filePath);
       if (publicUrlData.publicUrl) {
         onUploadSuccess(publicUrlData.publicUrl);

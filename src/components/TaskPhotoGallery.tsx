@@ -30,7 +30,20 @@ const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, al
     <Dialog>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
-          <img src={url} alt={alt} className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity" />
+          <img 
+            src={url} 
+            alt={alt} 
+            className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity" 
+            onError={(e) => {
+              // If the image fails to load, try to get a new signed URL
+              const target = e.target as HTMLImageElement;
+              if (target.dataset.retry !== 'true') {
+                target.dataset.retry = 'true';
+                // This will trigger a re-render with updated URLs
+                window.dispatchEvent(new CustomEvent('refresh-photo-urls'));
+              }
+            }}
+          />
           <p className="text-xs text-center text-muted-foreground mt-1">{alt}</p>
         </div>
       </DialogTrigger>
@@ -38,7 +51,18 @@ const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, al
         <DialogHeader>
           <DialogTitle>{alt}</DialogTitle>
         </DialogHeader>
-        <img src={url} alt={alt} className="w-full h-auto rounded-lg" />
+        <img 
+          src={url} 
+          alt={alt} 
+          className="w-full h-auto rounded-lg" 
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (target.dataset.retry !== 'true') {
+              target.dataset.retry = 'true';
+              window.dispatchEvent(new CustomEvent('refresh-photo-urls'));
+            }
+          }}
+        />
         <DialogClose asChild>
           <Button variant="secondary" className="mt-4 w-full sm:w-auto sm:self-end">
             <X className="h-4 w-4 mr-2" /> {t('close')}
@@ -53,68 +77,75 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrls, ph
   const { t } = useTranslation();
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    const fetchSignedUrls = async () => {
-      setLoading(true);
-      const urlsToFetch: { originalUrl: string; path: string }[] = [];
+  const fetchSignedUrls = async () => {
+    setLoading(true);
+    const urlsToFetch: { originalUrl: string; path: string }[] = [];
 
-      const processUrl = (url: string) => {
-        try {
-          const urlObj = new URL(url);
-          const pathParts = urlObj.pathname.split('/task_photos/');
-          if (pathParts.length > 1) {
-            urlsToFetch.push({ originalUrl: url, path: pathParts[1] });
-          }
-        } catch (e) {
-          console.error("Invalid URL stored in database:", url);
-        }
-      };
-
-      (photoBeforeUrls || []).forEach(processUrl);
-      (photoAfterUrls || []).forEach(processUrl);
-      if (photoPermitUrl) processUrl(photoPermitUrl);
-
-      if (urlsToFetch.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      const filePaths = urlsToFetch.map(item => item.path);
-
+    const processUrl = (url: string) => {
       try {
-        const { data, error } = await supabase.functions.invoke('get-signed-urls', {
-          body: { filePaths },
-        });
-
-        if (error) throw new Error(error.message);
-        if (!data) throw new Error("The security function returned no data.");
-
-        const newSignedUrls: Record<string, string> = {};
-        data.forEach((signed: { signedUrl: string; path: string; error: string | null }) => {
-          if (signed.error) {
-            console.error(`Error generating signed URL for ${signed.path}:`, signed.error);
-            return;
-          }
-          const originalItem = urlsToFetch.find(item => item.path === signed.path);
-          if (originalItem) {
-            newSignedUrls[originalItem.originalUrl] = signed.signedUrl;
-          }
-        });
-        setSignedUrls(newSignedUrls);
-
-      } catch (error: any) {
-        console.error("Error fetching signed URLs:", error);
-        toast.error(`Failed to get secure photo links: ${error.message}`);
-      } finally {
-        setLoading(false);
+        // Extract the file path from the Supabase storage URL
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/task_photos/');
+        if (pathParts.length > 1) {
+          urlsToFetch.push({ originalUrl: url, path: pathParts[1] });
+        }
+      } catch (e) {
+        console.error("Invalid URL stored in database:", url);
       }
     };
 
-    fetchSignedUrls();
-  }, [photoBeforeUrls, photoAfterUrls, photoPermitUrl]);
+    (photoBeforeUrls || []).forEach(processUrl);
+    (photoAfterUrls || []).forEach(processUrl);
+    if (photoPermitUrl) processUrl(photoPermitUrl);
 
-  const hasPhotos = (photoBeforeUrls && photoBeforeUrls.length > 0) || (photoAfterUrls && photoAfterUrls.length > 0) || photoPermitUrl;
+    if (urlsToFetch.length === 0) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Get signed URLs for all photos
+      const filePaths = urlsToFetch.map(item => item.path);
+      const { data, error } = await supabase.storage
+        .from('task_photos')
+        .createSignedUrls(filePaths, 3600); // 1 hour expiry
+
+      if (error) throw new Error(error.message);
+
+      const newSignedUrls: Record<string, string> = {};
+      data.forEach((signedUrlData: { path: string; signedUrl: string }) => {
+        const originalItem = urlsToFetch.find(item => item.path === signedUrlData.path);
+        if (originalItem) {
+          newSignedUrls[originalItem.originalUrl] = signedUrlData.signedUrl;
+        }
+      });
+      
+      setSignedUrls(newSignedUrls);
+    } catch (error: any) {
+      console.error("Error fetching signed URLs:", error);
+      toast.error(`Failed to load photos: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSignedUrls();
+    
+    // Listen for refresh events (when an image fails to load)
+    const handleRefresh = () => {
+      setRetryCount(prev => prev + 1);
+    };
+    
+    window.addEventListener('refresh-photo-urls', handleRefresh);
+    return () => window.removeEventListener('refresh-photo-urls', handleRefresh);
+  }, [photoBeforeUrls, photoAfterUrls, photoPermitUrl, retryCount]);
+
+  const hasPhotos = (photoBeforeUrls && photoBeforeUrls.length > 0) || 
+                   (photoAfterUrls && photoAfterUrls.length > 0) || 
+                   photoPermitUrl;
 
   if (!hasPhotos) {
     return null;
@@ -123,9 +154,27 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrls, ph
   return (
     <div className="mt-2 pt-2 border-t">
       <div className="flex items-center gap-4 flex-wrap">
-        {(photoBeforeUrls || []).map((url, i) => <PhotoThumbnail key={url} url={loading ? null : signedUrls[url]} alt={`${t('before')} ${i + 1}`} />)}
-        {(photoAfterUrls || []).map((url, i) => <PhotoThumbnail key={url} url={loading ? null : signedUrls[url]} alt={`${t('after')} ${i + 1}`} />)}
-        {photoPermitUrl && <PhotoThumbnail url={loading ? null : signedUrls[photoPermitUrl]} alt={t('permit')} />}
+        {(photoBeforeUrls || []).map((url, i) => (
+          <PhotoThumbnail 
+            key={`${url}-${retryCount}`} 
+            url={loading ? null : (signedUrls[url] || url)} 
+            alt={`${t('before')} ${i + 1}`} 
+          />
+        ))}
+        {(photoAfterUrls || []).map((url, i) => (
+          <PhotoThumbnail 
+            key={`${url}-${retryCount}`} 
+            url={loading ? null : (signedUrls[url] || url)} 
+            alt={`${t('after')} ${i + 1}`} 
+          />
+        ))}
+        {photoPermitUrl && (
+          <PhotoThumbnail 
+            key={`${photoPermitUrl}-${retryCount}`} 
+            url={loading ? null : (signedUrls[photoPermitUrl] || photoPermitUrl)} 
+            alt={t('permit')} 
+          />
+        )}
       </div>
     </div>
   );
