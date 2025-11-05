@@ -12,18 +12,12 @@ const StatusBarManager: React.FC = () => {
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
       const updateStatusBar = async () => {
         try {
-          // Determine the header background color based on the theme logic in globals.css
-          // Light Theme: --primary is dark -> Header is dark. Status bar icons should be LIGHT.
-          // Dark Theme: --primary is light -> Header is light. Status bar icons should be DARK.
-          
-          const targetStyle = theme === 'dark' ? Style.Dark : Style.Light;
+          // Determine the target style for status bar icons based on the app's theme.
+          // If the app is in dark mode, the header is visually dark, so status bar icons should be LIGHT.
+          // If the app is in light mode, the header is visually light, so status bar icons should be DARK.
+          const targetStyle = theme === 'dark' ? Style.Light : Style.Dark;
           
           await StatusBar.setStyle({ style: targetStyle });
-          
-          // Optional: Set the background color to match the header's primary color
-          // Note: We rely on the native config for the initial background, but setting it here ensures consistency.
-          // Since the header is always bg-primary, we can't easily read the HSL value here, 
-          // but setting the style (icon color) is the critical fix.
           
         } catch (e) {
           // Ignore errors if not running on native device
