@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionContext";
 import { useLocation } from "react-router-dom";
@@ -16,7 +18,6 @@ export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
   const location = useLocation();
   const { t } = useTranslation();
-  // Removed `theme` state as it's no longer needed for manual class application
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -34,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
   // If session is loading or auth is required but no session, show loading or redirect
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
         <p>{t('loading_user_session')}</p>
       </div>
     );
@@ -53,14 +54,13 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col"
-      // Removed: theme === 'dark' ? 'dark' : ''
     )}>
       {session && <Navbar toggleSidebar={toggleSidebar} />}
       {session && <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
       <main className={cn(
         "flex-1 flex flex-col",
-        session ? "lg:ml-64" : "",
-        "pt-[env(safe-area-inset-top)]"
+        // Apply left margin for sidebar on large screens, and top padding for fixed navbar + safe area
+        session ? "lg:ml-64 pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]" 
       )}>
         {children}
       </main>
