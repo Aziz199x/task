@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
+import { toast } from "sonner"; // Import toast
 
 const TASKS_QUERY_KEY = ['tasks'];
 
@@ -32,6 +33,13 @@ export const useTasksQuery = () => {
     refetchOnWindowFocus: true,
     refetchInterval: 1000 * 5, // Set polling frequency to 5 seconds
   });
+
+  // Display error toast if query fails
+  useEffect(() => {
+    if (query.error) {
+      toast.error(`Failed to load tasks: ${query.error.message}`);
+    }
+  }, [query.error]);
 
   // Real-time subscription setup
   useEffect(() => {
