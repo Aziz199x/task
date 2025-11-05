@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom'; // Corrected: changed '=>' to 'from'
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ export default function Navbar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // State for mobile sidebar
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -45,8 +45,8 @@ export default function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            {/* Pass setIsMobileSidebarOpen to Sidebar's toggleSidebar prop */}
-            <Sidebar isOpen={isMobileSidebarOpen} toggleSidebar={() => setIsMobileSidebarOpen(false)} />
+            {/* Pass setIsMobileSidebarOpen directly to Sidebar */}
+            <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
           </SheetContent>
         </Sheet>
         {/* App Logo and Title */}

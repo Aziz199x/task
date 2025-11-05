@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X } from 'lucide-react'; // Added X here
+import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -15,10 +15,10 @@ import { useTheme } from 'next-themes';
 
 interface SidebarProps {
   isOpen: boolean;
-  toggleSidebar: () => void;
+  setIsOpen: (isOpen: boolean) => void; // Changed prop name and type
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => { // Destructure setIsOpen
   const { profile, signOut } = useSession();
   const { t } = useTranslation();
   const location = useLocation();
@@ -91,11 +91,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       )}
     >
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
-        <Link to="/" className="flex items-center gap-2 font-semibold" onClick={toggleSidebar}>
+        <Link to="/" className="flex items-center gap-2 font-semibold" onClick={() => setIsOpen(false)}> {/* Call setIsOpen(false) */}
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={toggleSidebar}>
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsOpen(false)}> {/* Call setIsOpen(false) */}
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                       "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                       isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground"
                     )}
-                    onClick={toggleSidebar}
+                    onClick={() => setIsOpen(false)} // Call setIsOpen(false)
                   >
                     <item.icon className="h-4 w-4" />
                     {item.name}
