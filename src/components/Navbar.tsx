@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom'; // Changed from 'next/navigation'
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -14,7 +14,8 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
-import Sidebar from './Sidebar'; // Assuming Sidebar is also in components
+import Sidebar from './Sidebar';
+import { useTheme } from 'next-themes'; // Import useTheme
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -23,12 +24,15 @@ interface NavbarProps {
 export default function Navbar({ toggleSidebar }: NavbarProps) {
   const { user, profile, signOut } = useSession();
   const { t } = useTranslation();
-  const navigate = useNavigate(); // Changed from useRouter
+  const navigate = useNavigate();
+  const { theme } = useTheme(); // Use useTheme hook
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login'); // Use navigate for redirection
+    navigate('/login');
   };
+
+  const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'; // Determine logo source based on theme
 
   return (
     <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:ml-64 lg:w-[calc(100%-16rem)]">
@@ -42,10 +46,14 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <Sidebar isOpen={true} toggleSidebar={() => {}} /> {/* Sidebar will manage its own state */}
+            <Sidebar isOpen={true} toggleSidebar={() => {}} />
           </SheetContent>
         </Sheet>
-        <h1 className="text-xl font-bold">{t('task_manager')}</h1>
+        {/* App Logo and Title */}
+        <div className="flex items-center gap-2">
+          <img src={logoSrc} alt="Logo" className="h-8 w-auto" /> {/* Added logo here */}
+          <h1 className="text-xl font-bold">{t('task_manager')}</h1>
+        </div>
       </div>
       <div className="flex items-center space-x-4">
         {user && (
@@ -76,7 +84,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}> {/* Use navigate for redirection */}
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
                 {t('profile_settings')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut}>
