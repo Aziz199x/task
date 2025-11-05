@@ -18,6 +18,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import Sidebar from './Sidebar';
 import { useTheme } from 'next-themes';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 export default function Navbar() {
   const { user, profile, signOut } = useSession();
@@ -25,6 +26,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { isMobile, isClientLoaded } = useIsMobile(); // Use the hook
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,19 +38,21 @@ export default function Navbar() {
   return (
     <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:ml-64 lg:w-[calc(100%-16rem)]">
       <div className="flex items-center">
-        {/* Mobile sidebar toggle */}
-        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-          <SheetTrigger asChild className="lg:hidden">
-            <Button variant="ghost" size="icon" className="mr-2">
-              <MenuIcon className="h-6 w-6" />
-              <span className="sr-only">{t('toggle_sidebar')}</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            {/* Pass setIsMobileSidebarOpen directly to Sidebar */}
-            <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
-          </SheetContent>
-        </Sheet>
+        {/* Mobile sidebar toggle - Only render if it's mobile and client is loaded */}
+        {isClientLoaded && isMobile && (
+          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="mr-2">
+                <MenuIcon className="h-6 w-6" />
+                <span className="sr-only">{t('toggle_sidebar')}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              {/* Pass setIsMobileSidebarOpen directly to Sidebar */}
+              <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
+            </SheetContent>
+          </Sheet>
+        )}
         {/* App Logo and Title */}
         <div className="flex items-center gap-2">
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />

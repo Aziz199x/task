@@ -48,7 +48,7 @@ export default function Layout({ children }: LayoutProps) {
       "min-h-screen flex flex-col"
     )}>
       {session && <Navbar />}
-      {/* Render persistent sidebar only on desktop (not mobile) */}
+      {/* Render persistent sidebar only on desktop (lg breakpoint and above) */}
       {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       <main className={cn(
         "flex-1 flex flex-col",
