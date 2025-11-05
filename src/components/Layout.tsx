@@ -18,16 +18,7 @@ export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
   const location = useLocation();
   const { t } = useTranslation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  // Close sidebar on route change
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
+  // The desktop sidebar is always open on large screens, so no state is needed here for its toggle.
 
   // Determine if the current path requires authentication
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
@@ -55,8 +46,9 @@ export default function Layout({ children }: LayoutProps) {
     <div className={cn(
       "min-h-screen flex flex-col"
     )}>
-      {session && <Navbar toggleSidebar={toggleSidebar} />}
-      {session && <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+      {session && <Navbar />}
+      {/* The desktop sidebar is always open, so isOpen is true. toggleSidebar is not used for desktop. */}
+      {session && <Sidebar isOpen={true} toggleSidebar={() => {}} />} 
       <main className={cn(
         "flex-1 flex flex-col",
         // Apply left margin for sidebar on large screens, and top padding for fixed navbar + safe area

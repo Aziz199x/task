@@ -1,9 +1,11 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } => 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -15,30 +17,27 @@ import {
 } from './ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import Sidebar from './Sidebar';
-import { useTheme } from 'next-themes'; // Import useTheme
+import { useTheme } from 'next-themes';
 
-interface NavbarProps {
-  toggleSidebar: () => void;
-}
-
-export default function Navbar({ toggleSidebar }: NavbarProps) {
+export default function Navbar() {
   const { user, profile, signOut } = useSession();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { theme } = useTheme(); // Use useTheme hook
+  const { theme } = useTheme();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // State for mobile sidebar
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
-  const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'; // Determine logo source based on theme
+  const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png';
 
   return (
     <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:ml-64 lg:w-[calc(100%-16rem)]">
       <div className="flex items-center">
         {/* Mobile sidebar toggle */}
-        <Sheet>
+        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
           <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="icon" className="mr-2">
               <MenuIcon className="h-6 w-6" />
@@ -46,12 +45,13 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <Sidebar isOpen={true} toggleSidebar={() => {}} />
+            {/* Pass setIsMobileSidebarOpen to Sidebar's toggleSidebar prop */}
+            <Sidebar isOpen={isMobileSidebarOpen} toggleSidebar={() => setIsMobileSidebarOpen(false)} />
           </SheetContent>
         </Sheet>
         {/* App Logo and Title */}
         <div className="flex items-center gap-2">
-          <img src={logoSrc} alt="Logo" className="h-8 w-auto" /> {/* Added logo here */}
+          <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <h1 className="text-xl font-bold">{t('task_manager')}</h1>
         </div>
       </div>
