@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useTheme } from "next-themes";
+import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
   const location = useLocation();
   const { t } = useTranslation();
-  // The desktop sidebar is always open on large screens, so no state is needed here for its toggle.
+  const { isMobile, isClientLoaded } = useIsMobile(); // Use the hook to detect mobile
 
   // Determine if the current path requires authentication
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
@@ -47,12 +48,12 @@ export default function Layout({ children }: LayoutProps) {
       "min-h-screen flex flex-col"
     )}>
       {session && <Navbar />}
-      {/* The desktop sidebar is always open, so isOpen is true. toggleSidebar is not used for desktop. */}
-      {session && <Sidebar isOpen={true} toggleSidebar={() => {}} />} 
+      {/* Render persistent sidebar only on desktop (not mobile) */}
+      {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} toggleSidebar={() => {}} />} 
       <main className={cn(
         "flex-1 flex flex-col",
         // Apply left margin for sidebar on large screens, and top padding for fixed navbar + safe area
-        session ? "lg:ml-64 pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]" 
+        session && isClientLoaded && !isMobile ? "lg:ml-64 pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]" 
       )}>
         {children}
       </main>
