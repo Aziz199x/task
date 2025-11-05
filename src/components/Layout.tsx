@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionContext";
-import { useLocation } from "react-router-dom"; // Changed from 'next/navigation'
+import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
@@ -14,9 +14,9 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
-  const location = useLocation(); // Changed from usePathname
+  const location = useLocation();
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  // Removed `theme` state as it's no longer needed for manual class application
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -26,10 +26,10 @@ export default function Layout({ children }: LayoutProps) {
   // Close sidebar on route change
   useEffect(() => {
     setIsSidebarOpen(false);
-  }, [location.pathname]); // Use location.pathname
+  }, [location.pathname]);
 
   // Determine if the current path requires authentication
-  const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname); // Use location.pathname
+  const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
 
   // If session is loading or auth is required but no session, show loading or redirect
   if (loading) {
@@ -52,15 +52,15 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col",
-      theme === 'dark' ? 'dark' : ''
+      "min-h-screen flex flex-col"
+      // Removed: theme === 'dark' ? 'dark' : ''
     )}>
       {session && <Navbar toggleSidebar={toggleSidebar} />}
       {session && <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
       <main className={cn(
         "flex-1 flex flex-col",
-        session ? "lg:ml-64" : "", // Adjust for sidebar width when session exists
-        "pt-[env(safe-area-inset-top)]" // Add padding to account for safe area insets
+        session ? "lg:ml-64" : "",
+        "pt-[env(safe-area-inset-top)]"
       )}>
         {children}
       </main>
