@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom'; // Corrected this line
+import { useNavigate } from 'react-router-dom'; // Corrected: changed '=>' to 'from'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
