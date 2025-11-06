@@ -1,4 +1,4 @@
-package com.example.jadelobstersprint;
+package com.abumiral.workflow;
 
 import com.getcapacitor.BridgeActivity;
 
