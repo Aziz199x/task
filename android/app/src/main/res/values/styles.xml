@@ -17,14 +17,17 @@
         <!-- Ensure status bar is transparent and allows dynamic control -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <!-- Ensure the system doesn't force light icons by default -->
+        <!-- This flag controls if the icons should be dark (true) or light (false). 
+             Setting it to false allows the Capacitor plugin to take over control. -->
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
-        <item name="android:fitsSystemWindows">true</item>
+        <!-- Removing android:fitsSystemWindows to prevent conflicts with status bar control -->
+        <!-- <item name="android:fitsSystemWindows">true</item> -->
+        
         <!-- Ensure the launch screen also respects transparency/translucency -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">true</item>
