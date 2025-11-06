@@ -35,6 +35,16 @@ export default function Navbar() {
 
   const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png';
 
+  // If client is loaded and it's not mobile, we render nothing (Navbar is desktop hidden)
+  if (isClientLoaded && !isMobile) {
+    return null;
+  }
+  
+  // If session is not active, we also shouldn't render the Navbar (Layout handles this, but defensive check)
+  if (!user) {
+    return null;
+  }
+
   return (
     <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:hidden">
       <div className="flex items-center">
