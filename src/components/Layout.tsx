@@ -19,7 +19,7 @@ export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isMobile, isClientLoaded } = useIsMobile(); // Use the hook to detect mobile
+  const { isMobile, isClientLoaded } = useIsMobile(); // Use the hook
 
   // Determine if the current path requires authentication
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
@@ -48,7 +48,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col"
+      "min-h-screen flex flex-col",
+      // Ensure the entire container uses the background color
+      "bg-background" 
     )}>
       {/* Navbar is only rendered on mobile (handled by isNavbarVisible logic) */}
       {isNavbarVisible && <Navbar />}
@@ -57,13 +59,18 @@ export default function Layout({ children }: LayoutProps) {
       {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       
       <main className={cn(
-        "flex-1 flex flex-col",
+        "flex-1 flex flex-col w-full", // Added w-full
         // Apply top padding if Navbar is visible (on mobile)
         isNavbarVisible ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
         // Apply left margin only on large screens where the sidebar is visible
-        "lg:ml-64" 
+        "lg:ml-64",
+        // Explicitly set background for main content area
+        "bg-background" 
       )}>
-        {children}
+        {/* Add padding to the content itself, inside the main tag */}
+        <div className="container mx-auto p-4 flex-1">
+          {children}
+        </div>
       </main>
       <Toaster richColors />
     </div>
