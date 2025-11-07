@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import utility
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -21,8 +22,10 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessageSent(false);
 
+    const baseUrl = getCapacitorBaseUrl();
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${baseUrl}/reset-password`,
     });
 
     if (error) {
