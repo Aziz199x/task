@@ -3,7 +3,6 @@
 
     <!-- Base application theme for dark mode. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -13,24 +12,20 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
-        
-        <!-- Set a static dark status bar -->
-        <item name="android:statusBarColor">#1e293b</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <!-- Force light icons for the dark background -->
-        <item name="android:windowLightStatusBar">false</item>
-    </style>
 
+        <!-- Keep the status bar visible with a light background and dark icons -->
+        <item name="android:statusBarColor">#ffffff</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
-        <!-- Re-adding android:fitsSystemWindows to prevent blank screen issues -->
         <item name="android:fitsSystemWindows">true</item>
-        
-        <!-- Ensure the launch screen also has a static dark status bar -->
-        <item name="android:statusBarColor">#1e293b</item>
+
+        <!-- Ensure the launch screen matches the static status bar styling -->
+        <item name="android:statusBarColor">#ffffff</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <!-- Force light icons for the dark background -->
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
