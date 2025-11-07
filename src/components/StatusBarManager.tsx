@@ -5,17 +5,21 @@ import { useTheme } from 'next-themes';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
 const StatusBarManager: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
 
   useEffect(() => {
+    // Use resolvedTheme to ensure we have the final theme (light/dark)
+    const currentTheme = resolvedTheme || theme;
+
     // Check if running in a Capacitor environment
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
       const updateStatusBar = async () => {
         try {
-          // Determine the target style for status bar icons based on the app's theme.
           // If the app is in dark mode, the header is visually dark, so status bar icons should be LIGHT.
           // If the app is in light mode, the header is visually light, so status bar icons should be DARK.
-          const targetStyle = theme === 'dark' ? Style.Light : Style.Dark;
+          const targetStyle = currentTheme === 'dark' ? Style.Light : Style.Dark;
+          
+          console.log(`[StatusBarManager] Current Theme: ${currentTheme}, Applying Style: ${targetStyle === Style.Light ? 'Light Icons' : 'Dark Icons'}`);
           
           await StatusBar.setStyle({ style: targetStyle });
           
@@ -25,9 +29,11 @@ const StatusBarManager: React.FC = () => {
         }
       };
 
-      updateStatusBar();
+      // Delay slightly to ensure the theme is fully resolved and the webview is ready
+      const timeout = setTimeout(updateStatusBar, 100);
+      return () => clearTimeout(timeout);
     }
-  }, [theme]);
+  }, [theme, resolvedTheme]);
 
   return null;
 };
