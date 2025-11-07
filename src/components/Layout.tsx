@@ -49,7 +49,6 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col",
-      // Ensure the entire container uses the background color
       "bg-background" 
     )}>
       {/* Navbar is only rendered on mobile (handled by isNavbarVisible logic) */}
@@ -59,7 +58,7 @@ export default function Layout({ children }: LayoutProps) {
       {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
       
       <main className={cn(
-        "flex-1 flex flex-col w-full", // Added w-full
+        "flex-1 flex flex-col w-full overflow-y-auto", // Added overflow-y-auto for scrolling
         // Apply top padding if Navbar is visible (on mobile)
         isNavbarVisible ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
         // Apply left margin only on large screens where the sidebar is visible
