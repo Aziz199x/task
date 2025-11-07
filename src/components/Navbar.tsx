@@ -45,8 +45,10 @@ export default function Navbar() {
     return null;
   }
 
+  // Navbar includes the safe-area inset at the top so its content won't be under the status bar.
+  // Navbar total height = 4rem + env(safe-area-inset-top) so Layout only needs pt-16 (4rem).
   return (
-    <nav className="bg-primary text-primary-foreground p-4 flex items-center justify-between shadow-md fixed w-full z-40 lg:hidden">
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 lg:hidden shadow-md flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] h-[calc(4rem+env(safe-area-inset-top))]">
       <div className="flex items-center">
         {/* Mobile sidebar toggle - Only render if it's mobile and client is loaded */}
         {isClientLoaded && isMobile && (

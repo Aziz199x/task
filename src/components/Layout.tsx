@@ -59,8 +59,10 @@ export default function Layout({ children }: LayoutProps) {
       
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto", // Added overflow-y-auto for scrolling
-        // Apply top padding if Navbar is visible (on mobile)
-        isNavbarVisible ? "pt-[calc(4rem + env(safe-area-inset-top))]" : "pt-[env(safe-area-inset-top)]",
+        // Apply top padding:
+        // - when navbar is visible we add 4rem (navbar height) here and include the safe-area inset inside the Navbar itself
+        // - otherwise just add the safe-area inset so content isn't under the system status bar
+        isNavbarVisible ? "pt-16" : "pt-[env(safe-area-inset-top)]",
         // Apply left margin only on large screens where the sidebar is visible
         "lg:ml-64",
         // Explicitly set background for main content area
