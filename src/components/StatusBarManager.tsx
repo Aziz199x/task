@@ -21,8 +21,13 @@ const StatusBarManager: React.FC = () => {
           
           console.log(`[StatusBarManager] Current Theme: ${currentTheme}, Applying Style: ${targetStyle === Style.Light ? 'Light Icons' : 'Dark Icons'}`);
           
+          // Set the style and force it to apply immediately
           await StatusBar.setStyle({ style: targetStyle });
           
+          // As a fallback, also try to set the background color to transparent
+          // This can help ensure the icons are visible against the app's content
+          await StatusBar.setBackgroundColor({ color: '#ffffff00' }); // Transparent
+
         } catch (e) {
           // Ignore errors if not running on native device
           console.log("Capacitor Status Bar update failed (likely running in browser):", e);

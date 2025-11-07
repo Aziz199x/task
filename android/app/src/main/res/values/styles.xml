@@ -17,9 +17,8 @@
         <!-- Ensure status bar is transparent and allows dynamic control -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <!-- This flag controls if the icons should be dark (true) or light (false). 
-             Setting it to false allows the Capacitor plugin to take over control. -->
-        <item name="android:windowLightStatusBar">false</item>
+        <!-- REMOVED: This flag was forcing light icons. The plugin will now control it. -->
+        <!-- <item name="android:windowLightStatusBar">false</item> -->
     </style>
 
 
@@ -31,6 +30,7 @@
         <!-- Ensure the launch screen also respects transparency/translucency -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <!-- REMOVED: This flag was forcing light icons on the launch screen. -->
+        <!-- <item name="android:windowLightStatusBar">false</item> -->
     </style>
 </resources>
