@@ -22,14 +22,12 @@ import i18n from './i18n';
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
-import StatusBarManager from "./components/StatusBarManager"; // Import StatusBarManager
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <StatusBarManager /> {/* Place the manager here to access theme context */}
       <TooltipProvider>
         <Toaster />
         <Sonner />

@@ -14,11 +14,11 @@
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
         
-        <!-- Set status bar color to match the light theme primary color -->
-        <item name="android:statusBarColor">#ffffff</item>
+        <!-- Set a static dark status bar -->
+        <item name="android:statusBarColor">#1e293b</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <!-- Force light icons for the white background -->
-        <item name="android:windowLightStatusBar">true</item>
+        <!-- Force light icons for the dark background -->
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
 
@@ -27,10 +27,10 @@
         <!-- Re-adding android:fitsSystemWindows to prevent blank screen issues -->
         <item name="android:fitsSystemWindows">true</item>
         
-        <!-- Ensure the launch screen also has a white status bar -->
-        <item name="android:statusBarColor">#ffffff</item>
+        <!-- Ensure the launch screen also has a static dark status bar -->
+        <item name="android:statusBarColor">#1e293b</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <!-- Force light icons for the white background -->
-        <item name="android:windowLightStatusBar">true</item>
+        <!-- Force light icons for the dark background -->
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
