@@ -15,20 +15,11 @@ const StatusBarManager: React.FC = () => {
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
       const updateStatusBar = async () => {
         try {
-          // If the app is in dark mode, the header is visually dark, so status bar icons should be LIGHT.
-          // If the app is in light mode, the header is visually light, so status bar icons should be DARK.
-          const targetStyle = currentTheme === 'dark' ? Style.Light : Style.Dark;
+          // The native theme now handles the color and icon style.
+          // This component can be used for other dynamic adjustments if needed in the future.
+          // For now, we'll just log the theme for debugging.
+          console.log(`[StatusBarManager] Current Theme: ${currentTheme}. Native theme is handling status bar.`);
           
-          // Set the background color to match the app's primary color for the current theme
-          // In dark mode, the primary color is a dark gray. In light mode, it's white.
-          const targetColor = currentTheme === 'dark' ? '#1e293b' : '#ffffff';
-          
-          console.log(`[StatusBarManager] Current Theme: ${currentTheme}, Applying Style: ${targetStyle === Style.Light ? 'Light Icons' : 'Dark Icons'}, Color: ${targetColor}`);
-          
-          // Set the background color and style
-          await StatusBar.setBackgroundColor({ color: targetColor });
-          await StatusBar.setStyle({ style: targetStyle });
-
         } catch (e) {
           // Ignore errors if not running on native device
           console.log("Capacitor Status Bar update failed (likely running in browser):", e);
