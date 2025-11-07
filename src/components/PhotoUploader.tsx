@@ -121,8 +121,17 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
                 </div>
               </div>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl">
-              <img src={currentUrl} alt={label} className="w-full h-auto rounded-lg" />
+            <DialogContent
+              className="w-full sm:max-w-3xl sm:rounded-lg rounded-none bg-background p-4 sm:p-6
+                         max-h-[calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 4rem)]
+                         overflow-auto pb-[calc(1rem + env(safe-area-inset-bottom))]"
+            >
+              <img
+                src={currentUrl}
+                alt={label}
+                className="w-full h-auto object-contain rounded-lg
+                           max-h-[calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10rem)]"
+              />
             </DialogContent>
           </Dialog>
           <Button variant="destructive" size="icon" onClick={handleRemove} disabled={uploading}>

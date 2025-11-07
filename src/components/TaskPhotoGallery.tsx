@@ -47,14 +47,22 @@ const PhotoThumbnail: React.FC<{ url: string | null; alt: string }> = ({ url, al
           <p className="text-xs text-center text-muted-foreground mt-1">{alt}</p>
         </div>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      {/* DialogContent adjusted to respect safe-area insets and limit modal height on mobile.
+          This keeps the close button and image above Android navigation/gesture bars. */}
+      <DialogContent
+        className="w-full sm:max-w-3xl sm:rounded-lg rounded-none bg-background p-4 sm:p-6
+                   max-h-[calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 4rem)]
+                   overflow-auto pb-[calc(1rem + env(safe-area-inset-bottom))]"
+      >
         <DialogHeader>
           <DialogTitle>{alt}</DialogTitle>
         </DialogHeader>
-        <img 
-          src={url} 
-          alt={alt} 
-          className="w-full h-auto rounded-lg" 
+        <img
+          src={url}
+          alt={alt}
+          // Constrain image height so it fits within the visible viewport and allow scrolling if needed.
+          className="w-full h-auto object-contain rounded-lg
+                     max-h-[calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10rem)]"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (target.dataset.retry !== 'true') {
