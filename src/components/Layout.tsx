@@ -64,10 +64,13 @@ export default function Layout({ children }: LayoutProps) {
         // Apply left margin only on large screens where the sidebar is visible
         "lg:ml-64",
         // Explicitly set background for main content area
-        "bg-background" 
+        "bg-background",
+        // Ensure we add bottom safe-area padding so Android navigation/gesture bar doesn't overlap bottom UI
+        // and add a small extra gap so interactive buttons are comfortably above system UI.
+        "pb-[env(safe-area-inset-bottom)]"
       )}>
         {/* Add padding to the content itself, inside the main tag */}
-        <div className="container mx-auto p-4 flex-1">
+        <div className="container mx-auto p-4 flex-1 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {children}
         </div>
       </main>
