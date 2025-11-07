@@ -9,26 +9,15 @@ const StatusBarManager = () => {
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    // This ensures the web view is not drawn under the status bar.
-    // It runs once when the component is first loaded.
-    if (Capacitor.isNativePlatform()) {
-      StatusBar.setOverlaysWebView({ overlay: false });
-    }
-  }, []);
+    if (!Capacitor.isNativePlatform()) return;
 
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !resolvedTheme) {
-      return;
-    }
+    // Allow the webview to draw behind the status bar.
+    StatusBar.setOverlaysWebView({ overlay: true });
 
-    // This logic now runs every time the theme changes.
+    // Update the status bar icon style based on the theme.
     if (resolvedTheme === "dark") {
-      // Dark Theme: Use a noticeable gray background with light text/icons.
-      StatusBar.setBackgroundColor({ color: "#424242" });
       StatusBar.setStyle({ style: Style.Light });
     } else {
-      // Light Theme: Use a light-gray background with dark text/icons.
-      StatusBar.setBackgroundColor({ color: "#E0E0E0" });
       StatusBar.setStyle({ style: Style.Dark });
     }
   }, [resolvedTheme]);
