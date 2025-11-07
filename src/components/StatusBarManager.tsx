@@ -19,14 +19,15 @@ const StatusBarManager: React.FC = () => {
           // If the app is in light mode, the header is visually light, so status bar icons should be DARK.
           const targetStyle = currentTheme === 'dark' ? Style.Light : Style.Dark;
           
-          console.log(`[StatusBarManager] Current Theme: ${currentTheme}, Applying Style: ${targetStyle === Style.Light ? 'Light Icons' : 'Dark Icons'}`);
+          // Set the background color to match the app's primary color for the current theme
+          // In dark mode, the primary color is a dark gray. In light mode, it's white.
+          const targetColor = currentTheme === 'dark' ? '#1e293b' : '#ffffff';
           
-          // Set the style and force it to apply immediately
+          console.log(`[StatusBarManager] Current Theme: ${currentTheme}, Applying Style: ${targetStyle === Style.Light ? 'Light Icons' : 'Dark Icons'}, Color: ${targetColor}`);
+          
+          // Set the background color and style
+          await StatusBar.setBackgroundColor({ color: targetColor });
           await StatusBar.setStyle({ style: targetStyle });
-          
-          // As a fallback, also try to set the background color to transparent
-          // This can help ensure the icons are visible against the app's content
-          await StatusBar.setBackgroundColor({ color: '#ffffff00' }); // Transparent
 
         } catch (e) {
           // Ignore errors if not running on native device
