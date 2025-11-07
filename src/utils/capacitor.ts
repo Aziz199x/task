@@ -1,6 +1,6 @@
 "use client";
 
-import { isPlatform } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Returns the correct base URL for Supabase redirects, prioritizing the custom
@@ -12,7 +12,7 @@ export const getCapacitorBaseUrl = (): string => {
   }
 
   // Check if running on a native platform (iOS or Android)
-  if (isPlatform('capacitor')) {
+  if (Capacitor.isNativePlatform()) {
     // Use the custom URL scheme defined in capacitor.config.ts (com.abumiral.workflow)
     // This must match the scheme configured in your native project and Supabase redirect settings.
     return 'com.abumiral.workflow://';
