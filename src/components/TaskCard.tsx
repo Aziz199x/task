@@ -345,7 +345,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={isSaving} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={confirmDelete} disabled={isSaving} className="bg-red-600 text-destructive-foreground hover:bg-red-600/90">
               {isSaving ? t('deleting') : t('confirm_delete_action')}
             </AlertDialogAction>
           </AlertDialogFooter>

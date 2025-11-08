@@ -107,18 +107,20 @@ export function SidebarContent() {
 
       {!isDesktop && (
         <div
-          className="fixed left-0 right-0 z-40"
-          style={{ bottom: `calc(env(safe-area-inset-bottom) + 20px)` }}
+          className="fixed bottom-0 left-0 right-0 z-40 px-4"
+          style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)` }}
         >
-          <div className="mx-auto max-w-screen-sm px-4">
-            <div className="flex items-center justify-around rounded-2xl border border-white/10 bg-black/50 p-2 backdrop-blur-md">
-              <Button variant="ghost" size="sm" onClick={handleRefreshData} aria-label={t('refresh_data')}>
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <ThemeSwitcher />
-              <LanguageSwitcher />
-              <Button variant="ghost" size="sm" onClick={handleSignOut} aria-label={t('logout')}>
-                <LogOut className="h-4 w-4 text-destructive" />
+          <div className="mx-auto max-w-md">
+            <div className="flex items-center justify-between rounded-full border bg-background/70 p-1.5 shadow-lg backdrop-blur-lg">
+              <div className="flex items-center">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={handleRefreshData} aria-label={t('refresh_data')}>
+                  <RefreshCw className="h-5 w-5" />
+                </Button>
+                <ThemeSwitcher />
+                <LanguageSwitcher />
+              </div>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500" onClick={handleSignOut} aria-label={t('logout')}>
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
