@@ -303,6 +303,8 @@
   "manage_users": "Manage Users",
   "diagnostics": "Diagnostics",
   "settings": "Settings",
+  "assigned_by": "Assigned by",
+  "unassigned_tasks": "Unassigned Tasks",
   "refresh_data": "Refresh Data",
   "refreshing_data": "Refreshing data...",
   "data_refreshed_successfully": "Data refreshed successfully.",
