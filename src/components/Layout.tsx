@@ -49,7 +49,8 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  const isNavbarVisible = session && isClientLoaded && isMobile;
+  const isNavbarVisible = session && isClientLoaded; // Always show Navbar when logged in
+  const isMobileLayout = session && isClientLoaded && isMobile;
 
   return (
     <div className={cn(
