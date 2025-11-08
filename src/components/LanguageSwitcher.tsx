@@ -29,7 +29,7 @@ const LanguageSwitcher: React.FC = () => {
           <Globe className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" side="top" sideOffset={8}>
         <DropdownMenuItem onClick={() => changeLanguage('en')}>
           English
         </DropdownMenuItem>
