@@ -22,11 +22,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    
+    // Add packaging options to exclude duplicate Kotlin files
+    packagingOptions {
+        exclude 'META-INF/*.kotlin_module'
+    }
 }
 
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+// Force resolution strategy for this module
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10'
     }
 }
 
@@ -40,6 +54,9 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    
+    // Explicitly add Kotlin stdlib to ensure consistent versions
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
 }
 
 apply from: 'capacitor.build.gradle'
