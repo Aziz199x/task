@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
+import { toast } from "sonner"; // Import toast
+import { useTranslation } from "react-i18next"; // Import useTranslation
 
 const TASKS_QUERY_KEY = ['tasks'];
 
@@ -23,6 +25,7 @@ const fetchAllTasks = async (): Promise<Task[]> => {
 export const useTasksQuery = () => {
   const { user } = useSession();
   const queryClient = useQueryClient();
+  const { t } = useTranslation(); // Get translation function
 
   const query = useQuery<Task[], Error>({
     queryKey: TASKS_QUERY_KEY,
@@ -31,7 +34,18 @@ export const useTasksQuery = () => {
     staleTime: 1000 * 10, // Keep stale time at 10 seconds
     refetchOnWindowFocus: true,
     refetchInterval: 1000 * 5, // Set polling frequency to 5 seconds
+    retry: 2, // Automatically retry failed requests up to 2 times
   });
+
+  const { isError, error } = query;
+
+  useEffect(() => {
+    if (isError) {
+      // Show a user-friendly toast message on final failure
+      toast.error(t('connection_error_retrying'));
+      console.error("Task query final failure:", error?.message);
+    }
+  }, [isError, error, t]);
 
   // Real-time subscription setup
   useEffect(() => {

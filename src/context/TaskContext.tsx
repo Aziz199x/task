@@ -41,6 +41,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { data: tasks = [], isLoading: tasksQueryLoading, refetch: refetchTasksQuery } = useTasksQuery();
 
   const tasksByIdMap = useMemo(() => {
+    if (!Array.isArray(tasks)) return new Map<string, Task>();
     return new Map(tasks.map(task => [task.id, task]));
   }, [tasks]);
 
