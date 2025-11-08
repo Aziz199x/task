@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
-        "pt-12 pb-8", // Add padding for status bar (top) and gesture nav (bottom)
+        "pt-12 pb-16", // Add padding for status bar (top) and gesture nav (bottom)
         isOpen ? 'translate-x-0' : '-translate-x-full',
         "lg:translate-x-0 lg:pt-0 lg:pb-0" // On large screens, sidebar isn't an overlay, so remove padding
       )}
