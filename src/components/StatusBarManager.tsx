@@ -17,10 +17,11 @@ const StatusBarManager = () => {
 
         if (resolvedTheme === "dark") {
           await StatusBar.setBackgroundColor({ color: '#1a1a1a' });
-          // IMPORTANT: Light icons/text on dark background
+          // Light icons/text on dark background
           await StatusBar.setStyle({ style: Style.Light });
         } else {
-          await StatusBar.setBackgroundColor({ color: '#f5f5f5' });
+          // Darker gray for better contrast with white background
+          await StatusBar.setBackgroundColor({ color: '#e0e0e0' });
           // Dark icons/text on light background
           await StatusBar.setStyle({ style: Style.Dark });
         }
