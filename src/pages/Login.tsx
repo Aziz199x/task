@@ -104,7 +104,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative">
-      <div className="absolute top-4 right-4 flex items-center space-x-2">
+      <div className="absolute top-16 right-4 flex items-center space-x-2">
         <ThemeSwitcher />
         <LanguageSwitcher />
       </div>
