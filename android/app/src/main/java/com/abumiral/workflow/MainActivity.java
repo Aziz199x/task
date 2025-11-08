@@ -12,6 +12,5 @@ public class MainActivity extends BridgeActivity {
         // Ensure status bar is properly configured
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().setStatusBarColor(android.graphics.Color.parseColor("#ffffff"));
     }
 }

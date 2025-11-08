@@ -70,7 +70,7 @@ export default function Layout({ children }: LayoutProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-40 hidden lg:flex"
+          className="fixed top-4 left-4 z-40 hidden md:flex"
           onClick={() => setIsSidebarOpen(true)}
         >
           <MenuIcon className="h-6 w-6" />
