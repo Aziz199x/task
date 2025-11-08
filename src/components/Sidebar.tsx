@@ -93,13 +93,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
+        "pt-12 pb-8", // Add padding for status bar (top) and gesture nav (bottom)
         isOpen ? 'translate-x-0' : '-translate-x-full',
-        "lg:translate-x-0" // Re-enable persistent visibility on large screens
+        "lg:translate-x-0 lg:pt-0 lg:pb-0" // On large screens, sidebar isn't an overlay, so remove padding
       )}
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)'
-      }}
     >
       {/* Header with padding to avoid status bar overlap */}
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
@@ -142,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       </nav>
       
       {/* Bottom controls with extra padding to avoid Android gesture bar */}
-      <div className="mt-auto border-t p-4 pb-6">
+      <div className="mt-auto border-t p-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" className="w-full" onClick={handleRefreshData}>
             <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
