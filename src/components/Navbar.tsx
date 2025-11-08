@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { MenuIcon, Settings, Zap } from 'lucide-react'; // Import Settings and Zap icons
+import { MenuIcon } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +34,7 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  // Removed logoSrc as it's no longer used
+  const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png';
 
   if (!user) {
     return null;
@@ -58,12 +58,8 @@ export default function Navbar() {
             </Sheet>
           )}
           <div className="flex items-center gap-2">
-            {/* App Icon: Combined Settings and Zap icons */}
-            <div className="relative flex items-center justify-center h-8 w-8">
-              <Settings className="h-full w-full text-orange-500" /> {/* Gear icon */}
-              <Zap className="absolute h-4 w-4 text-yellow-400" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> {/* Lightning bolt */}
-            </div>
-            <h1 className="text-xl font-bold">AbuMiral</h1> {/* App Name */}
+            <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
+            <h1 className="text-xl font-bold">{t('task_manager')}</h1>
           </div>
         </div>
         <div className="flex items-center space-x-4">
