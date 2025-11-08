@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import Layout from "@/components/Layout";
 import { useSession } from "@/context/SessionContext";
 import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,77 +40,69 @@ const ManageUsers: React.FC = () => {
 
   if (sessionLoading || profilesLoading) {
     return (
-      <Layout>
-        <div className="text-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-lg text-muted-foreground">{t('loading_user_data')}</p>
-          <div className="space-y-4 mt-6">
-            {[...Array(3)].map((_, i) => (
-              <Card key={i} className="p-4">
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-              </Card>
-            ))}
-          </div>
+      <div className="text-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+        <p className="text-lg text-muted-foreground">{t('loading_user_data')}</p>
+        <div className="space-y-4 mt-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="p-4">
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </Card>
+          ))}
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (!isAuthorized) {
     return (
-      <Layout>
-        <div className="text-center py-8 text-destructive">{t('permission_denied_manage_roles')}</div>
-      </Layout>
+      <div className="text-center py-8 text-destructive">{t('permission_denied_manage_roles')}</div>
     );
   }
 
   if (profilesError) {
     return (
-      <Layout>
-        <div className="text-center py-8 text-destructive">{t('error_loading_user_profiles')} {profilesError}</div>
-      </Layout>
+      <div className="text-center py-8 text-destructive">{t('error_loading_user_profiles')} {profilesError}</div>
     );
   }
 
   return (
-    <Layout>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold flex items-center gap-2">
-            <User className="h-6 w-6" /> {t('manage_user_roles')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('name')}</TableHead>
-                <TableHead>{t('id')}</TableHead> {/* Using 'id' for the email prefix */}
-                <TableHead>{t('current_role')}</TableHead>
-                <TableHead>{t('performance_rate')}</TableHead>
-                <TableHead className="text-right">{t('actions')}</TableHead>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+          <User className="h-6 w-6" /> {t('manage_user_roles')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('name')}</TableHead>
+              <TableHead>{t('id')}</TableHead> {/* Using 'id' for the email prefix */}
+              <TableHead>{t('current_role')}</TableHead>
+              <TableHead>{t('performance_rate')}</TableHead>
+              <TableHead className="text-right">{t('actions')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {profilesWithPerformance.map((profile) => (
+              <TableRow key={profile.id}>
+                <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {getEmailPrefix(profile.email)}
+                </TableCell>
+                <TableCell className="capitalize">{t(profile.role)}</TableCell>
+                <TableCell>{profile.performanceRate}</TableCell>
+                <TableCell className="text-right">
+                  <UserRoleDropdown profile={profile} />
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profilesWithPerformance.map((profile) => (
-                <TableRow key={profile.id}>
-                  <TableCell className="font-medium">{profile.first_name} {profile.last_name}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {getEmailPrefix(profile.email)}
-                  </TableCell>
-                  <TableCell className="capitalize">{t(profile.role)}</TableCell>
-                  <TableCell>{profile.performanceRate}</TableCell>
-                  <TableCell className="text-right">
-                    <UserRoleDropdown profile={profile} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </Layout>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 };
 

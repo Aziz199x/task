@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -24,7 +23,7 @@ import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
 import StatusBarManager from "./components/StatusBarManager";
 import BackButtonHandler from "./components/BackButtonHandler";
-import { LayoutProvider } from "./context/LayoutContext";
+import { SidebarProvider } from "./state/useSidebar";
 import AppLifecycleSync from "./components/AppLifecycleSync";
 
 const queryClient = new QueryClient();
@@ -34,15 +33,14 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
         <I18nextProvider i18n={i18n}>
           <BrowserRouter>
             <SessionProvider>
               <TaskProvider>
-                <StatusBarManager />
-                <BackButtonHandler />
-                <AppLifecycleSync />
-                <LayoutProvider>
+                <SidebarProvider>
+                  <StatusBarManager />
+                  <BackButtonHandler />
+                  <AppLifecycleSync />
                   <Routes>
                     <Route element={<PublicRoute />}>
                       <Route path="/login" element={<Login />} />
@@ -64,7 +62,7 @@ const App = () => (
                     
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </LayoutProvider>
+                </SidebarProvider>
               </TaskProvider>
             </SessionProvider>
           </BrowserRouter>

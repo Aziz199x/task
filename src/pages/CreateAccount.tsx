@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import Layout from "@/components/Layout";
 import { useSession, UserProfile } from "@/context/SessionContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,17 +72,13 @@ const CreateAccount: React.FC = () => {
 
   if (sessionLoading) {
     return (
-      <Layout>
-        <div className="text-center py-8">{t('loading_user_session')}</div>
-      </Layout>
+      <div className="text-center py-8">{t('loading_user_session')}</div>
     );
   }
 
   if (!isAuthorized) {
     return (
-      <Layout>
-        <div className="text-center py-8 text-destructive">{t('permission_denied_create_account')}</div>
-      </Layout>
+      <div className="text-center py-8 text-destructive">{t('permission_denied_create_account')}</div>
     );
   }
 
@@ -131,83 +126,81 @@ const CreateAccount: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">{t('create_new_user_account')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-              <Label htmlFor="email" className="md:text-right">{t('email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
-                required
-                className="md:col-span-3"
-              />
-            </div>
-            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-              <Label htmlFor="password" className="md:text-right">{t('password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="md:col-span-3"
-              />
-            </div>
-            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-              <Label htmlFor="firstName" className="md:text-right">{t('first_name')}</Label>
-              <Input
-                id="firstName"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="John"
-                required
-                className="md:col-span-3"
-              />
-            </div>
-            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-              <Label htmlFor="lastName" className="md:text-right">{t('last_name')}</Label>
-              <Input
-                id="lastName"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Doe"
-                required
-                className="md:col-span-3"
-              />
-            </div>
-            <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-              <Label htmlFor="role" className="md:text-right">{t('role')}</Label>
-              <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role} disabled={availableRoles.length === 0}>
-                <SelectTrigger id="role" className="md:col-span-3">
-                  <SelectValue placeholder={t('select_role')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRoles.map((roleOption) => (
-                    <SelectItem key={roleOption} value={roleOption}>
-                      {t(roleOption)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading || availableRoles.length === 0}>
-              {loading ? t('creating') : t('create_account')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </Layout>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">{t('create_new_user_account')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="email" className="md:text-right">{t('email')}</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+              required
+              className="md:col-span-3"
+            />
+          </div>
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="password" className="md:text-right">{t('password')}</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="md:col-span-3"
+            />
+          </div>
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="firstName" className="md:text-right">{t('first_name')}</Label>
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="John"
+              required
+              className="md:col-span-3"
+            />
+          </div>
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="lastName" className="md:text-right">{t('last_name')}</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Doe"
+              required
+              className="md:col-span-3"
+            />
+          </div>
+          <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
+            <Label htmlFor="role" className="md:text-right">{t('role')}</Label>
+            <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role} disabled={availableRoles.length === 0}>
+              <SelectTrigger id="role" className="md:col-span-3">
+                <SelectValue placeholder={t('select_role')} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableRoles.map((roleOption) => (
+                  <SelectItem key={roleOption} value={roleOption}>
+                    {t(roleOption)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading || availableRoles.length === 0}>
+            {loading ? t('creating') : t('create_account')}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

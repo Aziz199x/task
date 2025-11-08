@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Layout from "@/components/Layout";
 import { useTasks } from "@/context/TaskContext";
 import { useTechnicians } from "@/hooks/use-technicians";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,17 +16,13 @@ const TechnicianTasks: React.FC = () => {
 
   if (loadingTechnicians) {
     return (
-      <Layout>
-        <div className="text-center py-8">{t('loading_technicians')}</div>
-      </Layout>
+      <div className="text-center py-8">{t('loading_technicians')}</div>
     );
   }
 
   if (techniciansError) {
     return (
-      <Layout>
-        <div className="text-center py-8 text-destructive">{t('error_loading_technicians')} {techniciansError}</div>
-      </Layout>
+      <div className="text-center py-8 text-destructive">{t('error_loading_technicians')} {techniciansError}</div>
     );
   }
 
@@ -39,7 +34,7 @@ const TechnicianTasks: React.FC = () => {
   });
 
   return (
-    <Layout>
+    <>
       <h2 className="text-3xl font-bold mb-8 text-center">{t('tasks_by_technician')}</h2>
 
       {/* Unassigned Tasks Section */}
@@ -83,7 +78,7 @@ const TechnicianTasks: React.FC = () => {
           ))
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

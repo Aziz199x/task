@@ -9,20 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useTranslation } from "react-i18next";
-import { useIsMobile } from "@/hooks/use-mobile";
+import useIsDesktop from "@/hooks/use-is-desktop";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton"; // Use Skeleton for initial render placeholder
 
 interface DatePickerProps {
   date: Date | undefined;
-  setDate: (date: Date | undefined) => void;
+  onDateChange: (date: Date | undefined) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export function DatePicker({ date, setDate, disabled = false, placeholder }: DatePickerProps) {
+export function DatePicker({ date, onDateChange, disabled = false, placeholder }: DatePickerProps) {
   const { t } = useTranslation();
-  const { isMobile, isClientLoaded } = useIsMobile();
+  const isMobile = !useIsDesktop();
   const [open, setOpen] = React.useState(false);
   
   // Set the minimum selectable date to today
@@ -30,7 +30,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
   today.setHours(0, 0, 0, 0);
 
   const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
+    onDateChange(newDate);
     setOpen(false);
   };
 
@@ -41,7 +41,7 @@ export function DatePicker({ date, setDate, disabled = false, placeholder }: Dat
         "w-full justify-start text-start font-normal",
         !date && "text-muted-foreground"
       )}
-      disabled={disabled || !isClientLoaded}
+      disabled={disabled}
     >
       <CalendarIcon className="mr-2 h-4 w-4" />
       {date ? format(date, "PPP") : (placeholder || t("pick_a_date"))}

@@ -11,29 +11,21 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
-import { useTheme } from 'next-themes';
+import { useSidebar } from '@/state/useSidebar';
 
-interface SidebarProps {
-  isOpen: boolean;
-  setIsOpen?: (isOpen: boolean) => void; // Made optional
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
+export function SidebarContent() {
   const { profile, signOut } = useSession();
   const { t } = useTranslation();
   const location = useLocation();
   const { refetchTasks } = useTasks();
-  const { theme } = useTheme();
+  const { setOpen } = useSidebar();
 
   const handleClose = () => {
-    if (setIsOpen) {
-      setIsOpen(false);
-    }
+    setOpen(false);
   };
 
   const handleSignOut = async () => {
     await signOut();
-    // No need to navigate, SessionProvider will handle redirect to /login
   };
 
   const handleRefreshData = async () => {
@@ -43,79 +35,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   };
 
   const navigationItems = [
-    {
-      name: t('home'),
-      href: '/',
-      icon: Home,
-      roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'],
-    },
-    {
-      name: t('dashboard'),
-      href: '/dashboard',
-      icon: LayoutDashboard,
-      roles: ['admin', 'manager', 'supervisor'],
-    },
-    {
-      name: t('technician_tasks'),
-      href: '/technician-tasks',
-      icon: Wrench,
-      roles: ['admin', 'manager', 'supervisor'],
-    },
-    {
-      name: t('manage_users'),
-      href: '/manage-users',
-      icon: Users,
-      roles: ['admin', 'manager', 'supervisor'],
-    },
-    {
-      name: t('create_new_user_account'),
-      href: '/create-account',
-      icon: Users,
-      roles: ['admin', 'manager', 'supervisor'],
-    },
-    {
-      name: t('diagnostics'),
-      href: '/diagnostics',
-      icon: BarChart3,
-      roles: ['admin'],
-    },
-    {
-      name: t('settings'),
-      href: '/settings',
-      icon: Settings,
-      roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'],
-    },
+    { name: t('home'), href: '/', icon: Home, roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'] },
+    { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('technician_tasks'), href: '/technician-tasks', icon: Wrench, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('manage_users'), href: '/manage-users', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('create_new_user_account'), href: '/create-account', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('diagnostics'), href: '/diagnostics', icon: BarChart3, roles: ['admin'] },
+    { name: t('settings'), href: '/settings', icon: Settings, roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'] },
   ];
 
-  // Removed logoSrc as it's no longer used in Sidebar
-
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
-        "pt-12 pb-16",
-        isOpen ? 'translate-x-0' : '-translate-x-full',
-        "lg:pt-0 lg:pb-0"
-      )}
-    >
-      {/* Header with padding to avoid status bar overlap */}
+    <>
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
-          {/* Replaced img with Lucide icons for the app icon */}
           <div className="relative flex items-center justify-center h-8 w-8">
-            <Settings className="h-full w-full text-orange-500" /> {/* Gear icon */}
-            <Zap className="absolute h-4 w-4 text-yellow-400" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> {/* Lightning bolt */}
+            <Settings className="h-full w-full text-orange-500" />
+            <Zap className="absolute h-4 w-4 text-yellow-400" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
           </div>
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        {/* Close button visible on all screen sizes */}
-        <Button variant="ghost" size="icon" onClick={handleClose}>
+        <Button variant="ghost" size="icon" onClick={handleClose} className="lg:hidden">
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
       </div>
       
-      {/* Navigation menu */}
       <nav className="flex-1 overflow-y-auto p-4 text-sm font-medium">
         <ul className="grid gap-2">
           {navigationItems.map((item) => {
@@ -142,7 +86,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         </ul>
       </nav>
       
-      {/* Bottom controls with extra padding to avoid Android gesture bar */}
       <div className="mt-auto border-t p-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" className="w-full" onClick={handleRefreshData}>
@@ -157,8 +100,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </Button>
         </div>
       </div>
-    </aside>
+    </>
   );
-};
-
-export default Sidebar;
+}

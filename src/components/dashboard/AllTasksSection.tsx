@@ -16,15 +16,16 @@ import { useTranslation } from 'react-i18next';
 import { useSession } from '@/context/SessionContext';
 import ExcelUploadButton from '@/components/ExcelUploadButton'; // Import the ExcelUploadButton
 import ChatImportButton from '@/components/ChatImportButton'; // Import the new ChatImportButton
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
+import useIsDesktop from '@/hooks/use-is-desktop'; // Import useIsDesktop hook
 
 const AllTasksSection: React.FC = () => {
-  const { tasks } = useTasks();
+  const { tasks, loading, error } = useTasks();
   const { t } = useTranslation();
   const { profile: currentUserProfile } = useSession();
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
-  const { isMobile } = useIsMobile(); // Use the hook to detect mobile
+  const isMobile = !useIsDesktop();
 
   // Allow 'admin', 'manager', and 'supervisor' roles to add tasks
   const canAddTask = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);

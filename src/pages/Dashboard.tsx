@@ -2,7 +2,6 @@
 
 import React, { useMemo } from "react";
 import { useTasks } from "@/context/TaskContext";
-import Layout from "@/components/Layout";
 import { useTranslation } from 'react-i18next';
 import { Briefcase, Clock, Zap, CheckCircle } from 'lucide-react';
 import SummaryCard from "@/components/dashboard/SummaryCard";
@@ -29,7 +28,7 @@ const Dashboard: React.FC = () => {
   }, [completedTasksCount, totalTasks]);
 
   return (
-    <Layout>
+    <>
       <h2 className="text-3xl font-bold mb-6">{t('dashboard')}</h2>
 
       {/* Summary Cards */}
@@ -76,7 +75,7 @@ const Dashboard: React.FC = () => {
 
       {/* All Tasks Section */}
       <AllTasksSection />
-    </Layout>
+    </>
   );
 };
 
