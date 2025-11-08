@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { LayoutProvider, useLayout } from '@/context/LayoutContext';
 import { Button } from "./ui/button";
 import { MenuIcon } from "lucide-react";
 import StatusBarManager from "./StatusBarManager";
@@ -19,19 +20,18 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
-  const location = useLocation();
   const { t } = useTranslation();
+  const location = useLocation();
   const { isMobile, isClientLoaded } = useIsMobile();
+  const { isSidebarOpen, setIsSidebarOpen } = useLayout();
 
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (session && isClientLoaded) {
       setIsSidebarOpen(!isMobile);
     }
-  }, [session, isClientLoaded, isMobile]);
+  }, [session, isClientLoaded, isMobile, setIsSidebarOpen]);
 
   if (loading) {
     return (
@@ -52,40 +52,30 @@ export default function Layout({ children }: LayoutProps) {
   const isNavbarVisible = session && isClientLoaded; // Navbar is always visible when logged in
 
   return (
-    <div className={cn(
-      "min-h-screen flex flex-col",
-      "bg-background"
-    )}>
-      <StatusBarManager />
-      {isNavbarVisible && <Navbar />}
-
-      {session && isClientLoaded && !isMobile && (
-        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      )}
-
-      {session && isClientLoaded && !isMobile && !isSidebarOpen && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-4 left-4 z-50 hidden md:flex"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <MenuIcon className="h-6 w-6" />
-          <span className="sr-only">{t('open_sidebar')}</span>
-        </Button>
-      )}
-
-      <main className={cn(
-        "flex-1 flex flex-col w-full overflow-y-auto",
-        isNavbarVisible ? "pt-24" : "",
-        (!isMobile && isSidebarOpen) ? "lg:ml-64" : "lg:ml-0",
+    <LayoutProvider>
+      <div className={cn(
+        "min-h-screen flex flex-col",
         "bg-background"
       )}>
-        <div className="container mx-auto p-4 flex-1">
-          {children}
-        </div>
-      </main>
-      <Toaster richColors />
-    </div>
+        <StatusBarManager />
+        {isNavbarVisible && <Navbar />}
+
+        {session && isClientLoaded && (
+          <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        )}
+
+        <main className={cn(
+          "flex-1 transition-all duration-300 ease-in-out",
+          isSidebarOpen && !isMobile ? "lg:ml-64" : "lg:ml-0",
+          "pt-24",
+          "pb-safe-bottom"
+        )}>
+          <div className="container mx-auto p-4 flex-1">
+            {children}
+          </div>
+        </main>
+        <Toaster richColors />
+      </div>
+    </LayoutProvider>
   );
 }

@@ -2,8 +2,12 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { MenuIcon } from 'lucide-react';
+import { ThemeSwitcher } from './ThemeSwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
+import { Menu } from 'lucide-react';
+import { useLayout } from '@/context/LayoutContext';
 import { useSession } from '@/context/SessionContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -18,8 +22,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import Sidebar from './Sidebar';
 import { useTheme } from 'next-themes';
-import { useIsMobile } from '@/hooks/use-mobile';
-import LanguageSwitcher from './LanguageSwitcher';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
   const { user, profile, signOut } = useSession();
@@ -28,6 +31,7 @@ export default function Navbar() {
   const { theme } = useTheme();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isMobile, isClientLoaded } = useIsMobile();
+  const { setIsSidebarOpen } = useLayout();
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,9 +51,14 @@ export default function Navbar() {
           {isClientLoaded && isMobile && (
             <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="mr-2">
-                  <MenuIcon className="h-6 w-6" />
-                  <span className="sr-only">{t('toggle_sidebar')}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="mr-2"
+                  onClick={() => setIsSidebarOpen(true)}
+                >
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">{t('open_sidebar')}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
@@ -57,10 +66,10 @@ export default function Navbar() {
               </SheetContent>
             </Sheet>
           )}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 font-semibold">
             <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
             <h1 className="text-xl font-bold">{t('task_manager')}</h1>
-          </div>
+          </Link>
         </div>
         <div className="flex items-center space-x-4">
           {user && (
