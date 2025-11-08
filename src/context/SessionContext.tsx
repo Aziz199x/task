@@ -148,6 +148,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             await fetchUserProfile(newUser.id);
 
             // If a user just signed in, attempt to sign out other sessions (non-blocking)
+            // This feature is temporarily disabled because it also signs out the current session.
+            /*
             if (event === 'SIGNED_IN' && currentSession?.access_token) {
               console.log("[SessionProvider] User signed in, attempting to sign out other sessions.");
               try {
@@ -165,6 +167,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
                 console.error("Exception invoking sign-out-other-sessions function:", e.message);
               }
             }
+            */
           } else {
             setProfile(null);
           }
