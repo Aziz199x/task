@@ -9,7 +9,6 @@ import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/context/SessionContext";
 import { useTranslation } from "react-i18next";
-import StatusBarManager from "./StatusBarManager";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { open, setOpen } = useSidebar();
@@ -43,8 +42,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <StatusBarManager />
-
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 hidden h-full w-64 flex-col border-r bg-sidebar lg:flex">
         <SidebarContent />

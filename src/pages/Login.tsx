@@ -15,7 +15,6 @@ import { UserProfile } from '@/context/SessionContext'; // Import UserProfile ty
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import utility
-import StatusBarManager from '@/components/StatusBarManager'; // Import StatusBarManager
 
 const Login = () => {
   const navigate = useNavigate();
@@ -105,7 +104,6 @@ const Login = () => {
 
   return (
     <>
-      <StatusBarManager />
       <div className="min-h-screen flex items-center justify-center bg-background relative">
         <div className="absolute top-16 right-4 flex items-center space-x-2">
           <ThemeSwitcher />

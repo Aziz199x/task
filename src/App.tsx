@@ -21,55 +21,57 @@ import i18n from './i18n';
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
-import StatusBarManager from "./components/StatusBarManager";
 import BackButtonHandler from "./components/BackButtonHandler";
 import { SidebarProvider } from "./state/useSidebar";
 import AppLifecycleSync from "./components/AppLifecycleSync";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <I18nextProvider i18n={i18n}>
-          <BrowserRouter>
-            <SessionProvider>
-              <TaskProvider>
-                <SidebarProvider>
-                  <StatusBarManager />
-                  <BackButtonHandler />
-                  <AppLifecycleSync />
-                  <Routes>
-                    <Route element={<PublicRoute />}>
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/forgot-password" element={<ForgotPassword />} />
-                    </Route>
+function App() {
+  return (
+    <>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <Toaster />
+            <I18nextProvider i18n={i18n}>
+              <BrowserRouter>
+                <SessionProvider>
+                  <TaskProvider>
+                    <SidebarProvider>
+                      <BackButtonHandler />
+                      <AppLifecycleSync />
+                      <Routes>
+                        <Route element={<PublicRoute />}>
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/forgot-password" element={<ForgotPassword />} />
+                        </Route>
 
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/verify-email" element={<EmailVerificationRequired />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/verify-email" element={<EmailVerificationRequired />} />
 
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/technician-tasks" element={<TechnicianTasks />} />
-                      <Route path="/create-account" element={<CreateAccount />} />
-                      <Route path="/manage-users" element={<ManageUsers />} />
-                      <Route path="/diagnostics" element={<Diagnostics />} />
-                      <Route path="/settings" element={<ProfileSettings />} />
-                    </Route>
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </SidebarProvider>
-              </TaskProvider>
-            </SessionProvider>
-          </BrowserRouter>
-        </I18nextProvider>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+                        <Route element={<ProtectedRoute />}>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/technician-tasks" element={<TechnicianTasks />} />
+                          <Route path="/create-account" element={<CreateAccount />} />
+                          <Route path="/manage-users" element={<ManageUsers />} />
+                          <Route path="/diagnostics" element={<Diagnostics />} />
+                          <Route path="/settings" element={<ProfileSettings />} />
+                        </Route>
+                        
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </SidebarProvider>
+                  </TaskProvider>
+                </SessionProvider>
+              </BrowserRouter>
+            </I18nextProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </>
+  );
+}
 
 export default App;
