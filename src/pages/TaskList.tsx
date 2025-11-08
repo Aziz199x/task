@@ -288,7 +288,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
           <SelectContent className="min-w-[var(--radix-select-trigger-width)]" align="end">
             <SelectItem value="all">{t('all_statuses')}</SelectItem>
             <SelectItem value="pending">{t('pending')}</SelectItem>
-            <SelectItem value="in-progress">{t('in_progress')}</SelectItem>
+            <SelectItem value="in-progress">{t('in_progress').replace('-', ' ')}</SelectItem>
             <SelectItem value="completed">{t('completed')}</SelectItem>
             <SelectItem value="cancelled">{t('cancelled')}</SelectItem>
           </SelectContent>
@@ -371,7 +371,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_pending')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'in-progress')}>
-                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress')}
+                  <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_in_progress').replace('-', ' ')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleBulkAction('status', 'completed')}>
                   <ListTodo className="mr-2 h-4 w-4" /> {t('mark_as_completed')}

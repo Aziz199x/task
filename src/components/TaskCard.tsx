@@ -122,14 +122,14 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
     setIsSaving(true);
     const success = await changeTaskStatus(task.id, newStatus);
-    if (success) toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')) }));
+    if (success) toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')).replace('-', ' ') }));
     setIsSaving(false);
   }, [changeTaskStatus, task.id, task.status, t]);
 
   const confirmRevertToInProgress = React.useCallback(async () => {
     setIsSaving(true);
     const success = await changeTaskStatus(task.id, 'in-progress');
-    if (success) toast.success(t('task_status_changed_to', { status: t('in_progress') }));
+    if (success) toast.success(t('task_status_changed_to', { status: t('in_progress').replace('-', ' ') }));
     setIsSaving(false);
     setShowRevertConfirmation(false);
   }, [changeTaskStatus, task.id, t]);
@@ -224,7 +224,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     }
     switch (task.status) {
       case 'completed': return { text: t('completed'), color: 'bg-green-100 text-green-800' };
-      case 'in-progress': return { text: t('in_progress'), color: 'bg-blue-100 text-blue-800' };
+      case 'in-progress': return { text: t('in_progress').replace('-', ' '), color: 'bg-blue-100 text-blue-800' };
       case 'cancelled': return { text: t('cancelled'), color: 'bg-red-100 text-red-800' };
       default: return { text: t('unassigned'), color: 'bg-gray-100 text-gray-800' };
     }
@@ -267,7 +267,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
                 <DropdownMenuContent align="end">
                   {/* Start Progress is the primary action for pending tasks */}
                   {canStartProgress && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('ready_to_perform')}</DropdownMenuItem>}
-                  {isCompleted && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress')}</DropdownMenuItem>}
+                  {isCompleted && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('revert_to_in_progress').replace('-', ' ')}</DropdownMenuItem>}
                   {canCancel && <DropdownMenuItem onClick={() => handleStatusChange('cancelled')} disabled={isSaving}>{t('mark_as_cancelled')}</DropdownMenuItem>}
                   
                   {(canStartProgress || canCancel || isCompleted) && (canAssignToMe || canUnassignTask || canDeleteTask || canShare) && <DropdownMenuSeparator />}
