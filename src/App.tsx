@@ -23,6 +23,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
 import StatusBarManager from "./components/StatusBarManager";
+import BackButtonHandler from "./components/BackButtonHandler";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <SessionProvider>
               <TaskProvider>
                 {/* <StatusBarManager /> */}
+                <BackButtonHandler />
                 <Routes>
                   <Route element={<PublicRoute />}>
                     <Route path="/login" element={<Login />} />
