@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X, Zap } from 'lucide-react';
+import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X } from 'lucide-react'; // Removed Zap from imports
 import { Button } from './ui/button';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -87,8 +87,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     },
   ];
 
-  // Removed logoSrc as it's no longer used in Sidebar
-
   return (
     <aside
       className={cn(
@@ -101,11 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       {/* Header with padding to avoid status bar overlap */}
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
-          {/* Replaced img with Lucide icons for the app icon */}
-          <div className="relative flex items-center justify-center h-8 w-8">
-            <Settings className="h-full w-full text-orange-500" /> {/* Gear icon */}
-            <Zap className="absolute h-4 w-4 text-yellow-400" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> {/* Lightning bolt */}
-          </div>
+          {/* Reverted to original text-only app name */}
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
         {/* Close button visible on all screen sizes */}
