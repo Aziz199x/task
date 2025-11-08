@@ -9,13 +9,12 @@ const config: CapacitorConfig = {
       launchShowDuration: 0,
     },
     StatusBar: {
-      overlaysWebView: false,
+      // This is the key change: enable overlay
+      overlaysWebView: true,
       style: 'DEFAULT',
-      backgroundColor: '#ffffff'
     },
   },
   server: {
-    // Use production Vercel URL instead of local development server
     url: 'https://task-five-sable.vercel.app',
     cleartext: false,
   },

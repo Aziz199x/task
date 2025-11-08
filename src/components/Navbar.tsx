@@ -27,7 +27,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { isMobile, isLandscape, isClientLoaded, persistentLandscape } = useIsMobile();
+  const { isMobile, isClientLoaded } = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,69 +41,66 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`bg-primary text-primary-foreground fixed w-full z-40 shadow-md flex items-center justify-between px-4 ${isClientLoaded && isMobile && (isLandscape || persistentLandscape) ? 'h-16 pt-6' : 'h-24 pt-8'}`}>
-      <div className="flex items-center">
-        {isClientLoaded && isMobile && (
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-2">
-                <MenuIcon className="h-6 w-6" />
-                <span className="sr-only">{t('toggle_sidebar')}</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
-            </SheetContent>
-          </Sheet>
-        )}
-        <div className="flex items-center gap-2">
-          <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
-          <h1 className="text-xl font-bold">
-            {isClientLoaded && isMobile && (isLandscape || persistentLandscape) ? 'AbuMiral' : t('task_manager')}
-          </h1>
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md h-24 flex items-end">
+      <div className="flex items-center justify-between w-full px-4 pb-3" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="flex items-center">
+          {isClientLoaded && isMobile && (
+            <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-2">
+                  <MenuIcon className="h-6 w-6" />
+                  <span className="sr-only">{t('toggle_sidebar')}</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
+              </SheetContent>
+            </Sheet>
+          )}
+          <div className="flex items-center gap-2">
+            <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
+            <h1 className="text-xl font-bold">{t('task_manager')}</h1>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center space-x-4">
-        {isClientLoaded && isMobile && (isLandscape || persistentLandscape) && (
-          <LanguageSwitcher />
-        )}
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.avatar_url || user.user_metadata?.avatar_url || "/avatars/01.png"} alt={profile?.first_name || user.email || "User"} />
-                  <AvatarFallback>
-                    {profile?.first_name ? profile.first_name.charAt(0) : user.email?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {profile?.first_name && profile?.last_name
-                      ? `${profile.first_name} ${profile.last_name}`
-                      : user.email}
-                  </p>
-                  {profile?.role && (
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {t(profile.role)}
+        <div className="flex items-center space-x-4">
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile?.avatar_url || user.user_metadata?.avatar_url || "/avatars/01.png"} alt={profile?.first_name || user.email || "User"} />
+                    <AvatarFallback>
+                      {profile?.first_name ? profile.first_name.charAt(0) : user.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {profile?.first_name && profile?.last_name
+                        ? `${profile.first_name} ${profile.last_name}`
+                        : user.email}
                     </p>
-                  )}
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                {t('profile_settings')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>
-                {t('logout')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                    {profile?.role && (
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {t(profile.role)}
+                      </p>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  {t('profile_settings')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  {t('logout')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </nav>
   );

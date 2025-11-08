@@ -13,20 +13,19 @@ const StatusBarManager = () => {
 
     const setupStatusBar = async () => {
       try {
-        // Ensure status bar doesn't overlay the webview
-        await StatusBar.setOverlaysWebView({ overlay: false });
+        // Make the status bar overlay the webview for a modern, seamless UI
+        await StatusBar.setOverlaysWebView({ overlay: true });
 
+        // Set the status bar icon style based on the app's theme for proper contrast
         if (resolvedTheme === "dark") {
-          // Dark theme: dark gray status bar with light icons
-          await StatusBar.setBackgroundColor({ color: "#1f2937" });
+          // Dark theme gets light icons
           await StatusBar.setStyle({ style: Style.Light });
         } else {
-          // Light theme: white status bar with dark icons
-          await StatusBar.setBackgroundColor({ color: "#ffffff" });
+          // Light theme gets dark icons
           await StatusBar.setStyle({ style: Style.Dark });
         }
         
-        console.log(`[StatusBarManager] Status bar configured for ${resolvedTheme} theme`);
+        console.log(`[StatusBarManager] Overlay enabled. Style set for ${resolvedTheme} theme.`);
       } catch (error) {
         console.error('[StatusBarManager] Error setting up status bar:', error);
       }

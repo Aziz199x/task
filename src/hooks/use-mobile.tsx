@@ -1,42 +1,32 @@
 import * as React from "react";
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 768; // Devices wider than this are considered tablets/desktops
 
 export function useIsMobile() {
   const [state, setState] = React.useState<{
     isMobile: boolean;
-    isLandscape: boolean;
     isClientLoaded: boolean;
-    persistentLandscape: boolean;
   }>({
     isMobile: false,
-    isLandscape: false,
     isClientLoaded: false,
-    persistentLandscape: false,
   });
 
   React.useEffect(() => {
-    const checkMobile = () => {
-      const isMobileWidth = window.innerWidth < MOBILE_BREAKPOINT;
-      const isMobileHeight = window.innerHeight < 480;
-      const isLandscape =
-        (window.matchMedia && window.matchMedia("(orientation: landscape)").matches) ||
-        window.innerWidth > window.innerHeight;
-
-      setState(prev => ({
-        isMobile: isMobileWidth || isMobileHeight,
-        isLandscape,
+    const checkDeviceType = () => {
+      // This check is now based only on width, making it stable on orientation change
+      const isMobileDevice = window.innerWidth < MOBILE_BREAKPOINT;
+      
+      setState({
+        isMobile: isMobileDevice,
         isClientLoaded: true,
-        persistentLandscape: prev.persistentLandscape || isLandscape,
-      }));
+      });
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    window.addEventListener("orientationchange", checkMobile);
+    checkDeviceType();
+    // We only need to check on resize, not orientation change, as width is our source of truth
+    window.addEventListener("resize", checkDeviceType);
     return () => {
-      window.removeEventListener("resize", checkMobile);
-      window.removeEventListener("orientationchange", checkMobile);
+      window.removeEventListener("resize", checkDeviceType);
     };
   }, []);
 
