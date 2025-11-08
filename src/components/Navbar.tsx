@@ -18,7 +18,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import Sidebar from './Sidebar';
 import { useTheme } from 'next-themes';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Navbar() {
   const { user, profile, signOut } = useSession();
@@ -26,7 +26,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { isMobile, isClientLoaded } = useIsMobile(); // Use the hook
+  const { isMobile, isClientLoaded } = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,22 +35,18 @@ export default function Navbar() {
 
   const logoSrc = theme === 'dark' ? '/logo-dark.png' : '/logo-light.png';
 
-  // If client is loaded and it's not mobile, we render nothing (Navbar is desktop hidden)
   if (isClientLoaded && !isMobile) {
     return null;
   }
   
-  // If session is not active, we also shouldn't render the Navbar (Layout handles this, but defensive check)
   if (!user) {
     return null;
   }
 
-  // Navbar includes the safe-area inset at the top so its content won't be under the status bar.
-  // Navbar total height = 4rem + env(safe-area-inset-top) so Layout only needs pt-16 (4rem).
+  // Navbar no longer needs safe-area-inset-top since status bar has its own space
   return (
-    <nav className="bg-primary text-primary-foreground fixed w-full z-40 lg:hidden shadow-md flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] h-[calc(4rem+env(safe-area-inset-top))]">
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 lg:hidden shadow-md flex items-center justify-between px-4 h-16">
       <div className="flex items-center">
-        {/* Mobile sidebar toggle - Only render if it's mobile and client is loaded */}
         {isClientLoaded && isMobile && (
           <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
             <SheetTrigger asChild>
@@ -60,12 +56,10 @@ export default function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-64">
-              {/* Pass setIsMobileSidebarOpen directly to Sidebar */}
               <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
             </SheetContent>
           </Sheet>
         )}
-        {/* App Logo and Title */}
         <div className="flex items-center gap-2">
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <h1 className="text-xl font-bold">{t('task_manager')}</h1>

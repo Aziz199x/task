@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
       launchShowDuration: 0,
     },
     StatusBar: {
-      overlaysWebView: true,
+      overlaysWebView: false,
       style: 'DEFAULT',
     },
   },
