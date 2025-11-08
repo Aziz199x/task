@@ -11,31 +11,31 @@ const StatusBarManager = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // This is the most important part.
-    // 'overlay: false' tells the system to NOT let your app draw under the status bar.
-    // This creates the solid separation you want.
-    StatusBar.setOverlaysWebView({ overlay: false });
+    const setupStatusBar = async () => {
+      try {
+        // Set overlay to false so the system automatically handles safe area insets
+        await StatusBar.setOverlaysWebView({ overlay: false });
 
-  }, []); // This part only needs to run once.
+        // Set the status bar icon style based on the app's theme.
+        // A small timeout helps ensure this runs after the theme has been fully applied,
+        // preventing race conditions where the icon style is set before the background color changes.
+        setTimeout(() => {
+          if (resolvedTheme === "dark") {
+            // Dark theme gets light icons for contrast.
+            StatusBar.setStyle({ style: Style.Light });
+          } else {
+            // Light theme gets dark icons for contrast.
+            StatusBar.setStyle({ style: Style.Dark });
+          }
+        }, 150); // A 150ms delay is usually enough to avoid race conditions.
+        
+      } catch (error) {
+        console.error('[StatusBarManager] Error setting up status bar:', error);
+      }
+    };
 
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform() || !resolvedTheme) return;
-
-    // This part runs every time the theme changes.
-    if (resolvedTheme === "dark") {
-      // --- Dark Mode ---
-      // Background: A visible gray, not pure black.
-      // Icons: Light icons, so they are visible on the gray background.
-      StatusBar.setBackgroundColor({ color: "#424242" });
-      StatusBar.setStyle({ style: Style.Light });
-    } else {
-      // --- Light Mode ---
-      // Background: A light gray, not pure white.
-      // Icons: Dark icons, so they are visible on the gray background.
-      StatusBar.setBackgroundColor({ color: "#F5F5F5" });
-      StatusBar.setStyle({ style: Style.Dark });
-    }
-  }, [resolvedTheme]); // Re-runs when the theme changes.
+    setupStatusBar();
+  }, [resolvedTheme]);
 
   return null;
 };
