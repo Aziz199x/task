@@ -12,6 +12,7 @@ import { useTheme } from "next-themes";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from "./ui/button";
 import { MenuIcon } from "lucide-react";
+import StatusBarManager from "./StatusBarManager";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -59,6 +60,7 @@ export default function Layout({ children }: LayoutProps) {
       "bg-background",
       "px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
     )}>
+      <StatusBarManager />
       {isNavbarVisible && <Navbar />}
 
       {session && isClientLoaded && !isMobile && (

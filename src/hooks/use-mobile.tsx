@@ -12,20 +12,26 @@ export function useIsMobile() {
 
   React.useEffect(() => {
     const checkMobile = () => {
-      setState(prev => ({
-        ...prev,
-        isMobile: window.innerWidth < MOBILE_BREAKPOINT,
+      // Consider landscape phones (short height) as mobile too
+      const isMobileWidth = window.innerWidth < MOBILE_BREAKPOINT;
+      const isMobileHeight = window.innerHeight < 480; // landscape phones often have small height
+      setState({
+        isMobile: isMobileWidth || isMobileHeight,
         isClientLoaded: true,
-      }));
+      });
     };
-    
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    mql.addEventListener("change", checkMobile);
-    
+
     // Set initial value and mark as loaded
     checkMobile();
-    
-    return () => mql.removeEventListener("change", checkMobile);
+
+    // Listen to viewport changes
+    window.addEventListener("resize", checkMobile);
+    window.addEventListener("orientationchange", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("orientationchange", checkMobile);
+    };
   }, []);
 
   return state;
