@@ -41,8 +41,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md h-16 flex items-center">
-      <div className="flex items-center justify-between w-full px-4">
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md h-24 flex items-end">
+      <div className="flex items-center justify-between w-full px-4 pb-3" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="flex items-center">
           {isClientLoaded && isMobile && (
             <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
