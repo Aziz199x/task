@@ -45,7 +45,7 @@ export default function Navbar() {
 
   // Navbar no longer needs safe-area-inset-top since status bar has its own space
   return (
-    <nav className="bg-primary text-primary-foreground fixed w-full z-40 lg:hidden shadow-md flex items-center justify-between px-4 h-24 pt-8">
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md flex items-center justify-between px-4 h-24 pt-8">
       <div className="flex items-center">
         {isClientLoaded && isMobile && (
           <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
