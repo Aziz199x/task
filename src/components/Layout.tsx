@@ -53,7 +53,7 @@ export default function Layout({ children }: LayoutProps) {
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto",
         // Only add top padding for mobile navbar, no safe-area-inset-top needed
-        isNavbarVisible ? "pt-16" : "",
+        isNavbarVisible ? "pt-24" : "",
         "lg:ml-64",
         "bg-background",
         // Add extra bottom padding to account for Android gesture navigation
