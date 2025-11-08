@@ -25,6 +25,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import StatusBarManager from "./components/StatusBarManager";
 import BackButtonHandler from "./components/BackButtonHandler";
 import { LayoutProvider } from "./context/LayoutContext";
+import AppLifecycleSync from "./components/AppLifecycleSync";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
               <TaskProvider>
                 <StatusBarManager />
                 <BackButtonHandler />
+                <AppLifecycleSync />
                 <LayoutProvider>
                   <Routes>
                     <Route element={<PublicRoute />}>
