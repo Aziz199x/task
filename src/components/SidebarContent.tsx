@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X, Zap } from 'lucide-react';
+import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X, Zap, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -108,12 +108,18 @@ export function SidebarContent() {
       {!isDesktop && (
         <div
           className="fixed left-0 right-0 z-40"
-          style={{ bottom: `calc(env(safe-area-inset-bottom) + 12px)` }}
+          style={{ bottom: `calc(env(safe-area-inset-bottom) + 20px)` }}
         >
           <div className="mx-auto max-w-screen-sm px-4">
-            <div className="flex gap-8 justify-between bg-black/50 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-              <button className="btn ghost w-full" onClick={handleRefreshData}>{t('refresh_data')}</button>
-              <button className="btn danger w-full" onClick={handleSignOut}>{t('logout')}</button>
+            <div className="flex items-center justify-around rounded-2xl border border-white/10 bg-black/50 p-2 backdrop-blur-md">
+              <Button variant="ghost" size="sm" onClick={handleRefreshData} aria-label={t('refresh_data')}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <ThemeSwitcher />
+              <LanguageSwitcher />
+              <Button variant="ghost" size="sm" onClick={handleSignOut} aria-label={t('logout')}>
+                <LogOut className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
           </div>
         </div>
