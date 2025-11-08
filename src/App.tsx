@@ -36,7 +36,7 @@ const App = () => (
           <BrowserRouter>
             <SessionProvider>
               <TaskProvider>
-                <StatusBarManager />
+                {/* <StatusBarManager /> */}
                 <Routes>
                   <Route element={<PublicRoute />}>
                     <Route path="/login" element={<Login />} />
