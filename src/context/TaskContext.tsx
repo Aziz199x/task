@@ -122,16 +122,32 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     while (!unique && attempts < MAX_ATTEMPTS) {
       newTaskId = String(Math.floor(100000000000000 + Math.random() * 900000000000000));
       try {
-        const { data, error } = await supabase.from('tasks').select('task_id').eq('task_id', newTaskId).limit(1);
+        console.log(`[TaskContext] Attempting to generate unique task ID (attempt ${attempts + 1}/${MAX_ATTEMPTS})`);
+        
+        // Add a timeout to the query
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timed out')), 10000)
+        );
+        
+        const queryPromise = supabase.from('tasks').select('task_id').eq('task_id', newTaskId).limit(1);
+        
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        
         if (error) {
-          console.error("Error checking for unique task ID:", error.message);
+          console.error("[TaskContext] Error checking for unique task ID:", error.message);
           throw new Error(t('error_generating_unique_task_id') + ": " + error.message);
         }
         if (!data || data.length === 0) {
           unique = true;
+          console.log(`[TaskContext] Generated unique task ID: ${newTaskId}`);
+        } else {
+          console.log(`[TaskContext] Task ID ${newTaskId} already exists, retrying...`);
         }
       } catch (e: any) {
-        console.error("Exception during unique task ID generation:", e.message);
+        console.error("[TaskContext] Exception during unique task ID generation:", e.message);
+        if (e.message.includes('timed out')) {
+          toast.error(t('database_connection_timeout'));
+        }
         throw e;
       }
       attempts++;
@@ -144,6 +160,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [t]);
 
   const addTask = useCallback(async (title: string, description?: string, location?: string, dueDate?: string, assigneeId?: string | null, typeOfWork?: Task['type_of_work'], equipmentNumber?: string, notificationNum?: string, priority?: Task['priority']): Promise<boolean> => {
+    console.log('[TaskContext] addTask called with:', { title, equipmentNumber, assigneeId });
+    
     if (!equipmentNumber) {
       toast.error(t("equipment_number_mandatory"));
       return false;
@@ -151,13 +169,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (notificationNum && notificationNum.trim() !== "") {
       try {
-        const { data, error: checkError } = await supabase
+        console.log('[TaskContext] Checking notification number uniqueness...');
+        
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timed out')), 10000)
+        );
+        
+        const queryPromise = supabase
           .from('tasks')
           .select('id')
           .eq('notification_num', notificationNum.trim())
           .limit(1);
 
+        const { data, error: checkError } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
         if (checkError) {
+          console.error('[TaskContext] Error checking notification number:', checkError.message);
           toast.error(`Error checking notification number: ${checkError.message}`);
           return false;
         }
@@ -166,16 +193,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return false;
         }
       } catch (e: any) {
-        console.error("Exception during notification number uniqueness check:", e.message);
-        toast.error(`Error checking notification number: ${e.message}`);
+        console.error("[TaskContext] Exception during notification number uniqueness check:", e.message);
+        if (e.message.includes('timed out')) {
+          toast.error(t('database_connection_timeout'));
+        } else {
+          toast.error(`Error checking notification number: ${e.message}`);
+        }
         return false;
       }
     }
 
     let taskId: string | undefined;
     try {
+      console.log('[TaskContext] Generating unique task ID...');
       taskId = await generateUniqueTaskId();
+      console.log('[TaskContext] Task ID generated:', taskId);
     } catch (error: any) {
+      console.error('[TaskContext] Failed to generate task ID:', error.message);
       toast.error(error.message);
       return false;
     }
@@ -215,22 +249,45 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, [optimisticTask, ...previousTasks]);
     }
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert(taskPayload)
-      .select()
-      .single();
+    console.log('[TaskContext] Inserting task into database...');
+    
+    try {
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database insert timed out')), 15000)
+      );
+      
+      const insertPromise = supabase
+        .from('tasks')
+        .insert(taskPayload)
+        .select()
+        .single();
 
-    if (error) {
-      toast.error(t("failed_to_add_task") + error.message);
+      const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
+
+      if (error) {
+        console.error('[TaskContext] Error inserting task:', error.message);
+        toast.error(t("failed_to_add_task") + error.message);
+        if (previousTasks) {
+          queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
+        }
+        return false;
+      }
+      
+      console.log('[TaskContext] Task inserted successfully:', data);
+      queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+      return true;
+    } catch (e: any) {
+      console.error('[TaskContext] Exception during task insert:', e.message);
+      if (e.message.includes('timed out')) {
+        toast.error(t('database_connection_timeout'));
+      } else {
+        toast.error(t("failed_to_add_task") + e.message);
+      }
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
       return false;
     }
-    
-    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-    return true;
   }, [user, generateUniqueTaskId, t, queryClient]);
 
   const addTasksBulk = useCallback(async (newTasks: Partial<Task>[]) => {
