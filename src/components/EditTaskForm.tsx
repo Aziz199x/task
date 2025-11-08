@@ -270,9 +270,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
           />
           <PhotoUploader
             label={t('permit_photo')}
-            taskId={currentTask.id}
-            photoType="permit"
-            currentUrl={currentTask.photo_permit_url}
+            bucketName="task_photos"
+            folderName={currentTask.id}
+            fileNamePrefix="permit"
+            currentImageUrl={currentTask.photo_permit_url}
             onUploadSuccess={handlePermitUploadSuccess}
             onRemove={handlePermitRemove}
           />

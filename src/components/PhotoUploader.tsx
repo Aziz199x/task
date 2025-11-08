@@ -14,14 +14,15 @@ import imageCompression from 'browser-image-compression';
 
 interface PhotoUploaderProps {
   label: string;
-  taskId: string;
-  photoType: 'before' | 'after' | 'permit';
-  currentUrl: string | null | undefined;
+  bucketName: string;
+  folderName: string;
+  fileNamePrefix?: string;
+  currentImageUrl: string | null | undefined;
   onUploadSuccess: (url: string) => void;
   onRemove: () => void;
 }
 
-const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType, currentUrl, onUploadSuccess, onRemove }) => {
+const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, bucketName, folderName, fileNamePrefix, currentImageUrl, onUploadSuccess, onRemove }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { t } = useTranslation();
@@ -50,11 +51,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       const compressedFile = await imageCompression(file, options);
 
       const fileExt = compressedFile.name.split('.').pop();
-      const fileName = `${photoType}-${Date.now()}.${fileExt}`;
-      const filePath = `${taskId}/${fileName}`;
+      const fileName = `${fileNamePrefix || 'file'}-${Date.now()}.${fileExt}`;
+      const filePath = `${folderName}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('task_photos')
+        .from(bucketName)
         .upload(filePath, compressedFile, {
           cacheControl: '3600',
           upsert: false
@@ -68,7 +69,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
 
       // Get the public URL for the uploaded file
       const { data: publicUrlData } = supabase.storage
-        .from('task_photos')
+        .from(bucketName)
         .getPublicUrl(filePath);
       
       if (publicUrlData.publicUrl) {
@@ -83,7 +84,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
       setUploading(false);
       setUploadProgress(0);
     }
-  }, [taskId, photoType, onUploadSuccess, t]);
+  }, [bucketName, folderName, fileNamePrefix, onUploadSuccess, t]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -94,15 +95,12 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
   };
 
   const handleRemove = async () => {
-    setUploading(true);
-    try {
-      await onRemove();
-    } finally {
-      setUploading(false);
-    }
+    // The parent component is now responsible for file deletion logic.
+    // This function just calls the passed onRemove prop.
+    onRemove();
   };
 
-  if (currentUrl) {
+  if (currentImageUrl) {
     return (
       <div className="space-y-2">
         <Label>{label}</Label>
@@ -111,8 +109,8 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
             <DialogTrigger asChild>
               <div className="relative cursor-pointer group">
                 <img 
-                  key={currentUrl} 
-                  src={currentUrl} 
+                  key={currentImageUrl} 
+                  src={currentImageUrl} 
                   alt={label} 
                   className="w-20 h-20 object-cover rounded-md hover:opacity-80 transition-opacity" 
                 />
@@ -127,7 +125,7 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
                          overflow-auto pb-[calc(1rem + env(safe-area-inset-bottom))]"
             >
               <img
-                src={currentUrl}
+                src={currentImageUrl}
                 alt={label}
                 className="w-full h-auto object-contain rounded-lg
                            max-h-[calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10rem)]"
@@ -144,11 +142,11 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, taskId, photoType,
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={`${photoType}-upload`}>{label}</Label>
+      <Label htmlFor={`${fileNamePrefix || 'photo'}-upload`}>{label}</Label>
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Input 
-            id={`${photoType}-upload`} 
+            id={`${fileNamePrefix || 'photo'}-upload`} 
             type="file" 
             onChange={handleFileChange} 
             accept="image/*" 
