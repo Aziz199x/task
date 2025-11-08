@@ -97,7 +97,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         "lg:translate-x-0" // Re-enable persistent visibility on large screens
       )}
     >
-      <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
+      {/* Header with extra top padding to avoid status bar overlap */}
+      <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6 mt-4">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
@@ -108,6 +109,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
       </div>
+      
+      {/* Navigation menu */}
       <nav className="flex-1 overflow-y-auto p-4 text-sm font-medium">
         <ul className="grid gap-2">
           {navigationItems.map((item) => {
@@ -133,13 +136,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           })}
         </ul>
       </nav>
-      <div className="mt-auto border-t p-4">
+      
+      {/* Bottom controls with extra padding to avoid Android gesture bar */}
+      <div className="mt-auto border-t p-4 pb-8 mb-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" className="w-full" onClick={handleRefreshData}>
             <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
           </Button>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <ThemeSwitcher />
           <LanguageSwitcher />
           <Button variant="ghost" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
