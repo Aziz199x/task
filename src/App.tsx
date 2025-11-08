@@ -24,6 +24,7 @@ import PublicRoute from "./components/PublicRoute";
 import { ThemeProvider } from "./components/ThemeProvider";
 import StatusBarManager from "./components/StatusBarManager";
 import BackButtonHandler from "./components/BackButtonHandler";
+import { LayoutProvider } from "./context/LayoutContext";
 
 const queryClient = new QueryClient();
 
@@ -39,27 +40,29 @@ const App = () => (
               <TaskProvider>
                 <StatusBarManager />
                 <BackButtonHandler />
-                <Routes>
-                  <Route element={<PublicRoute />}>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                  </Route>
+                <LayoutProvider>
+                  <Routes>
+                    <Route element={<PublicRoute />}>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                    </Route>
 
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<EmailVerificationRequired />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/verify-email" element={<EmailVerificationRequired />} />
 
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/technician-tasks" element={<TechnicianTasks />} />
-                    <Route path="/create-account" element={<CreateAccount />} />
-                    <Route path="/manage-users" element={<ManageUsers />} />
-                    <Route path="/diagnostics" element={<Diagnostics />} />
-                    <Route path="/settings" element={<ProfileSettings />} />
-                  </Route>
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/technician-tasks" element={<TechnicianTasks />} />
+                      <Route path="/create-account" element={<CreateAccount />} />
+                      <Route path="/manage-users" element={<ManageUsers />} />
+                      <Route path="/diagnostics" element={<Diagnostics />} />
+                      <Route path="/settings" element={<ProfileSettings />} />
+                    </Route>
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </LayoutProvider>
               </TaskProvider>
             </SessionProvider>
           </BrowserRouter>

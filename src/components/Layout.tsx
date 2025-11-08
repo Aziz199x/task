@@ -9,7 +9,7 @@ import { Toaster } from "sonner";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useIsMobile } from '@/hooks/use-mobile';
-import { LayoutProvider, useLayout } from '@/context/LayoutContext';
+import { useLayout } from '@/context/LayoutContext';
 import { Button } from "./ui/button";
 import { MenuIcon } from "lucide-react";
 import StatusBarManager from "./StatusBarManager";
@@ -49,33 +49,31 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  const isNavbarVisible = session && isClientLoaded; // Navbar is always visible when logged in
+  const isNavbarVisible = session && isClientLoaded;
 
   return (
-    <LayoutProvider>
-      <div className={cn(
-        "min-h-screen flex flex-col",
-        "bg-background"
+    <div className={cn(
+      "min-h-screen flex flex-col",
+      "bg-background"
+    )}>
+      <StatusBarManager />
+      {isNavbarVisible && <Navbar />}
+
+      {session && isClientLoaded && (
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      )}
+
+      <main className={cn(
+        "flex-1 transition-all duration-300 ease-in-out",
+        isSidebarOpen && !isMobile ? "lg:ml-64" : "lg:ml-0",
+        "pt-24",
+        "pb-safe-bottom"
       )}>
-        <StatusBarManager />
-        {isNavbarVisible && <Navbar />}
-
-        {session && isClientLoaded && (
-          <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-        )}
-
-        <main className={cn(
-          "flex-1 transition-all duration-300 ease-in-out",
-          isSidebarOpen && !isMobile ? "lg:ml-64" : "lg:ml-0",
-          "pt-24",
-          "pb-safe-bottom"
-        )}>
-          <div className="container mx-auto p-4 flex-1">
-            {children}
-          </div>
-        </main>
-        <Toaster richColors />
-      </div>
-    </LayoutProvider>
+        <div className="container mx-auto p-4 flex-1">
+          {children}
+        </div>
+      </main>
+      <Toaster richColors />
+    </div>
   );
 }
