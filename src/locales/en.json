@@ -297,5 +297,15 @@
   "failed_to_generate_unique_task_id_after_attempts": "Failed to generate a unique task ID after multiple attempts. Please try again.",
   "database_connection_timeout": "Database connection timed out. Please check your internet connection and try again.",
   "task_restored_successfully": "Task '{{title}}' has been restored successfully.",
-  "failed_to_restore_task": "Failed to restore task: "
+  "failed_to_restore_task": "Failed to restore task: ",
+  "home": "Home",
+  "technician_tasks": "Technician Tasks",
+  "manage_users": "Manage Users",
+  "diagnostics": "Diagnostics",
+  "settings": "Settings",
+  "refresh_data": "Refresh Data",
+  "refreshing_data": "Refreshing data...",
+  "data_refreshed_successfully": "Data refreshed successfully.",
+  "close_sidebar": "Close Sidebar",
+  "open_sidebar": "Open Sidebar"
 }
