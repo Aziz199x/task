@@ -2,6 +2,9 @@
 
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
+
+const STATUS_BAR_COLOR = "#FF7A00";
 
 const ensureThemeMeta = () => {
   const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
@@ -15,14 +18,18 @@ const ensureThemeMeta = () => {
 
 export const useStatusBarColor = () => {
   useEffect(() => {
-    // This hook is now only responsible for setting the browser theme-color for PWA context.
-    // All native status bar logic is handled by StatusBarManager.tsx and capacitor.config.ts.
     const themeMeta = ensureThemeMeta();
-    const headerColor = getComputedStyle(document.documentElement).getPropertyValue('--background') || '#ffffff';
-    themeMeta.setAttribute("content", headerColor.trim());
+    themeMeta.setAttribute("content", STATUS_BAR_COLOR);
 
-    if (Capacitor.isNativePlatform()) {
-      // All native calls have been removed to prevent conflicts with the overlay configuration.
+    if (!Capacitor.isNativePlatform()) return;
+
+    StatusBar.setStyle({ style: Style.Light }).catch(() => undefined);
+
+    if (Capacitor.getPlatform() === "android") {
+      StatusBar.setBackgroundColor({ color: STATUS_BAR_COLOR }).catch(() => undefined);
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
+    } else if (Capacitor.getPlatform() === "ios") {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => undefined);
     }
   }, []);
 };
