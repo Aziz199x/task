@@ -10,6 +10,8 @@ import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { useTheme } from "next-themes";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from "./ui/button";
+import { MenuIcon } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,6 +24,16 @@ export default function Layout({ children }: LayoutProps) {
   const { isMobile, isClientLoaded } = useIsMobile();
 
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
+
+  // Sidebar open state (closable on desktop/landscape)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    // Open by default on non-mobile, closed on mobile; update when screen size changes
+    if (session && isClientLoaded) {
+      setIsSidebarOpen(!isMobile);
+    }
+  }, [session, isClientLoaded, isMobile]);
 
   if (loading) {
     return (
@@ -45,20 +57,33 @@ export default function Layout({ children }: LayoutProps) {
     <div className={cn(
       "min-h-screen flex flex-col",
       "bg-background",
-      // Add safe area padding for the entire app container
       "px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
     )}>
       {isNavbarVisible && <Navbar />}
-      
-      {session && isClientLoaded && !isMobile && <Sidebar isOpen={true} setIsOpen={() => {}} />} 
-      
+
+      {session && isClientLoaded && !isMobile && (
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      )}
+
+      {/* Desktop open button when sidebar is closed */}
+      {session && isClientLoaded && !isMobile && !isSidebarOpen && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-40 hidden lg:flex"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <MenuIcon className="h-6 w-6" />
+          <span className="sr-only">{t('open_sidebar')}</span>
+        </Button>
+      )}
+
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto",
-        // Only add top padding for mobile navbar, no safe-area-inset-top needed
         isNavbarVisible ? "pt-24" : "",
-        "lg:ml-64",
+        // Only add left margin when sidebar is open on desktop
+        (!isMobile && isSidebarOpen) ? "lg:ml-64" : "lg:ml-0",
         "bg-background",
-        // Add comprehensive bottom padding for safe areas
         "pb-[calc(1rem+env(safe-area-inset-bottom))]"
       )}>
         <div className="container mx-auto p-4 flex-1">

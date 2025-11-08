@@ -93,9 +93,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
-        "pt-12 pb-16", // Add padding for status bar (top) and gesture nav (bottom)
+        "pt-12 pb-16",
         isOpen ? 'translate-x-0' : '-translate-x-full',
-        "lg:translate-x-0 lg:pt-0 lg:pb-0" // On large screens, sidebar isn't an overlay, so remove padding
+        "lg:pt-0 lg:pb-0"
       )}
     >
       {/* Header with padding to avoid status bar overlap */}
@@ -104,8 +104,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        {/* Hide close button on desktop */}
-        <Button variant="ghost" size="icon" onClick={handleClose} className="lg:hidden">
+        {/* Close button visible on all screen sizes */}
+        <Button variant="ghost" size="icon" onClick={handleClose}>
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>

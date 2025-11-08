@@ -12,18 +12,24 @@ const BackButtonHandler: React.FC = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const remove = App.addListener("backButton", () => {
-      // If there is browser history, go back; otherwise minimize the app.
-      if (window.history.length > 1 && location.pathname !== "/") {
-        navigate(-1);
-      } else {
-        // On root or no history, avoid exiting app; minimize instead (Android only).
-        App.minimizeApp?.();
-      }
-    });
+    let listenerHandle: Awaited<ReturnType<typeof App.addListener>> | undefined;
+
+    const register = async () => {
+      listenerHandle = await App.addListener("backButton", () => {
+        // If there is browser history, go back; otherwise minimize the app.
+        if (window.history.length > 1 && location.pathname !== "/") {
+          navigate(-1);
+        } else {
+          // On root or no history, avoid exiting app; minimize instead (Android only).
+          App.minimizeApp?.();
+        }
+      });
+    };
+
+    register();
 
     return () => {
-      remove.remove();
+      listenerHandle?.remove();
     };
   }, [navigate, location.pathname]);
 
