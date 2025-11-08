@@ -97,8 +97,16 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Remove top padding - status bar now has its own space */
-    /* Add bottom padding for Android gesture navigation */
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  input[type="checkbox"],
+  button[role="checkbox"] {
+    accent-color: hsl(var(--primary));
+  }
+
+  button[role="checkbox"] {
+    position: relative;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 }
