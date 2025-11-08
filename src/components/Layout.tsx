@@ -49,8 +49,7 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  const isNavbarVisible = session && isClientLoaded; // Always show Navbar when logged in
-  const isMobileLayout = session && isClientLoaded && isMobile;
+  const isNavbarVisible = session && isClientLoaded && isMobile;
 
   return (
     <div className={cn(
@@ -69,7 +68,7 @@ export default function Layout({ children }: LayoutProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-40 hidden md:flex"
+          className="fixed top-4 left-4 z-50 hidden md:flex"
           onClick={() => setIsSidebarOpen(true)}
         >
           <MenuIcon className="h-6 w-6" />
