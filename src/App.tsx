@@ -37,7 +37,7 @@ const App = () => (
           <BrowserRouter>
             <SessionProvider>
               <TaskProvider>
-                {/* <StatusBarManager /> */}
+                <StatusBarManager />
                 <BackButtonHandler />
                 <Routes>
                   <Route element={<PublicRoute />}>
