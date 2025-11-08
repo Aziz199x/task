@@ -9,7 +9,6 @@ const config: CapacitorConfig = {
       launchShowDuration: 0,
     },
     StatusBar: {
-      // This is the key change: enable overlay
       overlaysWebView: true,
       style: 'DEFAULT',
     },
