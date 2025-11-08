@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
-import { useTheme } from "next-themes";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from "./ui/button";
 import { MenuIcon } from "lucide-react";
@@ -26,11 +25,9 @@ export default function Layout({ children }: LayoutProps) {
 
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
 
-  // Sidebar open state (closable on desktop/landscape)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Open by default on non-mobile, closed on mobile; update when screen size changes
     if (session && isClientLoaded) {
       setIsSidebarOpen(!isMobile);
     }
@@ -67,7 +64,6 @@ export default function Layout({ children }: LayoutProps) {
         <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       )}
 
-      {/* Desktop open button when sidebar is closed */}
       {session && isClientLoaded && !isMobile && !isSidebarOpen && (
         <Button
           variant="ghost"
@@ -82,8 +78,10 @@ export default function Layout({ children }: LayoutProps) {
 
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto",
+        // Use safe-area-inset-top for padding to avoid content going under the status bar/notch,
+        // especially when the navbar is not visible.
+        "pt-[env(safe-area-inset-top)]",
         isNavbarVisible ? "pt-24" : "",
-        // Only add left margin when sidebar is open on desktop
         (!isMobile && isSidebarOpen) ? "lg:ml-64" : "lg:ml-0",
         "bg-background",
         "pb-[calc(1rem+env(safe-area-inset-bottom))]"
