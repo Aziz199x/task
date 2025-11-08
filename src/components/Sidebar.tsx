@@ -15,7 +15,7 @@ import { useTheme } from 'next-themes';
 
 interface SidebarProps {
   isOpen: boolean;
-  setIsOpen?: (isOpen: boolean) => void; // Made optional
+  setIsOpen?: (isOpen: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
@@ -33,7 +33,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const handleSignOut = async () => {
     await signOut();
-    // No need to navigate, SessionProvider will handle redirect to /login
   };
 
   const handleRefreshData = async () => {
@@ -93,18 +92,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     <aside
       className={cn(
         "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out",
-        "pt-12 pb-16",
-        isOpen ? 'translate-x-0' : '-translate-x-full',
-        "lg:pt-0 lg:pb-0"
+        isOpen ? 'translate-x-0' : '-translate-x-full'
       )}
     >
-      {/* Header with padding to avoid status bar overlap */}
+      {/* Header */}
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
-        {/* Close button visible on all screen sizes */}
         <Button variant="ghost" size="icon" onClick={handleClose}>
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
@@ -138,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         </ul>
       </nav>
       
-      {/* Bottom controls with extra padding to avoid Android gesture bar */}
+      {/* Bottom controls */}
       <div className="mt-auto border-t p-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" className="w-full" onClick={handleRefreshData}>

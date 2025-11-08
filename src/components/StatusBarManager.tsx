@@ -13,20 +13,19 @@ const StatusBarManager = () => {
 
     const setupStatusBar = async () => {
       try {
-        await StatusBar.setOverlaysWebView({ overlay: true });
+        // DO NOT use overlay mode - this causes the status bar to blend with the app
+        await StatusBar.setOverlaysWebView({ overlay: false });
 
-        // Set the status bar icon style based on the app's theme.
-        // A small timeout helps ensure this runs after the theme has been fully applied,
-        // preventing race conditions where the icon style is set before the background color changes.
-        setTimeout(() => {
-          if (resolvedTheme === "dark") {
-            // Dark theme gets light icons for contrast.
-            StatusBar.setStyle({ style: Style.Light });
-          } else {
-            // Light theme gets dark icons for contrast.
-            StatusBar.setStyle({ style: Style.Dark });
-          }
-        }, 150); // A 150ms delay is usually enough to avoid race conditions.
+        // Set background color for the status bar based on theme
+        if (resolvedTheme === "dark") {
+          // Dark theme: dark background with light icons
+          await StatusBar.setBackgroundColor({ color: '#020817' }); // slate-950
+          await StatusBar.setStyle({ style: Style.Dark });
+        } else {
+          // Light theme: light background with dark icons
+          await StatusBar.setBackgroundColor({ color: '#ffffff' }); // white
+          await StatusBar.setStyle({ style: Style.Light });
+        }
         
       } catch (error) {
         console.error('[StatusBarManager] Error setting up status bar:', error);

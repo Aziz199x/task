@@ -1,23 +1,33 @@
 import * as React from "react";
 
 /**
- * A function to determine if the device is a mobile phone.
- * This check is designed to be stable and not change on orientation change.
- * It primarily relies on the user agent string, which is a reliable indicator for phones.
+ * Determines if the device is a mobile phone using multiple detection methods.
+ * This check is stable and does not change on orientation change.
  */
 const isMobileDevice = () => {
   if (typeof window === 'undefined') {
     return false;
   }
-  // The 'Mobi' token in the user agent is a de-facto standard for identifying mobile phones.
-  // This is more reliable than checking screen width, which can change with orientation.
-  return /Mobi/i.test(window.navigator.userAgent);
+  
+  // Method 1: Check user agent for mobile indicators
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+  const hasMobileKeyword = mobileKeywords.some(keyword => userAgent.includes(keyword));
+  
+  // Method 2: Check for touch support (mobile devices have touch)
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Method 3: Check screen size (but use the smaller dimension to handle rotation)
+  const smallerDimension = Math.min(window.screen.width, window.screen.height);
+  const isSmallScreen = smallerDimension < 768;
+  
+  // A device is mobile if it has mobile keywords OR (has touch AND small screen)
+  return hasMobileKeyword || (hasTouch && isSmallScreen);
 };
 
 /**
- * A hook that returns whether the current device is a mobile phone.
- * The result is determined once and does not change, preventing layout shifts
- * when the device is rotated or the window is resized.
+ * Hook that returns whether the current device is a mobile phone.
+ * The result is determined once and remains stable across orientation changes.
  */
 export function useIsMobile() {
   const [state, setState] = React.useState<{
@@ -29,12 +39,16 @@ export function useIsMobile() {
   });
 
   React.useEffect(() => {
-    // We check the device type once on the client-side.
-    // A device doesn't change from a phone to a desktop, so this value is stable.
+    // Check device type once on mount - this value stays stable
+    const isMobile = isMobileDevice();
+    
     setState({
-      isMobile: isMobileDevice(),
+      isMobile,
       isClientLoaded: true,
     });
+    
+    // Log for debugging
+    console.log('[useIsMobile] Device detected as:', isMobile ? 'MOBILE' : 'DESKTOP');
   }, []);
 
   return state;

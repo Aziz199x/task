@@ -29,7 +29,10 @@ export default function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     if (session && isClientLoaded) {
+      // On mobile: sidebar starts closed
+      // On desktop: sidebar starts open
       setIsSidebarOpen(!isMobile);
+      console.log('[Layout] Setting sidebar open:', !isMobile, 'isMobile:', isMobile);
     }
   }, [session, isClientLoaded, isMobile]);
 
@@ -54,13 +57,12 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col",
-      "bg-background",
-      "px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+      "bg-background"
     )}>
       <StatusBarManager />
       {isNavbarVisible && <Navbar />}
 
-      {session && isClientLoaded && !isMobile && (
+      {session && isClientLoaded && (
         <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       )}
 
@@ -68,7 +70,7 @@ export default function Layout({ children }: LayoutProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-40 hidden md:flex"
+          className="fixed top-4 left-4 z-40"
           onClick={() => setIsSidebarOpen(true)}
         >
           <MenuIcon className="h-6 w-6" />
@@ -78,13 +80,9 @@ export default function Layout({ children }: LayoutProps) {
 
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto",
-        // Use safe-area-inset-top for padding to avoid content going under the status bar/notch,
-        // especially when the navbar is not visible.
-        "pt-[env(safe-area-inset-top)]",
-        isNavbarVisible ? "pt-24" : "",
+        isNavbarVisible ? "mt-24" : "",
         (!isMobile && isSidebarOpen) ? "lg:ml-64" : "lg:ml-0",
-        "bg-background",
-        "pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        "bg-background"
       )}>
         <div className="container mx-auto p-4 flex-1">
           {children}
