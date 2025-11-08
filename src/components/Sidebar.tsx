@@ -96,9 +96,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         isOpen ? 'translate-x-0' : '-translate-x-full',
         "lg:translate-x-0" // Re-enable persistent visibility on large screens
       )}
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
     >
-      {/* Header with extra top padding to avoid status bar overlap */}
-      <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6 mt-4">
+      {/* Header with padding to avoid status bar overlap */}
+      <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
@@ -138,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       </nav>
       
       {/* Bottom controls with extra padding to avoid Android gesture bar */}
-      <div className="mt-auto border-t p-4 pb-8 mb-4">
+      <div className="mt-auto border-t p-4 pb-6">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" className="w-full" onClick={handleRefreshData}>
             <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
