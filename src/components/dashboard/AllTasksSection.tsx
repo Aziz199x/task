@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import useIsDesktop from '@/hooks/use-is-desktop'; // Import useIsDesktop hook
 
 const AllTasksSection: React.FC = () => {
-  const { tasks, loading, error } = useTasks();
+  const { tasks, loading } = useTasks();
   const { t } = useTranslation();
   const { profile: currentUserProfile } = useSession();
   const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);

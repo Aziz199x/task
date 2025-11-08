@@ -174,10 +174,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
         <Label htmlFor="taskId" className="md:text-right">{t('task_id')}</Label>
         <Input id="taskId" value={editedTask.task_id || ''} className="md:col-span-3" readOnly disabled={true} />
       </div>
-      <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="dueDate" className="md:text-right">{t('due_date')}</Label>
-        <div className="md:col-span-3">
-          <DatePicker date={dueDateObject} setDate={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pick_a_date')} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <Label htmlFor="due-date" className="md:col-span-1">{t('due_date')}</Label>
+        <div className="md:col-span-2">
+          <DatePicker date={dueDateObject} onDateChange={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pick_a_date')} />
         </div>
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">

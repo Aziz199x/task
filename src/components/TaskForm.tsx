@@ -150,11 +150,11 @@ const TaskForm: React.FC = () => {
             />
             {locationError && <p className="text-destructive text-sm mt-1">{locationError}</p>}
           </div>
-          <div>
-            <Label htmlFor="dueDate">{t('due_date')}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="due-date">{t('due_date')}</Label>
             <DatePicker
               date={dueDate}
-              setDate={setDueDate}
+              onDateChange={setDueDate}
               placeholder={t('pick_a_date')}
             />
           </div>

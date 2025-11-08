@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useTranslation } from "react-i18next";
 import useIsDesktop from "@/hooks/use-is-desktop";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Skeleton } from "@/components/ui/skeleton"; // Use Skeleton for initial render placeholder
+import { Skeleton } from "./ui/skeleton";
 
 interface DatePickerProps {
   date: Date | undefined;
@@ -20,17 +19,22 @@ interface DatePickerProps {
   placeholder?: string;
 }
 
-export function DatePicker({ date, onDateChange, disabled = false, placeholder }: DatePickerProps) {
+export function DatePicker({ date, onDateChange, disabled, placeholder }: DatePickerProps) {
   const { t } = useTranslation();
   const isMobile = !useIsDesktop();
-  const [open, setOpen] = React.useState(false);
-  
-  // Set the minimum selectable date to today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const [isClientLoaded, setIsClientLoaded] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const handleSelect = (newDate: Date | undefined) => {
-    onDateChange(newDate);
+  useEffect(() => {
+    setIsClientLoaded(true);
+  }, []);
+
+  if (!isClientLoaded) {
+    return <Skeleton className="w-full h-10" />;
+  }
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    onDateChange(selectedDate);
     setOpen(false);
   };
 
@@ -38,13 +42,13 @@ export function DatePicker({ date, onDateChange, disabled = false, placeholder }
     <Button
       variant={"outline"}
       className={cn(
-        "w-full justify-start text-start font-normal",
+        "w-full justify-start text-left font-normal",
         !date && "text-muted-foreground"
       )}
       disabled={disabled}
     >
       <CalendarIcon className="mr-2 h-4 w-4" />
-      {date ? format(date, "PPP") : (placeholder || t("pick_a_date"))}
+      {date ? format(date, "PPP") : <span>{placeholder || t("pick_a_date")}</span>}
     </Button>
   );
 
@@ -52,17 +56,11 @@ export function DatePicker({ date, onDateChange, disabled = false, placeholder }
     <Calendar
       mode="single"
       selected={date}
-      onSelect={handleSelect}
-      // Removed initialFocus prop
-      disabled={(day) => day < today}
-      fromDate={today}
+      onSelect={handleDateSelect}
+      disabled={disabled}
+      initialFocus
     />
   );
-
-  // If client hasn't loaded yet, render a placeholder to avoid hydration mismatch
-  if (!isClientLoaded) {
-    return <Skeleton className="w-full h-10" />;
-  }
 
   if (isMobile) {
     return (
@@ -72,10 +70,9 @@ export function DatePicker({ date, onDateChange, disabled = false, placeholder }
           <DrawerHeader className="text-start">
             <DrawerTitle>{placeholder || t("pick_a_date")}</DrawerTitle>
           </DrawerHeader>
-          {/* Ensure calendar is centered and has padding for mobile */}
           <div className="flex justify-center p-4 pb-10">
             {calendarContent}
-          </div >
+          </div>
         </DrawerContent>
       </Drawer>
     );
