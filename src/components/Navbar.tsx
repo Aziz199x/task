@@ -29,9 +29,8 @@ export default function Navbar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isMobile, isClientLoaded } = useIsMobile();
-  const { setIsSidebarOpen } = useLayout();
+  const { isSidebarOpen, setIsSidebarOpen } = useLayout();
 
   const handleSignOut = async () => {
     await signOut();
@@ -49,20 +48,19 @@ export default function Navbar() {
       <div className="flex items-center justify-between w-full px-4 pb-3">
         <div className="flex items-center">
           {isClientLoaded && isMobile && (
-            <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="mr-2"
-                  onClick={() => setIsSidebarOpen(true)}
                 >
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">{t('open_sidebar')}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
-                <Sidebar isOpen={isMobileSidebarOpen} setIsOpen={setIsMobileSidebarOpen} />
+                <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
               </SheetContent>
             </Sheet>
           )}
