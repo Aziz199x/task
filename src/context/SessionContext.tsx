@@ -39,6 +39,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Use a ref to track if loading has been resolved to prevent multiple calls
   const loadingResolvedRef = React.useRef(false);
+  const isSigningOutRef = React.useRef(false);
 
   const resolveLoading = useCallback(() => {
     if (!loadingResolvedRef.current) {
@@ -138,6 +139,21 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           if (!isMounted) return;
           console.log(`[SessionProvider] Auth state change: ${event}`, currentSession);
 
+          if (event === 'SIGNED_OUT') {
+            if (!isSigningOutRef.current) {
+              console.log("[SessionProvider] Remote sign-out detected.");
+              toast.warning(t('remote_sign_out_notification'));
+            } else {
+              console.log("[SessionProvider] Local sign-out detected.");
+            }
+            isSigningOutRef.current = false; // Reset for next sign-in
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            resolveLoading(); // Ensure loading is resolved on sign out
+            return;
+          }
+
           // Always update session and user state immediately
           setSession(currentSession);
           const newUser = currentSession?.user ?? null;
@@ -148,8 +164,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             await fetchUserProfile(newUser.id);
 
             // If a user just signed in, attempt to sign out other sessions (non-blocking)
-            // This feature is temporarily disabled because it also signs out the current session.
-            /*
             if (event === 'SIGNED_IN' && currentSession?.access_token) {
               console.log("[SessionProvider] User signed in, attempting to sign out other sessions.");
               try {
@@ -167,7 +181,6 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
                 console.error("Exception invoking sign-out-other-sessions function:", e.message);
               }
             }
-            */
           } else {
             setProfile(null);
           }
@@ -257,6 +270,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const signOut = async () => {
     console.log("[SessionProvider] Attempting to sign out.");
+    isSigningOutRef.current = true;
     
     // 1. Optimistically clear local state immediately
     setSession(null);

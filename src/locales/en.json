@@ -312,5 +312,6 @@
   "refreshing_data": "Refreshing data...",
   "data_refreshed_successfully": "Data refreshed successfully.",
   "close_sidebar": "Close Sidebar",
-  "open_sidebar": "Open Sidebar"
+  "open_sidebar": "Open Sidebar",
+  "remote_sign_out_notification": "Someone logged in to your account and your session will be terminated."
 }
