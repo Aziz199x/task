@@ -10,11 +10,9 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    // For live reload, set this to your computer's IP address on your local network.
-    // You can find this on macOS by holding the Option key and clicking the Wi-Fi icon,
-    // or on Windows by checking your network settings.
-    // Replace 192.168.1.100 with your actual IP address
-    url: 'http://192.168.1.100:3000',
+    // For the default Android emulator, the host machine is reachable at 10.0.2.2.
+    // Use this when running the Vite dev server locally so the emulator can connect.
+    url: 'http://10.0.2.2:3000',
     cleartext: true,
   },
 };
