@@ -8,6 +8,10 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
     },
+    StatusBar: {
+      style: 'DEFAULT',
+      backgroundColor: '#ffffff'
+    },
   },
   server: {
     // Use production Vercel URL instead of local development server
