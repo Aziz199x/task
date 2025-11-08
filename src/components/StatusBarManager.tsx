@@ -19,10 +19,10 @@ const StatusBarManager = () => {
 
         // Set the status bar icon style based on the app's theme.
         if (resolvedTheme === "dark") {
-          // Dark theme gets light icons for contrast.
+          // Dark theme: navbar is dark, so use light icons for contrast.
           await StatusBar.setStyle({ style: Style.Light });
         } else {
-          // Light theme gets dark icons for contrast.
+          // Light theme: navbar is white, so use dark icons for contrast.
           await StatusBar.setStyle({ style: Style.Dark });
         }
       } catch (error) {
