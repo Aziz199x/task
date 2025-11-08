@@ -7,10 +7,12 @@ export function useIsMobile() {
     isMobile: boolean;
     isLandscape: boolean;
     isClientLoaded: boolean;
+    persistentLandscape: boolean;
   }>({
     isMobile: false,
     isLandscape: false,
     isClientLoaded: false,
+    persistentLandscape: false,
   });
 
   React.useEffect(() => {
@@ -21,11 +23,12 @@ export function useIsMobile() {
         (window.matchMedia && window.matchMedia("(orientation: landscape)").matches) ||
         window.innerWidth > window.innerHeight;
 
-      setState({
+      setState(prev => ({
         isMobile: isMobileWidth || isMobileHeight,
         isLandscape,
         isClientLoaded: true,
-      });
+        persistentLandscape: prev.persistentLandscape || isLandscape,
+      }));
     };
 
     checkMobile();

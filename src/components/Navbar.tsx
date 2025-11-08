@@ -27,7 +27,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { isMobile, isLandscape, isClientLoaded } = useIsMobile();
+  const { isMobile, isLandscape, isClientLoaded, persistentLandscape } = useIsMobile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,7 +41,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`bg-primary text-primary-foreground fixed w-full z-40 shadow-md flex items-center justify-between px-4 ${isClientLoaded && isMobile && isLandscape ? 'h-16 pt-6' : 'h-24 pt-8'}`}>
+    <nav className={`bg-primary text-primary-foreground fixed w-full z-40 shadow-md flex items-center justify-between px-4 ${isClientLoaded && isMobile && (isLandscape || persistentLandscape) ? 'h-16 pt-6' : 'h-24 pt-8'}`}>
       <div className="flex items-center">
         {isClientLoaded && isMobile && (
           <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
@@ -59,12 +59,12 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           <img src={logoSrc} alt="Logo" className="h-8 w-auto" />
           <h1 className="text-xl font-bold">
-            {isClientLoaded && isMobile && isLandscape ? 'AbuMiral' : t('task_manager')}
+            {isClientLoaded && isMobile && (isLandscape || persistentLandscape) ? 'AbuMiral' : t('task_manager')}
           </h1>
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        {isClientLoaded && isMobile && isLandscape && (
+        {isClientLoaded && isMobile && (isLandscape || persistentLandscape) && (
           <LanguageSwitcher />
         )}
         {user && (
