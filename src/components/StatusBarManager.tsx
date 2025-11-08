@@ -3,25 +3,24 @@
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
-import { useTheme } from "next-themes";
 
 const StatusBarManager = () => {
-  const { resolvedTheme } = useTheme();
-
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
+    // This effect runs once when the app starts.
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
 
-    void StatusBar.setOverlaysWebView({ overlay: true });
-  }, []);
+    // 1. Create a solid separation between the status bar and the app.
+    StatusBar.setOverlaysWebView({ overlay: false });
 
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    if (!resolvedTheme) return;
+    // 2. Set the status bar background color to white, ALWAYS.
+    StatusBar.setBackgroundColor({ color: "#FFFFFF" });
 
-    const style = resolvedTheme === "dark" ? Style.Light : Style.Dark;
+    // 3. Set the status bar icons to be dark, ALWAYS.
+    StatusBar.setStyle({ style: Style.Dark });
 
-    void StatusBar.setStyle({ style });
-  }, [resolvedTheme]);
+  }, []); // The empty array [] ensures this code only runs ONCE.
 
   return null;
 };
