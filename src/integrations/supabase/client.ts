@@ -1,22 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Use production variables for Capacitor builds
+const supabaseUrl = 'https://jqrhvrahhocszjoqngji.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impxcmh2cmFoaG9jc3pqb3FuZ2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyMjQ3NzQsImV4cCI6MjA3NDgwMDc3NH0.87ntyFgfuInBtiXrZa_gymS049Y0YyULsowgIagw2ro';
 
 if (!supabaseUrl) {
-  console.error('VITE_SUPABASE_URL is not set!');
-  throw new Error('VITE_SUPABASE_URL is not set!');
+  console.error('Supabase URL is not set!');
+  throw new Error('Supabase URL is not set!');
 }
 if (!supabaseAnonKey) {
-  console.error('VITE_SUPABASE_ANON_KEY is not set!');
-  throw new Error('VITE_SUPABASE_ANON_KEY is not set!');
+  console.error('Supabase Anon Key is not set!');
+  throw new Error('Supabase Anon Key is not set!');
 }
 
-console.log('Supabase URL being used:', supabaseUrl); // Added for debugging
+console.log('Supabase URL being used:', supabaseUrl);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: localStorage, 
+    storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
