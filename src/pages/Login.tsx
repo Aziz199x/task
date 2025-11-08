@@ -15,6 +15,7 @@ import { UserProfile } from '@/context/SessionContext'; // Import UserProfile ty
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import utility
+import StatusBarManager from '@/components/StatusBarManager'; // Import StatusBarManager
 
 const Login = () => {
   const navigate = useNavigate();
@@ -103,134 +104,137 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative">
-      <div className="absolute top-16 right-4 flex items-center space-x-2">
-        <ThemeSwitcher />
-        <LanguageSwitcher />
+    <>
+      <StatusBarManager />
+      <div className="min-h-screen flex items-center justify-center bg-background relative">
+        <div className="absolute top-16 right-4 flex items-center space-x-2">
+          <ThemeSwitcher />
+          <LanguageSwitcher />
+        </div>
+        <Card className="w-full max-w-md p-6">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">{t('welcome_to_task_manager')}</CardTitle>
+            <p className="text-muted-foreground">{t('sign_in_or_sign_up')}</p>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">{t('sign_in')}</TabsTrigger>
+                <TabsTrigger value="signup">{t('sign_up')}</TabsTrigger>
+              </TabsList>
+              <TabsContent value="signin" className="mt-4">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-signin">{t('email')}</Label>
+                    <Input
+                      id="email-signin"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('enter_your_email')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-signin">{t('password_label')}</Label>
+                    <Input
+                      id="password-signin"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('enter_your_password')}
+                      required
+                    />
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                      {t('forgot_password')}
+                    </Link>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? t('loading') : t('sign_in')}
+                  </Button>
+                </form>
+              </TabsContent>
+              <TabsContent value="signup" className="mt-4">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first-name-signup">{t('first_name')}</Label>
+                    <Input
+                      id="first-name-signup"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder={t('enter_your_first_name')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last-name-signup">{t('last_name')}</Label>
+                    <Input
+                      id="last-name-signup"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder={t('enter_your_last_name')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-signup">{t('email')}</Label>
+                    <Input
+                      id="email-signup"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('enter_your_email')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password-signup">{t('password_label')}</Label>
+                    <Input
+                      id="password-signup"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('enter_your_password')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password-signup">{t('confirm_password')}</Label>
+                    <Input
+                      id="confirm-password-signup"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('confirm_your_password')}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role-signup">{t('role')}</Label>
+                    <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role}>
+                      <SelectTrigger id="role-signup">
+                        <SelectValue placeholder={t('select_role')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="technician">{t('technician')}</SelectItem>
+                        <SelectItem value="contractor">{t('contractor')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? t('creating') : t('sign_up')}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
-      <Card className="w-full max-w-md p-6">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">{t('welcome_to_task_manager')}</CardTitle>
-          <p className="text-muted-foreground">{t('sign_in_or_sign_up')}</p>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">{t('sign_in')}</TabsTrigger>
-              <TabsTrigger value="signup">{t('sign_up')}</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin" className="mt-4">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-signin">{t('email')}</Label>
-                  <Input
-                    id="email-signin"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('enter_your_email')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-signin">{t('password_label')}</Label>
-                  <Input
-                    id="password-signin"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('enter_your_password')}
-                    required
-                  />
-                </div>
-                <div className="flex items-center justify-end">
-                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                    {t('forgot_password')}
-                  </Link>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? t('loading') : t('sign_in')}
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup" className="mt-4">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first-name-signup">{t('first_name')}</Label>
-                  <Input
-                    id="first-name-signup"
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder={t('enter_your_first_name')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last-name-signup">{t('last_name')}</Label>
-                  <Input
-                    id="last-name-signup"
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder={t('enter_your_last_name')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email-signup">{t('email')}</Label>
-                  <Input
-                    id="email-signup"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('enter_your_email')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-signup">{t('password_label')}</Label>
-                  <Input
-                    id="password-signup"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('enter_your_password')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password-signup">{t('confirm_password')}</Label>
-                  <Input
-                    id="confirm-password-signup"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t('confirm_your_password')}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role-signup">{t('role')}</Label>
-                  <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role}>
-                    <SelectTrigger id="role-signup">
-                      <SelectValue placeholder={t('select_role')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="technician">{t('technician')}</SelectItem>
-                      <SelectItem value="contractor">{t('contractor')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? t('creating') : t('sign_up')}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+    </>
   );
 };
 
