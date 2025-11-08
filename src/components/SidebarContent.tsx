@@ -12,6 +12,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
 import { useSidebar } from '@/state/useSidebar';
+import useIsDesktop from '@/hooks/use-is-desktop';
 
 export function SidebarContent() {
   const { profile, signOut } = useSession();
@@ -19,6 +20,7 @@ export function SidebarContent() {
   const location = useLocation();
   const { refetchTasks } = useTasks();
   const { setOpen } = useSidebar();
+  const isDesktop = useIsDesktop();
 
   const handleClose = () => {
     setOpen(false);
@@ -86,20 +88,36 @@ export function SidebarContent() {
         </ul>
       </nav>
       
-      <div className="mt-auto border-t p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="outline" className="w-full" onClick={handleRefreshData}>
-            <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
-          </Button>
+      {isDesktop && (
+        <div className="mt-auto border-t p-4">
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="outline" className="w-full" onClick={handleRefreshData}>
+              <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <ThemeSwitcher />
+            <LanguageSwitcher />
+            <Button variant="ghost" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
+              {t('logout')}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <ThemeSwitcher />
-          <LanguageSwitcher />
-          <Button variant="ghost" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
-            {t('logout')}
-          </Button>
+      )}
+
+      {!isDesktop && (
+        <div
+          className="fixed left-0 right-0 z-40"
+          style={{ bottom: `calc(env(safe-area-inset-bottom) + 12px)` }}
+        >
+          <div className="mx-auto max-w-screen-sm px-4">
+            <div className="flex gap-8 justify-between bg-black/50 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+              <button className="btn ghost w-full" onClick={handleRefreshData}>{t('refresh_data')}</button>
+              <button className="btn danger w-full" onClick={handleSignOut}>{t('logout')}</button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

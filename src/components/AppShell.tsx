@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-col lg:ml-64">
         <Header />
-        <main className="flex-1 p-4 pt-20">
+        <main className="flex-1 p-4 pt-20 lg:pb-4 pb-28">
           {children}
         </main>
       </div>

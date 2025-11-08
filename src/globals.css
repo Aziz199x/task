@@ -9,19 +9,6 @@
 
   body {
     @apply bg-background text-foreground;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-top);
-    background-color: #FF7A00;
-    pointer-events: none;
-    z-index: 50;
   }
 
   input[type="checkbox"],
@@ -32,5 +19,55 @@
   button[role="checkbox"] {
     position: relative;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+}
+
+@layer components {
+  .btn {
+    --h: 44px;
+    --radius: 14px;
+    --shadow: 0 8px 20px rgba(0,0,0,.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    height: var(--h);
+    padding: 0 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    font-weight: 600;
+    letter-spacing: .2px;
+    transition: transform .08s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+    user-select: none;
+  }
+
+  .btn:active { transform: translateY(1px) scale(.997); }
+
+  .btn.primary {
+    background: linear-gradient(180deg,#0ea5e9,#0284c7);
+    color: #fff;
+    box-shadow: var(--shadow);
+  }
+  .btn.primary:hover { filter: brightness(1.05); }
+
+  .btn.ghost {
+    background: rgba(148,163,184,.08);
+    color: #e2e8f0;
+    border-color: rgba(148,163,184,.25);
+  }
+  .btn.ghost:hover { background: rgba(148,163,184,.14); }
+
+  .btn.danger {
+    background: linear-gradient(180deg,#ef4444,#dc2626);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(239,68,68,.35);
+  }
+  .btn.danger:hover { filter: brightness(1.06); }
+
+  .w-full { width: 100%; }
+
+  .btn.icon {
+    width: var(--h); padding: 0;
+    border-radius: 9999px;
   }
 }
