@@ -1,41 +1,54 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 
 /**
- * A function to determine if the device is a mobile phone.
- * This check is designed to be stable and not change on orientation change.
- * It primarily relies on the user agent string, which is a reliable indicator for phones.
+ * A custom hook that tracks whether a media query is met.
+ * @param query The media query string to watch.
+ * @returns `true` if the media query is met, `false` otherwise.
  */
-const isMobileDevice = () => {
-  if (typeof window === 'undefined') {
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia(query).matches;
+    }
     return false;
-  }
-  // The 'Mobi' token in the user agent is a de-facto standard for identifying mobile phones.
-  // This is more reliable than checking screen width, which can change with orientation.
-  return /Mobi/i.test(window.navigator.userAgent);
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQueryList = window.matchMedia(query);
+    
+    const listener = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
+    };
+
+    // The 'change' event is more efficient than 'resize' for media queries.
+    mediaQueryList.addEventListener('change', listener);
+
+    // Clean up the listener on component unmount.
+    return () => {
+      mediaQueryList.removeEventListener('change', listener);
+    };
+  }, [query]);
+
+  return matches;
 };
 
 /**
- * A hook that returns whether the current device is a mobile phone.
- * The result is determined once and does not change, preventing layout shifts
- * when the device is rotated or the window is resized.
+ * A hook that returns whether the current viewport is "mobile" size (less than 1024px).
+ * This is used to toggle between a persistent sidebar and a hamburger menu.
+ * It also returns a flag to indicate when the client has loaded to prevent hydration mismatches.
  */
 export function useIsMobile() {
-  const [state, setState] = React.useState<{
-    isMobile: boolean;
-    isClientLoaded: boolean;
-  }>({
-    isMobile: false,
-    isClientLoaded: false,
-  });
+  const [isClientLoaded, setIsClientLoaded] = useState(false);
+  // The 'lg' breakpoint in Tailwind is 1024px. We consider anything less as "mobile" for layout purposes.
+  const isMobile = useMediaQuery('(max-width: 1023px)');
 
-  React.useEffect(() => {
-    // We check the device type once on the client-side.
-    // A device doesn't change from a phone to a desktop, so this value is stable.
-    setState({
-      isMobile: isMobileDevice(),
-      isClientLoaded: true,
-    });
+  useEffect(() => {
+    // This ensures that we don't have a hydration mismatch between server and client.
+    // The component will render with isClientLoaded=false on the server, and then re-render with true on the client.
+    setIsClientLoaded(true);
   }, []);
 
-  return state;
+  return { isMobile, isClientLoaded };
 }
