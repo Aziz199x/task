@@ -10,10 +10,9 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    // For the default Android emulator, the host machine is reachable at 10.0.2.2.
-    // Use this when running the Vite dev server locally so the emulator can connect.
-    url: 'http://10.0.2.2:3000',
-    cleartext: true,
+    // Use production Vercel URL instead of local development server
+    url: 'https://task-five-sable.vercel.app',
+    cleartext: false,
   },
 };
 
