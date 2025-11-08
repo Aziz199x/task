@@ -44,7 +44,9 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className={cn(
       "min-h-screen flex flex-col",
-      "bg-background" 
+      "bg-background",
+      // Add safe area padding for the entire app container
+      "px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
     )}>
       {isNavbarVisible && <Navbar />}
       
@@ -56,7 +58,7 @@ export default function Layout({ children }: LayoutProps) {
         isNavbarVisible ? "pt-24" : "",
         "lg:ml-64",
         "bg-background",
-        // Add extra bottom padding to account for Android gesture navigation
+        // Add comprehensive bottom padding for safe areas
         "pb-[calc(1rem+env(safe-area-inset-bottom))]"
       )}>
         <div className="container mx-auto p-4 flex-1">
