@@ -44,7 +44,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md h-24 flex items-end">
+    <nav className="bg-primary text-primary-foreground fixed w-full z-40 shadow-md h-[calc(6rem+env(safe-area-inset-top))] flex items-end pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between w-full px-4 pb-3">
         <div className="flex items-center">
           {isClientLoaded && isMobile && (
