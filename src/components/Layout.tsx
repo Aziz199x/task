@@ -22,7 +22,7 @@ export default function Layout({ children }: LayoutProps) {
   const { session, loading } = useSession();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isMobile, isClientLoaded } = useIsMobile();
+  const { isMobile, isClientLoaded, persistentLandscape } = useIsMobile();
 
   const requiresAuth = !['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname);
 
@@ -82,7 +82,7 @@ export default function Layout({ children }: LayoutProps) {
 
       <main className={cn(
         "flex-1 flex flex-col w-full overflow-y-auto",
-        isNavbarVisible ? "pt-24" : "",
+        isNavbarVisible ? (persistentLandscape ? "pt-16" : "pt-24") : "",
         // Only add left margin when sidebar is open on desktop
         (!isMobile && isSidebarOpen) ? "lg:ml-64" : "lg:ml-0",
         "bg-background",
