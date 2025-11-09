@@ -23,6 +23,7 @@ export function SidebarContent() {
   const { setOpen } = useSidebar();
   const isDesktop = useIsDesktop();
   const { theme, setTheme } = useTheme();
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleClose = () => {
     setOpen(false);
@@ -33,13 +34,19 @@ export function SidebarContent() {
   };
 
   const handleRefreshData = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
     const promise = refetchTasks();
     toast.promise(promise, {
       loading: t('refreshing_data'),
       success: t('data_refreshed_successfully'),
       error: t('failed_to_refresh_data'),
     });
-    await promise;
+    try {
+      await promise;
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const navigationItems = [
@@ -97,14 +104,14 @@ export function SidebarContent() {
       {isDesktop && (
         <div className="mt-auto border-t p-4">
           <div className="flex items-center justify-between mb-4">
-            <Button variant="outline" className="w-full" onClick={handleRefreshData}>
-              <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh_data')}
+            <Button variant="outline" className="w-full btn" onClick={handleRefreshData} disabled={isRefreshing}>
+              <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} /> {t('refresh_data')}
             </Button>
           </div>
           <div className="flex items-center justify-between gap-2">
             <ThemeSwitcher />
             <LanguageSwitcher />
-            <Button variant="ghost" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
+            <Button variant="ghost" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10 btn">
               {t('logout')}
             </Button>
           </div>
@@ -113,19 +120,19 @@ export function SidebarContent() {
 
       {!isDesktop && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-20 px-4"
-          style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)` }}
+          className="fixed bottom-0 left-0 right-0 z-40 px-4"
+          style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 8px)` }}
         >
           <div className="mx-auto max-w-md">
             <div className="flex items-center justify-between rounded-full border bg-background/70 p-1.5 shadow-lg backdrop-blur-lg">
               <div className="flex items-center">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={handleRefreshData} aria-label={t('refresh_data')}>
-                  <RefreshCw className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full btn" onClick={handleRefreshData} aria-label={t('refresh_data')} disabled={isRefreshing}>
+                  <RefreshCw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
                 </Button>
                 <ThemeSwitcher />
                 <LanguageSwitcher />
               </div>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500" onClick={handleSignOut} aria-label={t('logout')}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500 btn" onClick={handleSignOut} aria-label={t('logout')}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
