@@ -35,7 +35,11 @@ const ForgotPassword = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      if (error.message.includes('rate limit exceeded')) {
+        toast.error(t('email_rate_limit_exceeded'));
+      } else {
+        toast.error(error.message);
+      }
     } else {
       toast.success(t('password_reset_email_sent'));
       setMessageSent(true);

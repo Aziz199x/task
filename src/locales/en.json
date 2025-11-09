@@ -289,7 +289,7 @@
   "chat_import_invalid_tasks_skipped": "{{count}} invalid task(s) were skipped (missing Title or Equipment Number).",
   "error_importing_tasks_from_chat": "Error importing tasks from chat",
   "logout": "Logout",
-  "technician_cannot_delete_completed_or_cancelled_task": "Technicians cannot delete completed or cancelled tasks.",
+  "technician_cannot_delete_completed_or_cancelled_task": "Technicians cannot delete completed or cancelled task.",
   "tasks_by_user": "Tasks by User",
   "pick_a_date": "Pick a date",
   "profile_settings": "Profile Settings",
@@ -333,5 +333,6 @@
   "settings.update_password": "Update Password",
   "password_updated_short": "Password updated successfully!",
   "user_already_registered_login_instead": "This email is already registered. Please sign in.",
-  "confirmation_email_resent_check_inbox": "If this email is registered, a confirmation link has been sent. Please check your inbox."
+  "confirmation_email_resent_check_inbox": "If this email is registered, a confirmation link has been sent. Please check your inbox.",
+  "email_rate_limit_exceeded": "Email sending limit exceeded. Please wait a few minutes before trying again."
 }
