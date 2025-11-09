@@ -24,17 +24,17 @@ const ProfileSettings = () => {
   if (!profile) {
     return (
       <div className="text-center py-8 text-destructive">
-        {t('profile_not_found_contact_admin')}
+        {t('profilenotfoundcontactadmin')}
       </div>
     );
   }
 
   return (
     <div className="container mx-auto max-w-lg space-y-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">{t('profile_settings')}</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">{t('profilesettings')}</h2>
       <Card>
         <CardHeader>
-          <CardTitle>{t('profile_information')}</CardTitle>
+          <CardTitle>{t('profileinformation')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ProfileSettingsForm />

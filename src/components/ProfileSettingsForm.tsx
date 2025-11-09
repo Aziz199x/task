@@ -65,18 +65,18 @@ const ProfileSettingsForm: React.FC = () => {
 
     if (profileError) throw profileError;
     await refetchProfile(user.id);
-    toast.success(t('profile_updated_successfully'));
+    toast.success(t('profileupdatedsuccessfully'));
     setLoading(false);
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      toast.error(t('passwords_do_not_match'));
+      toast.error(t('passwordsdonotmatch'));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error(t('password_too_short'));
+      toast.error(t('passwordtooshort'));
       return;
     }
     setPasswordLoading(true);
@@ -86,7 +86,7 @@ const ProfileSettingsForm: React.FC = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(t('password_updated_short'));
+      toast.success(t('passwordupdatedshort'));
       setNewPassword('');
       setConfirmPassword('');
     }
@@ -111,16 +111,16 @@ const ProfileSettingsForm: React.FC = () => {
           name="avatar_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('profile_picture')}</FormLabel>
+              {/* Removed FormLabel to fix duplication issue */}
               <FormControl>
                 <PhotoUploader
-                  label={t('profile_picture')}
+                  label={t('profilepicture')}
                   bucketName="avatars"
                   folderName={user.id}
                   currentImageUrl={field.value}
                   onUploadSuccess={(url) => {
                     field.onChange(url);
-                    toast.success(t('avatar_uploaded_successfully'));
+                    toast.success(t('photouploadedsuccessfully'));
                   }}
                   onRemove={async () => {
                     if (!field.value) return;
@@ -139,10 +139,10 @@ const ProfileSettingsForm: React.FC = () => {
           name="first_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('first_name')}</FormLabel>
+              <FormLabel>{t('firstname')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t('first_name_placeholder')}
+                  placeholder={t('firstnameplaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -155,10 +155,10 @@ const ProfileSettingsForm: React.FC = () => {
           name="last_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('last_name')}</FormLabel>
+              <FormLabel>{t('lastname')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t('last_name_placeholder')}
+                  placeholder={t('lastnameplaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -171,11 +171,11 @@ const ProfileSettingsForm: React.FC = () => {
           name="phone_number"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('phone_number_optional')}</FormLabel>
+              <FormLabel>{t('phonenumberoptional')}</FormLabel>
               <FormControl>
                 <Input
                   type="tel"
-                  placeholder={t('phone_number_placeholder')}
+                  placeholder={t('phonenumberplaceholder')}
                   {...field}
                 />
               </FormControl>
@@ -184,23 +184,23 @@ const ProfileSettingsForm: React.FC = () => {
           )}
         />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('save_changes')}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('savechanges')}
         </Button>
       </form>
 
       <div className="mt-6 pt-6 border-t">
         <form onSubmit={handlePasswordUpdate} className="space-y-4">
-          <h3 className="text-lg font-medium text-center">{t('change_password')}</h3>
+          <h3 className="text-lg font-medium text-center">{t('changepassword')}</h3>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="newPassword" className="md:text-right">{t('new_password')}</Label>
+            <Label htmlFor="newPassword" className="md:text-right">{t('newpassword')}</Label>
             <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" required className="md:col-span-3" />
           </div>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="confirmPassword" className="md:text-right">{t('confirm_new_password')}</Label>
+            <Label htmlFor="confirmPassword" className="md:text-right">{t('confirmnewpassword')}</Label>
             <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required className="md:col-span-3" />
           </div>
           <Button type="submit" className="w-full" disabled={passwordLoading}>
-            {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('update_password')}
+            {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('updatepassword')}
           </Button>
         </form>
       </div>
