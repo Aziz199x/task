@@ -93,21 +93,10 @@ const Login = () => {
         } else {
           toast.error(error.message);
         }
-      } else if (data.user) {
-        // Case 1: New user created (data.user is present)
-        toast.success(t('account_created_successfully_check_email'));
-        
-        // Clear form and switch to sign-in tab
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setFirstName('');
-        setLastName('');
-        setRole('technician');
-        setActiveTab('signin');
-      } else {
-        // Case 2: User exists but is unconfirmed, or it's the security feature masking a registered user.
-        // data.user is null, error is null. We show the generic check inbox message AND switch to sign-in.
+      } else if (data.user || (!error && !data.user)) {
+        // Case 1: New user created (data.user is present) OR
+        // Case 2: Existing user found (security feature, data.user is null, error is null)
+        // In both cases, we tell the user to check their inbox and switch to sign-in.
         toast.success(t('confirmation_email_resent_check_inbox'));
         
         // Clear form and switch to sign-in tab
