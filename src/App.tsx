@@ -24,6 +24,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import BackButtonHandler from "./components/BackButtonHandler";
 import { SidebarProvider } from "./state/useSidebar";
 import AppLifecycleSync from "./components/AppLifecycleSync";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -39,29 +40,31 @@ function App() {
                 <SessionProvider>
                   <TaskProvider>
                     <SidebarProvider>
-                      <BackButtonHandler />
-                      <AppLifecycleSync />
-                      <Routes>
-                        <Route element={<PublicRoute />}>
-                          <Route path="/login" element={<Login />} />
-                          <Route path="/forgot-password" element={<ForgotPassword />} />
-                        </Route>
+                      <ErrorBoundary>
+                        <BackButtonHandler />
+                        <AppLifecycleSync />
+                        <Routes>
+                          <Route element={<PublicRoute />}>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
+                          </Route>
 
-                        <Route path="/reset-password" element={<ResetPassword />} />
-                        <Route path="/verify-email" element={<EmailVerificationRequired />} />
+                          <Route path="/reset-password" element={<ResetPassword />} />
+                          <Route path="/verify-email" element={<EmailVerificationRequired />} />
 
-                        <Route element={<ProtectedRoute />}>
-                          <Route path="/" element={<Index />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/technician-tasks" element={<TechnicianTasks />} />
-                          <Route path="/create-account" element={<CreateAccount />} />
-                          <Route path="/manage-users" element={<ManageUsers />} />
-                          <Route path="/diagnostics" element={<Diagnostics />} />
-                          <Route path="/settings" element={<ProfileSettings />} />
-                        </Route>
-                        
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                          <Route element={<ProtectedRoute />}>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/technician-tasks" element={<TechnicianTasks />} />
+                            <Route path="/create-account" element={<CreateAccount />} />
+                            <Route path="/manage-users" element={<ManageUsers />} />
+                            <Route path="/diagnostics" element={<Diagnostics />} />
+                            <Route path="/settings" element={<ProfileSettings />} />
+                          </Route>
+                          
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </ErrorBoundary>
                     </SidebarProvider>
                   </TaskProvider>
                 </SessionProvider>

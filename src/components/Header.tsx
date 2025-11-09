@@ -39,7 +39,7 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm" style={{ paddingTop: `env(safe-area-inset-top)` }}>
+    <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm" style={{ paddingTop: `env(safe-area-inset-top)` }}>
       <div className="flex items-center">
         {!isDesktop && (
           <Button
