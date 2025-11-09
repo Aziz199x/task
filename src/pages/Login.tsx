@@ -15,6 +15,7 @@ import { UserProfile } from '@/context/SessionContext'; // Import UserProfile ty
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
+import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
 
 const Login = () => {
   const navigate = useNavigate();
@@ -65,8 +66,12 @@ const Login = () => {
       return;
     }
 
-    // Use getCapacitorBaseUrl for the redirect, ensuring it works on native and web
-    const emailRedirectTo = getCapacitorBaseUrl();
+    // Determine the correct redirect URL.
+    // If running on a native platform, use the deep link scheme.
+    // Otherwise, use the explicit public web URL (APP_URL from constants) to prevent localhost issues.
+    const emailRedirectTo = getCapacitorBaseUrl().startsWith('com.abumiral.workflow') 
+      ? getCapacitorBaseUrl() 
+      : `${APP_URL}/auth/callback`;
 
     try {
       const { data, error } = await supabase.auth.signUp({

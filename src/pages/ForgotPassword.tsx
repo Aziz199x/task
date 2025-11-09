@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
+import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -22,8 +23,12 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessageSent(false);
 
-    // Use getCapacitorBaseUrl for the redirect, pointing to the new callback handler
-    const redirectTo = getCapacitorBaseUrl();
+    // Determine the correct redirect URL.
+    // If running on a native platform, use the deep link scheme.
+    // Otherwise, use the explicit public web URL (APP_URL from constants) to prevent localhost issues.
+    const redirectTo = getCapacitorBaseUrl().startsWith('com.abumiral.workflow') 
+      ? getCapacitorBaseUrl() 
+      : `${APP_URL}/auth/callback`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
