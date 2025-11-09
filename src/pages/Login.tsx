@@ -93,7 +93,7 @@ const Login = () => {
           toast.error(error.message);
         }
       } else if (data.user) {
-        // Success: New user created (and confirmation email sent)
+        // Case 1: New user created (data.user is present)
         toast.success(t('account_created_successfully_check_email'));
         
         // Clear form and switch to sign-in tab
@@ -105,8 +105,8 @@ const Login = () => {
         setRole('technician');
         setActiveTab('signin');
       } else {
-        // Success: User exists but is unconfirmed, or it's the security feature masking a registered user.
-        // We show a generic message asking them to check their inbox.
+        // Case 2: User exists but is unconfirmed, or it's the security feature masking a registered user.
+        // data.user is null, error is null. We show the generic check inbox message.
         toast.success(t('confirmation_email_resent_check_inbox'));
         
         // Clear form and switch to sign-in tab
