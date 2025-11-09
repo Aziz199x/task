@@ -11,6 +11,9 @@ const ProfileSettings = () => {
   const { profile, loading } = useSession();
   const { t } = useTranslation();
 
+  // Helper function for fallback translation
+  const translate = (key: string) => t(key, { defaultValue: key.replace(/[_-]/g, ' ') });
+
   if (loading) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -24,17 +27,17 @@ const ProfileSettings = () => {
   if (!profile) {
     return (
       <div className="text-center py-8 text-destructive">
-        {t('profile_not_found_contact_admin')}
+        {translate('profile_not_found_contact_admin')}
       </div>
     );
   }
 
   return (
     <div className="container mx-auto max-w-lg space-y-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">{t('profile_settings')}</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">{translate('profile_settings')}</h2>
       <Card>
         <CardHeader>
-          <CardTitle>{t('profile_information')}</CardTitle>
+          <CardTitle>{translate('settings.profile_information')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ProfileSettingsForm />

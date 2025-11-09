@@ -319,5 +319,15 @@
   "authentication_successful": "Authentication successful! Redirecting...",
   "authentication_failed": "Authentication Failed",
   "auth_link_expired_request_new": "This link expired. Please request a new email.",
-  "auth_link_invalid_try_again": "This link is invalid. Please try again."
+  "auth_link_invalid_try_again": "This link is invalid. Please try again.",
+  "settings.profile_information": "Profile Information",
+  "settings.profile_picture": "Profile Picture",
+  "settings.first_name": "First Name",
+  "settings.last_name": "Last Name",
+  "settings.phone_optional": "Phone Number (Optional)",
+  "settings.save_changes": "Save changes",
+  "settings.change_password": "Change Password",
+  "settings.new_password": "New Password",
+  "settings.confirm_new_password": "Confirm New Password",
+  "settings.update_password": "Update Password"
 }
