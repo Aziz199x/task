@@ -317,5 +317,7 @@
   "settings.new_password": "كلمة المرور الجديدة",
   "settings.confirm_new_password": "تأكيد كلمة المرور الجديدة",
   "settings.update_password": "تحديث كلمة المرور",
-  "password_updated_short": "تم تحديث كلمة المرور بنجاح!"
+  "password_updated_short": "تم تحديث كلمة المرور بنجاح!",
+  "user_already_registered_login_instead": "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
+  "confirmation_email_resent_check_inbox": "إذا كان هذا البريد الإلكتروني مسجلاً، فقد تم إرسال رابط تأكيد. يرجى التحقق من صندوق الوارد الخاص بك."
 }

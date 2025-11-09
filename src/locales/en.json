@@ -331,5 +331,7 @@
   "settings.new_password": "New Password",
   "settings.confirm_new_password": "Confirm New Password",
   "settings.update_password": "Update Password",
-  "password_updated_short": "Password updated successfully!"
+  "password_updated_short": "Password updated successfully!",
+  "user_already_registered_login_instead": "This email is already registered. Please sign in.",
+  "confirmation_email_resent_check_inbox": "If this email is registered, a confirmation link has been sent. Please check your inbox."
 }

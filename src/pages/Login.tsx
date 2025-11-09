@@ -67,8 +67,6 @@ const Login = () => {
     }
 
     // Determine the correct redirect URL.
-    // If running on a native platform, use the deep link scheme.
-    // Otherwise, use the explicit public web URL (APP_URL from constants) to prevent localhost issues.
     const emailRedirectTo = getCapacitorBaseUrl().startsWith('com.abumiral.workflow') 
       ? getCapacitorBaseUrl() 
       : `${APP_URL}/auth/callback`;
@@ -83,16 +81,35 @@ const Login = () => {
             last_name: lastName,
             role: role,
           },
-          emailRedirectTo, // Use custom redirect for verification
+          emailRedirectTo,
         },
       });
 
       if (error) {
-        toast.error(error.message);
+        // Handle specific error for already registered user
+        if (error.message.includes('User already registered')) {
+          toast.error(t('user_already_registered_login_instead'));
+        } else {
+          toast.error(error.message);
+        }
       } else if (data.user) {
+        // Success: New user created (and confirmation email sent)
         toast.success(t('account_created_successfully_check_email'));
-        // Optionally, redirect to a page informing them to check email
-        // For now, we'll just clear the form and switch to sign-in tab
+        
+        // Clear form and switch to sign-in tab
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setFirstName('');
+        setLastName('');
+        setRole('technician');
+        setActiveTab('signin');
+      } else {
+        // Success: User exists but is unconfirmed, or it's the security feature masking a registered user.
+        // We show a generic message asking them to check their inbox.
+        toast.success(t('confirmation_email_resent_check_inbox'));
+        
+        // Clear form and switch to sign-in tab
         setEmail('');
         setPassword('');
         setConfirmPassword('');
