@@ -18,7 +18,7 @@ import ExcelUploadButton from '@/components/ExcelUploadButton'; // Import the Ex
 import ChatImportButton from '@/components/ChatImportButton'; // Import the new ChatImportButton
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
-import useIsDesktop from '@/hooks/use-is-desktop'; // Import useIsDesktop hook
+import useIsDesktop from '@/hooks/use-is-desktop.tsx'; // Import useIsDesktop hook
 
 const AllTasksSection: React.FC = () => {
   const { tasks, loading } = useTasks();
