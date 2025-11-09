@@ -16,9 +16,9 @@ export const getCapacitorBaseUrl = (): string => {
   if (Capacitor.isNativePlatform()) {
     // Use the custom URL scheme defined in capacitor.config.ts (com.abumiral.workflow)
     // This must match the scheme configured in your native project and Supabase redirect settings.
-    return `${DEEP_LINK_SCHEME}://`;
+    return `${DEEP_LINK_SCHEME}://auth/callback`;
   }
 
   // Fallback to standard web origin (Vercel domain or localhost)
-  return APP_URL;
+  return `${APP_URL}/auth/callback`;
 };

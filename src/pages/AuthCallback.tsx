@@ -8,12 +8,24 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { useSession } from '@/context/SessionContext';
+import { useTasks } from '@/context/TaskContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { refetchProfile } = useSession();
+  const { refetchTasks } = useTasks();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const postAuthSync = async (userId: string) => {
+    console.log("[AuthCallback] Triggering post-auth data sync.");
+    await Promise.allSettled([
+      refetchProfile(userId),
+      refetchTasks(),
+    ]);
+  };
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -26,7 +38,7 @@ const AuthCallback: React.FC = () => {
 
       if (errorCode || errorDescription) {
         console.error("Auth Callback Error:", errorCode, errorDescription);
-        if (errorCode === '401' || errorCode === 'otp_expired') {
+        if (errorCode === '401' || errorDescription?.includes('otp_expired') || errorDescription?.includes('invalid')) {
           setErrorMessage(t('auth_link_expired_request_new'));
         } else {
           setErrorMessage(t('auth_link_invalid_try_again'));
@@ -41,13 +53,20 @@ const AuthCallback: React.FC = () => {
 
         if (error) {
           console.error("Error exchanging code:", error.message);
-          setErrorMessage(t('auth_link_invalid_try_again'));
+          if (error.message.includes('expired') || error.message.includes('invalid')) {
+            setErrorMessage(t('auth_link_expired_request_new'));
+          } else {
+            setErrorMessage(t('auth_link_invalid_try_again'));
+          }
           setStatus('error');
           return;
         }
 
         if (data.session) {
-          // Successfully signed in/verified. Redirect to home or reset password page.
+          // Success! Trigger post-auth sync
+          await postAuthSync(data.session.user.id);
+          
+          // Redirect to home or reset password page.
           const next = data.session.user.app_metadata.next_redirect_to;
           if (next) {
             navigate(next, { replace: true });
@@ -69,7 +88,7 @@ const AuthCallback: React.FC = () => {
     };
 
     handleAuthCallback();
-  }, [navigate, t]);
+  }, [navigate, t, refetchProfile, refetchTasks]);
 
   const renderContent = () => {
     switch (status) {

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { APP_URL } from '@/utils/constants'; // Import APP_URL
+import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -22,8 +22,8 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessageSent(false);
 
-    // Use APP_URL for the redirect, pointing to the new callback handler
-    const redirectTo = `${APP_URL}/auth/callback`;
+    // Use getCapacitorBaseUrl for the redirect, pointing to the new callback handler
+    const redirectTo = getCapacitorBaseUrl();
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
