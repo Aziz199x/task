@@ -3,7 +3,7 @@
   "sign_in_to_continue": "Sign in to continue",
   "loading_user_session": "Loading user session...",
   "permission_denied_create_account": "You do not have permission to create accounts.",
-  "create_new_user_account": "Create New User Account",
+  "createnewuseraccount": "Create New User Account",
   "email": "Email",
   "password": "Password",
   "firstname": "First Name",
@@ -118,7 +118,7 @@
   "due": "Due",
   "assignedto": "Assigned to",
   "notasksinthisscategory": "No tasks in this category.",
-  "tasksbytechnician": "Tasks by Technician",
+  "techniciantasks": "Technician Tasks",
   "nounassignedtasks": "No unassigned tasks.",
   "notechniciansfound": "No technicians found.",
   "notasksassignedtothistechnician": "No tasks assigned to this technician.",
@@ -312,6 +312,7 @@
   "refreshingdata": "Refreshing data...",
   "datarefreshedsuccessfully": "Data refreshed successfully.",
   "closesidebar": "Close Sidebar",
+  "togglesidebar": "Toggle Sidebar",
   "opensidebar": "Open Sidebar",
   "remotesignoutnotification": "Someone logged in to your account and your session will be terminated.",
   "authenticationcallback": "Authentication Processing",
@@ -323,5 +324,6 @@
   "profileinformation": "Profile Information",
   "profilepicture": "Profile Picture",
   "firstnameplaceholder": "Enter your first name",
-  "lastnameplaceholder": "Enter your last name"
+  "lastnameplaceholder": "Enter your last name",
+  "failedtorefreshdata": "Failed to refresh data."
 }

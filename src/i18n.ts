@@ -21,9 +21,16 @@ i18n
     },
     lng: storedLanguage, // Use the stored language
     fallbackLng: 'en', // fallback language if translation is missing
+    defaultNS: 'translation', // Use 'translation' as the default namespace
+    ns: ['translation'], // Only use the default namespace
+    returnNull: false, // Crucial: ensures fallback text is shown instead of null/raw key
+    keySeparator: false, // Treat keys containing dots/underscores as plain keys
     interpolation: {
       escapeValue: false, // react already safes from xss
     },
+    react: {
+      useSuspense: false, // Disable suspense for easier integration
+    }
   });
 
 export default i18n;

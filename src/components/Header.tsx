@@ -63,7 +63,7 @@ const UserDropdown = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate('/settings')}>
-          {t('profile_settings')}
+          {t('profilesettings')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSignOut}>
           {t('logout')}
@@ -75,11 +75,12 @@ const UserDropdown = () => {
 
 
 export function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toggle } = useSidebar();
   const screen = useResponsive();
   const scrolled = useScrolled(6); // Use 6px threshold
   const { theme } = useTheme();
+  const isRTL = i18n.dir() === 'rtl';
 
   // Density & sizing per screen
   const height = screen === "desktop" ? 72 : screen === "tablet" ? 64 : 56; // px (content area)
@@ -104,13 +105,13 @@ export function Header() {
         {/* Left: burger on mobile/tablet */}
         {!isDesktop && (
           <Button
-            aria-label={t('toggle_sidebar')}
+            aria-label={t('togglesidebar')}
             onClick={toggle}
             variant="ghost"
             size="icon"
             className="mr-2 h-10 w-10"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className={cn("h-6 w-6", isRTL && "transform scale-x-[-1]")} />
           </Button>
         )}
 

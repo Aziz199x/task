@@ -50,9 +50,9 @@ export function SidebarContent() {
     setIsRefreshing(true);
     const promise = refetchTasks();
     toast.promise(promise, {
-      loading: t('refreshing_data'),
-      success: t('data_refreshed_successfully'),
-      error: t('failed_to_refresh_data'),
+      loading: t('refreshingdata'),
+      success: t('datarefreshedsuccessfully'),
+      error: t('failedtorefreshdata'),
     });
     try {
       await promise;
@@ -64,11 +64,11 @@ export function SidebarContent() {
   const navigationItems = [
     { name: t('home'), href: '/', icon: Home, roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'] },
     { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'supervisor'] },
-    { name: t('technician_tasks'), href: '/technician-tasks', icon: Wrench, roles: ['admin', 'manager', 'supervisor'] },
-    { name: t('manage_users'), href: '/manage-users', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
-    { name: t('create_new_user_account'), href: '/create-account', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('techniciantasks'), href: '/technician-tasks', icon: Wrench, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('manageuserroles'), href: '/manage-users', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
+    { name: t('createnewuseraccount'), href: '/create-account', icon: Users, roles: ['admin', 'manager', 'supervisor'] },
     { name: t('diagnostics'), href: '/diagnostics', icon: BarChart3, roles: ['admin'] },
-    { name: t('settings'), href: '/settings', icon: Settings, roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'] },
+    { name: t('profilesettings'), href: '/settings', icon: Settings, roles: ['admin', 'manager', 'supervisor', 'technician', 'contractor'] },
   ];
 
   return (
@@ -84,7 +84,7 @@ export function SidebarContent() {
         {/* This is the custom close button, kept for mobile view control */}
         <Button variant="ghost" size="icon" onClick={handleClose} className="lg:hidden">
           <X className="h-6 w-6 text-sidebar-foreground" />
-          <span className="sr-only">{t('close_sidebar')}</span>
+          <span className="sr-only">{t('closesidebar')}</span>
         </Button>
       </div>
       
@@ -97,7 +97,7 @@ export function SidebarContent() {
         ) : !profile ? (
           <div className="p-4 text-center text-sm text-destructive">
             <AlertCircle className="h-5 w-5 mx-auto mb-2" />
-            {t('profile_error')}
+            {t('profileerror')}
           </div>
         ) : (
           <ul className="grid gap-2">
@@ -130,7 +130,7 @@ export function SidebarContent() {
         <div className="mt-auto border-t p-4">
           <div className="flex items-center justify-between mb-4">
             <Button variant="outline" className="w-full btn" onClick={handleRefreshData} disabled={isRefreshing}>
-              <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} /> {t('refresh_data')}
+              <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} /> {t('refreshdata')}
             </Button>
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -151,7 +151,7 @@ export function SidebarContent() {
           <div className="mx-auto max-w-md">
             <div className="flex items-center justify-between rounded-full border bg-background/70 p-1.5 shadow-lg backdrop-blur-lg">
               <div className="flex items-center">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full btn" onClick={handleRefreshData} aria-label={t('refresh_data')} disabled={isRefreshing}>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full btn" onClick={handleRefreshData} aria-label={t('refreshdata')} disabled={isRefreshing}>
                   <RefreshCw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
                 </Button>
                 <ThemeSwitcher />
