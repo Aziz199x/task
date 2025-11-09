@@ -101,7 +101,7 @@ const CreateAccount: React.FC = () => {
         throw new Error(data.error);
       }
 
-      toast.success(t('accountcreatedsuccessfully', { firstName, lastName, role: t(role) }));
+      toast.success(t('account_created_successfully', { firstName, lastName, role: t(role) }));
       setEmail("");
       setPassword("");
       setFirstName("");
@@ -119,7 +119,7 @@ const CreateAccount: React.FC = () => {
       } catch (e) {
         // Ignore if not JSON
       }
-      toast.error(`${t('failedtocreateaccount')} ${errorMessage}`);
+      toast.error(`${t('failed_to_create_account')} ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -128,12 +128,12 @@ const CreateAccount: React.FC = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">{t('createnewuseraccount')}</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">{t('create_new_user_account')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="email" className="md:text-end">{t('email')}</Label>
+            <Label htmlFor="email" className="md:text-right">{t('email')}</Label>
             <Input
               id="email"
               type="email"
@@ -145,7 +145,7 @@ const CreateAccount: React.FC = () => {
             />
           </div>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="password" className="md:text-end">{t('password')}</Label>
+            <Label htmlFor="password" className="md:text-right">{t('password')}</Label>
             <Input
               id="password"
               type="password"
@@ -157,7 +157,7 @@ const CreateAccount: React.FC = () => {
             />
           </div>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="firstName" className="md:text-end">{t('firstname')}</Label>
+            <Label htmlFor="firstName" className="md:text-right">{t('first_name')}</Label>
             <Input
               id="firstName"
               type="text"
@@ -169,7 +169,7 @@ const CreateAccount: React.FC = () => {
             />
           </div>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="lastName" className="md:text-end">{t('lastname')}</Label>
+            <Label htmlFor="lastName" className="md:text-right">{t('last_name')}</Label>
             <Input
               id="lastName"
               type="text"
@@ -181,10 +181,10 @@ const CreateAccount: React.FC = () => {
             />
           </div>
           <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-            <Label htmlFor="role" className="md:text-end">{t('role')}</Label>
+            <Label htmlFor="role" className="md:text-right">{t('role')}</Label>
             <Select onValueChange={(value: UserProfile['role']) => setRole(value)} value={role} disabled={availableRoles.length === 0}>
               <SelectTrigger id="role" className="md:col-span-3">
-                <SelectValue placeholder={t('selectrole')} />
+                <SelectValue placeholder={t('select_role')} />
               </SelectTrigger>
               <SelectContent>
                 {availableRoles.map((roleOption) => (
@@ -196,7 +196,7 @@ const CreateAccount: React.FC = () => {
             </Select>
           </div>
           <Button type="submit" className="w-full" disabled={loading || availableRoles.length === 0}>
-            {loading ? t('creating') : t('createaccount')}
+            {loading ? t('creating') : t('create_account')}
           </Button>
         </form>
       </CardContent>

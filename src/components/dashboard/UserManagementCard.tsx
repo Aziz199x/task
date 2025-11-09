@@ -21,7 +21,7 @@ const UserManagementCard: React.FC = () => {
     return (
       <Card className="col-span-1">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('manageuserroles')}</CardTitle>
+          <CardTitle>{t('manage_users')}</CardTitle>
           {allowedToCreateAccounts && (
             <Link to="/create-account">
               <Button variant="ghost" size="sm">
@@ -41,9 +41,9 @@ const UserManagementCard: React.FC = () => {
     return (
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle>{t('manageuserroles')}</CardTitle>
+          <CardTitle>{t('manage_users')}</CardTitle>
         </CardHeader>
-        <CardContent className="text-destructive">{t('errorloadinguserprofiles')}</CardContent>
+        <CardContent className="text-destructive">{t('error_loading_user_profiles')}</CardContent>
       </Card>
     );
   }
@@ -51,7 +51,7 @@ const UserManagementCard: React.FC = () => {
   return (
     <Card className="col-span-1">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{t('manageuserroles')}</CardTitle>
+        <CardTitle>{t('manage_users')}</CardTitle>
         {allowedToCreateAccounts && (
           <Link to="/create-account">
             <Button variant="ghost" size="sm">

@@ -28,14 +28,14 @@ const googleMapsUrlRegex = /^(https:\/\/www\.google\.com\/maps\?q=(-?\d+(\.\d+)?
 
 const validateLocationUrl = (url: string | null | undefined): string | null => {
   if (!url || url.trim() === "") return null;
-  if (!googleMapsUrlRegex.test(url)) return "locationurlinvalidformat";
+  if (!googleMapsUrlRegex.test(url)) return "location_url_invalid_format";
   return null;
 };
 
 // Define validateNotificationNum outside the component and pass 't'
 const validateNotificationNum = (num: string | null | undefined, t: (key: string) => string): string | null => {
   if (!num || num.trim() === "") return null;
-  if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notificationnuminvalidformat');
+  if (!/^\d+$/.test(num) || num.length !== 10 || !num.startsWith('41')) return t('notification_num_invalid_format');
   return null;
 };
 
@@ -75,12 +75,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   const handleSaveEdit = async () => {
     setIsSaving(true);
     if (!editedTask.title || editedTask.title.trim() === "") {
-      toast.error(t('tasktitlecannotbeempty'));
+      toast.error(t('task_title_cannot_be_empty'));
       setIsSaving(false);
       return;
     }
     if (!editedTask.equipment_number || editedTask.equipment_number.trim() === "") {
-      toast.error(t('equipmentnumbermandatory'));
+      toast.error(t('equipment_number_mandatory'));
       setIsSaving(false);
       return;
     }
@@ -108,7 +108,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
     setIsSaving(false);
 
     if (success) {
-      toast.success(t('taskupdatedsuccessfully'));
+      toast.success(t('task_updated_successfully'));
       onClose();
     }
   };
@@ -151,40 +151,40 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
   return (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="title" className="md:text-end">{t('task_title')}</Label>
+        <Label htmlFor="title" className="md:text-right">{t('task_title')}</Label>
         <Input id="title" value={editedTask.title || ''} onChange={(e) => setEditedTask({...editedTask, title: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="description" className="md:text-end">{t('descriptionoptional')}</Label>
+        <Label htmlFor="description" className="md:text-right">{t('description_optional')}</Label>
         <Textarea id="description" value={editedTask.description || ""} onChange={(e) => setEditedTask({...editedTask, description: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="location" className="md:text-end">{t('location')}</Label>
+        <Label htmlFor="location" className="md:text-right">{t('location')}</Label>
         <Input
           id="location"
           value={editedTask.location || ''}
           onChange={handleLocationChange}
-          placeholder={t('locationplaceholder')}
+          placeholder={t('location_placeholder')}
           className="md:col-span-3"
           disabled={!canEditOrDelete}
         />
-        {locationError && <p className="col-span-4 text-end text-destructive text-sm">{locationError}</p>}
+        {locationError && <p className="col-span-4 text-right text-destructive text-sm">{locationError}</p>}
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="taskId" className="md:text-end">{t('task_id')}</Label>
+        <Label htmlFor="taskId" className="md:text-right">{t('task_id')}</Label>
         <Input id="taskId" value={editedTask.task_id || ''} className="md:col-span-3" readOnly disabled={true} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
         <Label htmlFor="due-date" className="md:col-span-1">{t('due_date')}</Label>
         <div className="md:col-span-2">
-          <DatePicker date={dueDateObject} onDateChange={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pickadate')} />
+          <DatePicker date={dueDateObject} onDateChange={setDueDateObject} disabled={!canEditOrDelete} placeholder={t('pick_a_date')} />
         </div>
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="typeOfWork" className="md:text-end">{t('typeofwork')}</Label>
+        <Label htmlFor="typeOfWork" className="md:text-right">{t('type_of_work')}</Label>
         <Select onValueChange={(value: Task['type_of_work']) => setEditedTask({...editedTask, type_of_work: value})} value={editedTask.type_of_work || ""} disabled={!canEditOrDelete}>
           <SelectTrigger id="typeOfWork" className="md:col-span-3">
-            <SelectValue placeholder={t('selecttypeofwork')} />
+            <SelectValue placeholder={t('select_type_of_work')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Correction Maintenance">{t('correction_maintenance')}</SelectItem>
@@ -196,11 +196,11 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
         </Select>
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="equipmentNumber" className="md:text-end">{t('equipment_number')}</Label>
+        <Label htmlFor="equipmentNumber" className="md:text-right">{t('equipment_number')}</Label>
         <Input id="equipmentNumber" value={editedTask.equipment_number || ''} onChange={(e) => setEditedTask({...editedTask, equipment_number: e.target.value})} className="md:col-span-3" disabled={!canEditOrDelete} />
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="notificationNum" className="md:text-end">{t('notificationnum')}</Label>
+        <Label htmlFor="notificationNum" className="md:text-right">{t('notification_num')}</Label>
         <Input
           id="notificationNum"
           value={editedTask.notification_num || ''}
@@ -209,13 +209,13 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
           maxLength={10}
           disabled={!(canEditOrDelete || canComplete)}
         />
-        {notificationNumError && <p className="col-span-4 text-end text-destructive text-sm">{notificationNumError}</p>}
+        {notificationNumError && <p className="col-span-4 text-right text-destructive text-sm">{notificationNumError}</p>}
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="priority" className="md:text-end">{t('priority')}</Label>
+        <Label htmlFor="priority" className="md:text-right">{t('priority')}</Label>
         <Select onValueChange={(value: Task['priority']) => setEditedTask({...editedTask, priority: value})} value={editedTask.priority || "medium"} disabled={!canEditOrDelete}>
           <SelectTrigger id="priority" className="md:col-span-3">
-            <SelectValue placeholder={t('selectpriority')} />
+            <SelectValue placeholder={t('select_priority')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="low">{t('low')}</SelectItem>
@@ -226,20 +226,20 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
         </Select>
       </div>
       <div className="space-y-2 md:grid md:grid-cols-4 md:items-center md:gap-4">
-        <Label htmlFor="assignee" className="md:text-end">{t('assignto')}</Label>
+        <Label htmlFor="assignee" className="md:text-right">{t('assign_to')}</Label>
         <Select onValueChange={(value) => setEditedTask({...editedTask, assignee_id: value === "unassigned" ? null : value})} value={editedTask.assignee_id || "unassigned"} disabled={isAssigneeDropdownDisabled}>
           <SelectTrigger id="assignee" className="md:col-span-3">
-            <SelectValue placeholder={t('selectausertoassign')} />
+            <SelectValue placeholder={t('select_a_user_to_assign')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
             {currentUserProfile && ['supervisor', 'technician'].includes(currentUserProfile.role) && (
               <SelectItem value={currentUserProfile.id}>
-                {t('assigntome')} ({currentUserProfile.first_name})
+                {t('assign_to_me')} ({currentUserProfile.first_name})
               </SelectItem>
             )}
             {loadingUsers ? (
-              <SelectItem value="loading" disabled>{t('loadingusers')}...</SelectItem>
+              <SelectItem value="loading" disabled>{t('loading_users')}...</SelectItem>
             ) : (
               assignableUsers.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
@@ -253,7 +253,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
       {canComplete && (
         <>
           <MultiPhotoUploader
-            label={t('beforeworkphoto')}
+            label={t('before_work_photo')}
             taskId={currentTask.id}
             photoType="before"
             currentUrls={currentTask.photo_before_urls}
@@ -261,7 +261,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
             onRemove={(url) => handleMultiPhotoRemove('before', url)}
           />
           <MultiPhotoUploader
-            label={t('afterworkphoto')}
+            label={t('after_work_photo')}
             taskId={currentTask.id}
             photoType="after"
             currentUrls={currentTask.photo_after_urls}
@@ -269,7 +269,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
             onRemove={(url) => handleMultiPhotoRemove('after', url)}
           />
           <PhotoUploader
-            label={t('permitphoto')}
+            label={t('permit_photo')}
             bucketName="task_photos"
             folderName={currentTask.id}
             fileNamePrefix="permit"
@@ -279,7 +279,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
           />
         </>
       )}
-      <Button onClick={handleSaveEdit} disabled={isSaving || !!notificationNumError || !!locationError}>{t('savechanges')}</Button>
+      <Button onClick={handleSaveEdit} disabled={isSaving || !!notificationNumError || !!locationError}>{t('save_changes')}</Button>
     </div>
   );
 };
