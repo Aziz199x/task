@@ -19,6 +19,8 @@ import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { toast } from "sonner";
 import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import { useSearchParams } from "react-router-dom"; // Import useSearchParams
+import { cn } from "@/lib/utils";
+import { TaskListSkeleton } from "@/hooks/use-tasks-query"; // Import TaskListSkeleton
 
 interface TaskListProps {
   hideForm?: boolean;
@@ -28,7 +30,7 @@ interface TaskListProps {
 type FilterStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'cancelled';
 
 const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
-  const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap } = useTasks();
+  const { tasks, changeTaskStatus, deleteTask, assignTask, tasksByIdMap, loading: tasksLoading } = useTasks();
   const { profiles } = useProfiles(); // profiles is now ProfileWithEmail[]
   const { profile: currentUserProfile, user } = useSession();
   const { assignableUsers, loading: loadingUsers } = useAssignableUsers();
@@ -95,6 +97,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
     const isInactive = (status: Task['status']) => status === 'completed' || status === 'cancelled';
 
     return filtered.sort((a, b) => {
+      // Optimistic tasks always float to the top
+      if ((a as any)._optimistic && !(b as any)._optimistic) return -1;
+      if (!(a as any)._optimistic && (b as any)._optimistic) return 1;
+
       const aIsInactive = isInactive(a.status);
       const bIsInactive = isInactive(b.status);
 
@@ -266,10 +272,10 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
   const allTasksSelected = filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {!hideForm && canAddTask && <TaskForm />}
 
-      <div className="relative w-full mb-4">
+      <div className="relative w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={t('search_tasks')}
@@ -279,7 +285,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
         />
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-3">
         {/* Status Filter: Maps unassigned/assigned to pending */}
         <Select onValueChange={(value: FilterStatus) => setFilterStatus(value)} value={filterStatus}>
           <SelectTrigger className="w-full sm:w-[180px]">
@@ -348,15 +354,18 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       </div>
 
       {filteredTasks.length > 0 && (
-        <div className="flex items-center gap-4 mb-4">
-          <Checkbox
-            checked={allTasksSelected}
-            onCheckedChange={(checked) => handleSelectAllTasks(checked === true)}
-            id="select-all-tasks"
-          />
-          <Label htmlFor="select-all-tasks" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            {t('select_all')} ({selectedTaskIds.size} {t('selected')})
-          </Label>
+        <div className="flex items-center gap-4 pt-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={allTasksSelected}
+              onCheckedChange={(checked) => handleSelectAllTasks(checked === true)}
+              id="select-all-tasks"
+              className="h-5 w-5"
+            />
+            <Label htmlFor="select-all-tasks" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              {t('select_all')} ({selectedTaskIds.size} {t('selected')})
+            </Label>
+          </div>
 
           {selectedTaskIds.size > 0 && (
             <DropdownMenu>
@@ -412,7 +421,9 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
       )}
 
       <div className="grid gap-4">
-        {filteredTasks.length === 0 ? (
+        {tasksLoading ? (
+          <TaskListSkeleton />
+        ) : filteredTasks.length === 0 ? (
           <p className="text-center text-muted-foreground">{t('no_tasks_found_matching_criteria')}</p>
         ) : (
           filteredTasks.map((task) => (

@@ -241,14 +241,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       photo_permit_url: null,
     };
 
+    // --- Optimistic Update Start ---
     const tempId = 'temp-' + Date.now();
-    const optimisticTask = { ...taskPayload, id: tempId } as Task;
+    const optimisticTask = { ...taskPayload, id: tempId, _optimistic: true } as Task & { _optimistic?: boolean };
 
     await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY });
     const previousTasks = queryClient.getQueryData<Task[]>(TASKS_QUERY_KEY);
     if (previousTasks) {
       queryClient.setQueryData<Task[]>(TASKS_QUERY_KEY, [optimisticTask, ...previousTasks]);
     }
+    // --- Optimistic Update End ---
 
     console.log('[TaskContext] Inserting task into database...');
     
@@ -268,6 +270,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (error) {
         console.error('[TaskContext] Error inserting task:', error.message);
         toast.error(t("failed_to_add_task") + error.message);
+        // Revert optimistic update on failure
         if (previousTasks) {
           queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
         }
@@ -275,6 +278,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       console.log('[TaskContext] Task inserted successfully:', data);
+      // Invalidate to replace optimistic task with real data
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
       return true;
     } catch (e: any) {
@@ -284,6 +288,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         toast.error(t("failed_to_add_task") + e.message);
       }
+      // Revert optimistic update on exception
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -361,7 +366,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         photo_permit_url: null,
       };
       tasksToInsert.push(fullTaskPayload);
-      optimisticTasks.push({ ...fullTaskPayload, id: 'temp-' + Date.now() + Math.random() } as Task);
+      optimisticTasks.push({ ...fullTaskPayload, id: 'temp-' + Date.now() + Math.random(), _optimistic: true } as Task);
     }
     if (tasksToInsert.length === 0) {
       toast.warning(t('no_valid_tasks_found_in_excel'));

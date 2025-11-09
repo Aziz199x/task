@@ -340,5 +340,11 @@
   "diagnostics": "التشخيصات",
   "toggle_sidebar": "تبديل الشريط الجانبي",
   "close_sidebar": "إغلاق الشريط الجانبي",
-  "database_connection_timeout": "انتهت مهلة الاتصال بقاعدة البيانات. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى."
+  "database_connection_timeout": "انتهت مهلة الاتصال بقاعدة البيانات. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.",
+  "authentication_callback": "معالجة المصادقة",
+  "processing_authentication": "جارٍ معالجة رابط المصادقة...",
+  "authentication_successful": "تمت المصادقة بنجاح! جارٍ إعادة التوجيه...",
+  "authentication_failed": "فشلت المصادقة",
+  "auth_link_expired_request_new": "انتهت صلاحية هذا الرابط. يرجى طلب بريد إلكتروني جديد.",
+  "auth_link_invalid_try_again": "هذا الرابط غير صالح. يرجى المحاولة مرة أخرى."
 }

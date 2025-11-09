@@ -5,27 +5,43 @@ import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
-import { toast } from "sonner"; // Import toast
-import { useTranslation } from "react-i18next"; // Import useTranslation
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TASKS_QUERY_KEY = ['tasks'];
+const FETCH_TIMEOUT_MS = 10000; // 10 seconds timeout
 
+// Custom fetcher with timeout
 const fetchAllTasks = async (): Promise<Task[]> => {
-  const { data, error } = await supabase
+  const fetchPromise = supabase
     .from('tasks')
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) {
-    throw new Error("Failed to load tasks: " + error.message);
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Database query timed out')), FETCH_TIMEOUT_MS)
+  );
+
+  try {
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+    if (error) {
+      throw new Error("Failed to load tasks: " + error.message);
+    }
+    return data as Task[];
+  } catch (e: any) {
+    if (e.message.includes('timed out')) {
+      throw new Error('Database connection timed out.');
+    }
+    throw e;
   }
-  return data as Task[];
 };
 
 export const useTasksQuery = () => {
   const { user } = useSession();
   const queryClient = useQueryClient();
-  const { t } = useTranslation(); // Get translation function
+  const { t } = useTranslation();
 
   const query = useQuery<Task[], Error>({
     queryKey: TASKS_QUERY_KEY,
@@ -34,7 +50,8 @@ export const useTasksQuery = () => {
     staleTime: 1000 * 10, // Keep stale time at 10 seconds
     refetchOnWindowFocus: true,
     refetchInterval: 1000 * 5, // Set polling frequency to 5 seconds
-    retry: 2, // Automatically retry failed requests up to 2 times
+    retry: 3, // Increased retry attempts
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff up to 30s
   });
 
   const { isError, error } = query;
@@ -42,7 +59,7 @@ export const useTasksQuery = () => {
   useEffect(() => {
     if (isError) {
       // Show a user-friendly toast message on final failure
-      toast.error(t('connection_error_retrying'));
+      toast.error(t('database_connection_timeout'));
       console.error("Task query final failure:", error?.message);
     }
   }, [isError, error, t]);
@@ -76,4 +93,26 @@ export const useTasksQuery = () => {
   }, [user, queryClient]);
 
   return query;
+};
+
+// Skeleton component for task list loading state
+export const TaskListSkeleton: React.FC = () => {
+  return (
+    <div className="space-y-4">
+      {[...Array(5)].map((_, index) => (
+        <div key={index} className="flex items-start p-4 border rounded-lg shadow-sm">
+          <Skeleton className="h-5 w-5 mr-4 mt-1.5" />
+          <div className="flex-grow space-y-2">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Skeleton className="h-3 w-1/4" />
+              <Skeleton className="h-3 w-1/4" />
+              <Skeleton className="h-3 w-1/4" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 };

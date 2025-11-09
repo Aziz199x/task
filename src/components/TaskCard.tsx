@@ -27,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   taskId: string;
@@ -240,10 +241,22 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   );
 
   return (
-    <Card className={`w-full flex items-start p-4 ${isCompleted ? "opacity-70" : ""} ${task.status === 'cancelled' ? "border-destructive" : ""} ${isDueDatePassed ? "border-red-500 ring-2 ring-red-500" : ""} ${isDueSoon && !isDueDatePassed ? "border-yellow-500 ring-2 ring-yellow-500" : ""}`}>
+    <Card className={cn(
+      "w-full flex items-start p-4",
+      "shadow-sm border border-gray-200 dark:border-border/50", // Improved light theme separation
+      isCompleted && "opacity-70",
+      task.status === 'cancelled' && "border-destructive",
+      isDueDatePassed && "border-red-500 ring-2 ring-red-500",
+      isDueSoon && !isDueDatePassed && "border-yellow-500 ring-2 ring-yellow-500"
+    )}>
       {onSelect && (
-        <div className="mr-4 mt-1">
-          <Checkbox checked={isSelected} onCheckedChange={(checked) => onSelect(task.id, checked === true)} />
+        <div className="mr-2 mt-1.5 flex items-center justify-center h-11 w-11"> {/* 44x44 tap target */}
+          <Checkbox 
+            checked={isSelected} 
+            onCheckedChange={(checked) => onSelect(task.id, checked === true)} 
+            id={`task-select-${task.id}`}
+            className="h-5 w-5" // Actual checkbox size
+          />
         </div>
       )}
       <div className="flex-grow min-w-0">
@@ -252,10 +265,14 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
             <div className="flex-1 pr-2 min-w-0">
               <CardTitle className={`text-base font-semibold break-words ${isCompleted ? "line-through" : ""}`}>{task.title}</CardTitle>
             </div>
-            <div className="flex items-center flex-shrink-0">
+            <div className="flex items-center flex-shrink-0 -mt-1 -mr-2"> {/* Adjust margin to pull actions closer to the edge */}
               {canEditTask && (
                 <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                  <DialogTrigger asChild><Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button></DialogTrigger>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-10 w-10"> {/* 40x40 tap target */}
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader><DialogTitle>{t('edit_task')}</DialogTitle></DialogHeader>
                     <EditTaskForm task={task} onClose={() => setIsEditing(false)} canEditOrDelete={canEditOrDelete} canComplete={canComplete} />
@@ -263,7 +280,11 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
                 </Dialog>
               )}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10"> {/* 40x40 tap target */}
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {/* Start Progress is the primary action for pending tasks */}
                   {canStartProgress && <DropdownMenuItem onClick={() => handleStatusChange('in-progress')} disabled={isSaving}>{t('ready_to_perform')}</DropdownMenuItem>}

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import utility
+import { APP_URL } from '@/utils/constants'; // Import APP_URL
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -22,10 +22,11 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessageSent(false);
 
-    const baseUrl = getCapacitorBaseUrl();
+    // Use APP_URL for the redirect, pointing to the new callback handler
+    const redirectTo = `${APP_URL}/auth/callback`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${baseUrl}/reset-password`,
+      redirectTo,
     });
 
     if (error) {

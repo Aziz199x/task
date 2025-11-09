@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Diagnostics from "./pages/Diagnostics";
 import ProfileSettings from "./pages/ProfileSettings";
 import EmailVerificationRequired from "./pages/EmailVerificationRequired";
+import AuthCallback from "./pages/AuthCallback"; // Import AuthCallback
 import { SessionProvider } from "./context/SessionContext";
 import { TaskProvider } from "./context/TaskContext";
 import { I18nextProvider } from 'react-i18next';
@@ -54,6 +55,7 @@ function App() {
 
                           <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/verify-email" element={<EmailVerificationRequired />} />
+                          <Route path="/auth/callback" element={<AuthCallback />} /> {/* New callback route */}
 
                           <Route element={<ProtectedRoute />}>
                             <Route path="/" element={<Index />} />

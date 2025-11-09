@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next';
-import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X, Zap, LogOut } from 'lucide-react';
+import { Home, LayoutDashboard, Users, Settings, Wrench, BarChart3, RefreshCw, X, Zap, LogOut, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -14,9 +14,21 @@ import { toast } from 'sonner';
 import { useSidebar } from '@/state/useSidebar';
 import useIsDesktop from '@/hooks/use-is-desktop.tsx';
 import { useTheme } from 'next-themes';
+import { Skeleton } from './ui/skeleton';
+
+// Skeleton for sidebar items
+const SidebarSkeleton: React.FC = () => (
+  <ul className="grid gap-2">
+    {[...Array(6)].map((_, i) => (
+      <li key={i}>
+        <Skeleton className="h-9 w-full rounded-lg" />
+      </li>
+    ))}
+  </ul>
+);
 
 export function SidebarContent() {
-  const { profile, signOut } = useSession();
+  const { profile, signOut, loading: sessionLoading } = useSession();
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const { refetchTasks } = useTasks();
@@ -80,29 +92,38 @@ export function SidebarContent() {
         "flex-1 overflow-y-auto p-4 text-sm font-medium",
         !isDesktop && "pb-20" // Add bottom padding to prevent content overlap with the fixed bottom bar (approx 80px)
       )}>
-        <ul className="grid gap-2">
-          {navigationItems.map((item) => {
-            if (profile && item.roles.includes(profile.role)) {
-              const isActive = location.pathname === item.href;
-              return (
-                <li key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground"
-                    )}
-                    onClick={handleClose}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.name}
-                  </Link>
-                </li>
-              );
-            }
-            return null;
-          })}
-        </ul>
+        {sessionLoading ? (
+          <SidebarSkeleton />
+        ) : !profile ? (
+          <div className="p-4 text-center text-sm text-destructive">
+            <AlertCircle className="h-5 w-5 mx-auto mb-2" />
+            {t('profile_error')}
+          </div>
+        ) : (
+          <ul className="grid gap-2">
+            {navigationItems.map((item) => {
+              if (profile && item.roles.includes(profile.role)) {
+                const isActive = location.pathname === item.href;
+                return (
+                  <li key={item.name}>
+                    <Link
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                        isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground"
+                      )}
+                      onClick={handleClose}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              }
+              return null;
+            })}
+          </ul>
+        )}
       </nav>
       
       {isDesktop && (

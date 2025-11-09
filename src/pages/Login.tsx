@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserProfile } from '@/context/SessionContext'; // Import UserProfile type
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
-import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import utility
+import { APP_URL } from '@/utils/constants'; // Import APP_URL
 
 const Login = () => {
   const navigate = useNavigate();
@@ -65,7 +65,8 @@ const Login = () => {
       return;
     }
 
-    const baseUrl = getCapacitorBaseUrl();
+    // Use APP_URL for the redirect, pointing to the new callback handler
+    const emailRedirectTo = `${APP_URL}/auth/callback`;
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -77,7 +78,7 @@ const Login = () => {
             last_name: lastName,
             role: role,
           },
-          emailRedirectTo: `${baseUrl}/verify-email`, // Use custom redirect for verification
+          emailRedirectTo, // Use custom redirect for verification
         },
       });
 
