@@ -89,6 +89,7 @@ const Login = () => {
         // Handle specific error for already registered user
         if (error.message.includes('User already registered')) {
           toast.error(t('user_already_registered_login_instead'));
+          setActiveTab('signin'); // Switch to sign-in tab
         } else {
           toast.error(error.message);
         }
@@ -106,7 +107,7 @@ const Login = () => {
         setActiveTab('signin');
       } else {
         // Case 2: User exists but is unconfirmed, or it's the security feature masking a registered user.
-        // data.user is null, error is null. We show the generic check inbox message.
+        // data.user is null, error is null. We show the generic check inbox message AND switch to sign-in.
         toast.success(t('confirmation_email_resent_check_inbox'));
         
         // Clear form and switch to sign-in tab
