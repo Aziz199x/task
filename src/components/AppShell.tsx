@@ -36,7 +36,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-col lg:pl-64">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 pt-16 lg:gap-6 lg:p-6 lg:pt-20">
+        {/* Adjusted pt-16 to pt-20 to accommodate the new, potentially taller header */}
+        <main className="flex flex-1 flex-col gap-4 p-4 pt-20 lg:gap-6 lg:p-6 lg:pt-24">
           {children}
         </main>
       </div>
