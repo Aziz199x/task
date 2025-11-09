@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background Circle (White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-48,0a48,48 0,1 1 96,0a48,48 0,1 1 -96,0" />
+
+    <!-- Lightning Bolt (Orange/Primary Color) -->
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M54 20 L 40 50 L 50 50 L 36 88 L 68 48 L 58 48 Z" />
+</vector>
