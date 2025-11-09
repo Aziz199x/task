@@ -29,7 +29,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent 
+          side="left" 
+          // p-0 removes default padding. pt-[env(safe-area-inset-top)] pushes content below status bar.
+          // [&>button]:hidden hides the default SheetClose button to prevent overlap with custom header button.
+          className="w-64 p-0 pt-[env(safe-area-inset-top)] [&>button]:hidden"
+        >
           <SidebarContent />
         </SheetContent>
       </Sheet>

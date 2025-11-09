@@ -60,7 +60,7 @@ export function SidebarContent() {
   ];
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold" onClick={handleClose}>
           <div className="relative flex items-center justify-center h-8 w-8">
@@ -69,13 +69,17 @@ export function SidebarContent() {
           </div>
           <span className="text-lg font-bold text-sidebar-foreground">{t('task_manager')}</span>
         </Link>
+        {/* This is the custom close button, kept for mobile view control */}
         <Button variant="ghost" size="icon" onClick={handleClose} className="lg:hidden">
           <X className="h-6 w-6 text-sidebar-foreground" />
           <span className="sr-only">{t('close_sidebar')}</span>
         </Button>
       </div>
       
-      <nav className="flex-1 overflow-y-auto p-4 text-sm font-medium">
+      <nav className={cn(
+        "flex-1 overflow-y-auto p-4 text-sm font-medium",
+        !isDesktop && "pb-20" // Add bottom padding to prevent content overlap with the fixed bottom bar (approx 80px)
+      )}>
         <ul className="grid gap-2">
           {navigationItems.map((item) => {
             if (profile && item.roles.includes(profile.role)) {
@@ -139,6 +143,6 @@ export function SidebarContent() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
