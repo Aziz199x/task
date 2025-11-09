@@ -4,16 +4,13 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Light Blue Circle Background (Matches the visual style of the user's image) -->
+    <!-- Background Circle (White) -->
     <path
-        android:fillColor="#ADD8E6"
+        android:fillColor="#FFFFFF"
         android:pathData="M54,54m-48,0a48,48 0,1 1 96,0a48,48 0,1 1 -96,0" />
 
-    <!-- Dark Blue Symbol (Two parallel diagonal bars, representing flow/shuffle) -->
+    <!-- Lightning Bolt (Orange/Primary Color) -->
     <path
-        android:fillColor="#1E90FF"
-        android:pathData="M 40 30 L 45 30 L 55 80 L 50 80 Z" />
-    <path
-        android:fillColor="#1E90FF"
-        android:pathData="M 55 30 L 60 30 L 75 80 L 70 80 Z" />
+        android:fillColor="#FF7A00"
+        android:pathData="M54 20 L 40 50 L 50 50 L 36 88 L 68 48 L 58 48 Z" />
 </vector>
