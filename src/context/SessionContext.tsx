@@ -145,6 +145,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
               toast.warning(t('remote_sign_out_notification'));
             } else {
               console.log("[SessionProvider] Local sign-out detected.");
+              toast.success(t('signed_out_successfully')); // Explicit success toast on local sign out
             }
             isSigningOutRef.current = false; // Reset for next sign-in
             setSession(null);
@@ -287,6 +288,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.error(t("failed_to_sign_out") + error.message);
     } else {
       console.log("[SessionProvider] Signed out successfully on network.");
+      // The auth listener handles the success toast now, but we ensure isSigningOutRef is true
+      // so it shows the local sign out message instead of the remote one.
     }
   };
 
