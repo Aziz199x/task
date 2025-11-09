@@ -12,7 +12,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
 import { useSidebar } from '@/state/useSidebar';
-import useIsDesktop from '@/hooks/use-is-desktop';
+import useIsDesktop from '@/hooks/use-is-desktop.tsx';
 import { useTheme } from 'next-themes';
 
 export function SidebarContent() {

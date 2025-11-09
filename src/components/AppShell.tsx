@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSidebar } from "@/state/useSidebar";
-import useIsDesktop from "@/hooks/use-is-desktop";
+import useIsDesktop from "@/hooks/use-is-desktop.tsx";
 import { SidebarContent } from "./SidebarContent";
 import { Header } from "./Header";
 import { Toaster } from "sonner";
