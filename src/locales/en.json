@@ -118,7 +118,7 @@
   "due": "Due",
   "assigned_to": "Assigned to",
   "no_tasks_in_this_category": "No tasks in this category.",
-  "tasks_by_technician": "Tasks by Technician",
+  "tasks_by_technician": "Technician Tasks",
   "no_unassigned_tasks": "No unassigned tasks.",
   "no_technicians_found": "No technicians found.",
   "no_tasks_assigned_to_this_technician": "No tasks assigned to this technician.",
@@ -150,6 +150,7 @@
   "please_select_a_file_first": "Please select a file first",
   "upload_failed": "Upload failed",
   "photo_uploaded_successfully": "Photo uploaded successfully",
+  "avatar_uploaded_successfully": "Avatar uploaded successfully!",
   "could_not_get_photo_url": "Could not get photo URL",
   "before": "Before",
   "after": "After",
@@ -268,7 +269,7 @@
   "reverting": "Reverting...",
   "revert_to_in_progress": "Revert to In Progress",
   "confirm_cancel_task_title": "Confirm Task Cancellation",
-  "confirm_cancel_task_description": "Are you sure you want to cancel the task '{{title}}'? This action cannot be undone easily.",
+  "confirm_cancel_task_description": "Are you sure you want to cancel the task '{{title}}'? This action cannot be undone.",
   "confirm_cancel_action": "Yes, Cancel Task",
   "cancelling": "Cancelling...",
   "completed_tasks_admin_only_assign": "Completed tasks can only be reassigned by an admin.",
@@ -329,5 +330,6 @@
   "settings.change_password": "Change Password",
   "settings.new_password": "New Password",
   "settings.confirm_new_password": "Confirm New Password",
-  "settings.update_password": "Update Password"
+  "settings.update_password": "Update Password",
+  "password_updated_short": "Password updated successfully!"
 }

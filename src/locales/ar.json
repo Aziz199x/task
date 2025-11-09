@@ -150,6 +150,7 @@
   "please_select_a_file_first": "الرجاء تحديد ملف أولاً",
   "upload_failed": "فشل الرفع",
   "photo_uploaded_successfully": "تم رفع الصورة بنجاح",
+  "avatar_uploaded_successfully": "تم رفع الصورة الرمزية بنجاح!",
   "could_not_get_photo_url": "تعذر الحصول على رابط الصورة",
   "before": "قبل",
   "after": "بعد",
@@ -197,7 +198,7 @@
   "excel_header_status": "Status",
   "task_id_required_to_complete": "معرف المهمة مطلوب لإكمال هذه المهمة.",
   "notification_num_required_to_complete": "رقم الإشعار مطلوب لإكمال هذه المهمة.",
-  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد بعد محاولات متعددة. الرجاء المحاولة مرة أخرى.",
+  "error_generating_unique_task_id": "فشل في إنشاء معرف مهمة فريد بعد عدة محاولات. الرجاء المحاولة مرة أخرى.",
   "notification_num_not_unique": "يجب أن يكون رقم الإشعار فريدًا. توجد مهمة بهذا الرقم بالفعل.",
   "import_tasks_from_excel_tooltip": "رفع ملف Excel لإنشاء مهام متعددة دفعة واحدة.",
   "forgot_password": "هل نسيت كلمة المرور؟",
@@ -315,5 +316,6 @@
   "settings.change_password": "تغيير كلمة المرور",
   "settings.new_password": "كلمة المرور الجديدة",
   "settings.confirm_new_password": "تأكيد كلمة المرور الجديدة",
-  "settings.update_password": "تحديث كلمة المرور"
+  "settings.update_password": "تحديث كلمة المرور",
+  "password_updated_short": "تم تحديث كلمة المرور بنجاح!"
 }
