@@ -13,14 +13,16 @@ import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
 import { useSidebar } from '@/state/useSidebar';
 import useIsDesktop from '@/hooks/use-is-desktop';
+import { useTheme } from 'next-themes';
 
 export function SidebarContent() {
   const { profile, signOut } = useSession();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const { refetchTasks } = useTasks();
   const { setOpen } = useSidebar();
   const isDesktop = useIsDesktop();
+  const { theme, setTheme } = useTheme();
 
   const handleClose = () => {
     setOpen(false);
@@ -31,9 +33,13 @@ export function SidebarContent() {
   };
 
   const handleRefreshData = async () => {
-    toast.info(t('refreshing_data'));
-    await refetchTasks();
-    toast.success(t('data_refreshed_successfully'));
+    const promise = refetchTasks();
+    toast.promise(promise, {
+      loading: t('refreshing_data'),
+      success: t('data_refreshed_successfully'),
+      error: t('failed_to_refresh_data'),
+    });
+    await promise;
   };
 
   const navigationItems = [
@@ -107,7 +113,7 @@ export function SidebarContent() {
 
       {!isDesktop && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-40 px-4"
+          className="fixed bottom-0 left-0 right-0 z-20 px-4"
           style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 16px)` }}
         >
           <div className="mx-auto max-w-md">

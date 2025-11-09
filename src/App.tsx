@@ -25,10 +25,13 @@ import BackButtonHandler from "./components/BackButtonHandler";
 import { SidebarProvider } from "./state/useSidebar";
 import AppLifecycleSync from "./components/AppLifecycleSync";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { useStatusBarManager } from "./hooks/use-status-bar";
 
 const queryClient = new QueryClient();
 
 function App() {
+  useStatusBarManager();
+
   return (
     <>
       <QueryClientProvider client={queryClient}>
