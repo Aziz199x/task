@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +33,13 @@ const TaskForm: React.FC = () => {
   const [notificationNum, setNotificationNum] = useState("");
   const [priority, setPriority] = useState<Task['priority']>('medium');
   const [loading, setLoading] = useState(false);
+
+  // Calculate today at midnight for minDate enforcement
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   // Regex to validate Google Maps URL formats:
   // 1. https://www.google.com/maps?q=LATITUDE,LONGITUDE
@@ -82,6 +89,16 @@ const TaskForm: React.FC = () => {
       setLoading(false);
       return;
     }
+    
+    // Due Date Validation: Check if the selected date is in the past (excluding today's time)
+    if (dueDate) {
+      const selectedDateAtMidnight = dueDate.setHours(0, 0, 0, 0);
+      if (selectedDateAtMidnight < today.getTime()) {
+        toast.error(t('due_date_cannot_be_in_past'));
+        setLoading(false);
+        return;
+      }
+    }
 
     // Convert Date object to ISO string date part (YYYY-MM-DD) for Supabase
     const dueDateString = dueDate ? dueDate.toISOString().split('T')[0] : undefined;
@@ -110,7 +127,6 @@ const TaskForm: React.FC = () => {
       setEquipmentNumber("");
       setNotificationNum("");
       setPriority('medium');
-      toast.success(t('task_added_successfully'));
     }
   };
 
@@ -156,6 +172,7 @@ const TaskForm: React.FC = () => {
               date={dueDate}
               onDateChange={setDueDate}
               placeholder={t('pick_a_date')}
+              minDate={today}
             />
           </div>
           <div>

@@ -17,9 +17,10 @@ interface DatePickerProps {
   onDateChange: (date: Date | undefined) => void;
   disabled?: boolean;
   placeholder?: string;
+  minDate?: Date;
 }
 
-export function DatePicker({ date, onDateChange, disabled, placeholder }: DatePickerProps) {
+export function DatePicker({ date, onDateChange, disabled, placeholder, minDate }: DatePickerProps) {
   const { t } = useTranslation();
   const isMobile = !useIsDesktop();
   const [isClientLoaded, setIsClientLoaded] = useState(false);
@@ -57,7 +58,7 @@ export function DatePicker({ date, onDateChange, disabled, placeholder }: DatePi
       mode="single"
       selected={date}
       onSelect={handleDateSelect}
-      disabled={disabled}
+      disabled={(date) => disabled || (minDate && date < minDate)}
       initialFocus
     />
   );

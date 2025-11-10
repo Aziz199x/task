@@ -280,6 +280,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('[TaskContext] Task inserted successfully:', data);
       // Invalidate to replace optimistic task with real data
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+      
+      // Show success toast
+      toast.success(t('task_added_successfully'));
+
       return true;
     } catch (e: any) {
       console.error('[TaskContext] Exception during task insert:', e.message);
@@ -388,6 +392,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } else {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+      // No bulk success toast requested, sticking to scope.
     }
   }, [user, generateUniqueTaskId, t, queryClient]);
 

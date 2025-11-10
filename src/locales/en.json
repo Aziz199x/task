@@ -334,5 +334,6 @@
   "password_updated_short": "Password updated successfully!",
   "user_already_registered_login_instead": "This email is already registered. Please sign in.",
   "confirmation_email_resent_check_inbox": "If this email is registered, a confirmation link has been sent. Please check your inbox.",
-  "email_rate_limit_exceeded": "Email sending limit exceeded. Please wait a few minutes before trying again."
+  "email_rate_limit_exceeded": "Email sending limit exceeded. Please wait a few minutes before trying again.",
+  "due_date_cannot_be_in_past": "Due date cannot be in the past."
 }
