@@ -165,7 +165,14 @@ const Login = () => {
         }
       } else if (data.user || (!error && !data.user)) {
         // Success or existing user found (security feature)
-        toast.success(t('confirmation_email_sent_check_inbox'));
+        
+        // Only show success toast if no session was returned (meaning email confirmation is required)
+        if (!data.session) {
+          toast.success(t('confirmation_email_sent_check_inbox'));
+        } else {
+          // If session exists, the user was auto-signed in (e.g., email confirmation is off, or user already confirmed)
+          // SessionProvider handles navigation and a success toast will be shown there.
+        }
         
         // Set last sent email and reset cooldown attempts on successful send
         setLastSentEmail(email);
