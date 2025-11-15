@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,9 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
 import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
+import { Loader2, Send } from 'lucide-react';
+
+const BACKOFF_DURATIONS = [60, 120, 300]; // seconds
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,6 +31,38 @@ const Login = () => {
   const [role, setRole] = useState<UserProfile['role']>('technician'); // Default role for self-registration
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  
+  // Rate Limit/Cooldown State
+  const [cooldown, setCooldown] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [lastSentEmail, setLastSentEmail] = useState('');
+
+  // Cooldown Timer Effect
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => {
+        setCooldown(c => c - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  const handleRateLimitError = useCallback((error: any) => {
+    const isRateLimit = error.status === 429 || 
+                        error.code === 'over_email_send_rate_limit' || 
+                        (typeof error.message === 'string' && error.message.toLowerCase().includes('rate limit'));
+
+    if (isRateLimit) {
+      const currentDuration = BACKOFF_DURATIONS[resendAttempts] || BACKOFF_DURATIONS[BACKOFF_DURATIONS.length - 1];
+      
+      setCooldown(currentDuration);
+      setResendAttempts(prev => prev + 1);
+      
+      toast.error(t('email_rate_limit_cooldown', { seconds: currentDuration }));
+      return true;
+    }
+    return false;
+  }, [resendAttempts, t]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +86,43 @@ const Login = () => {
     }
   };
 
+  const handleResend = async () => {
+    if (cooldown > 0) return;
+
+    setLoading(true);
+    
+    const emailRedirectTo = getCapacitorBaseUrl().startsWith('com.abumiral.workflow') 
+      ? getCapacitorBaseUrl() 
+      : `${APP_URL}/auth/callback`;
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: lastSentEmail,
+        options: { emailRedirectTo },
+      });
+
+      if (error) {
+        if (!handleRateLimitError(error)) {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success(t('confirmation_email_resent_check_inbox'));
+        // Reset attempts if successful, but keep cooldown at 0
+        setResendAttempts(0);
+      }
+    } catch (error: any) {
+      if (!handleRateLimitError(error)) {
+        toast.error(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldown > 0) return;
     setLoading(true);
 
     if (password !== confirmPassword) {
@@ -86,18 +156,24 @@ const Login = () => {
       });
 
       if (error) {
-        // Handle specific error for already registered user
-        if (error.message.includes('User already registered')) {
-          toast.error(t('user_already_registered_login_instead'));
-          setActiveTab('signin'); // Switch to sign-in tab
-        } else {
-          toast.error(error.message);
+        // Handle rate limit error first
+        if (!handleRateLimitError(error)) {
+          // Handle specific error for already registered user
+          if (error.message.includes('User already registered')) {
+            toast.error(t('user_already_registered_login_instead'));
+            setActiveTab('signin'); // Switch to sign-in tab
+          } else {
+            toast.error(error.message);
+          }
         }
       } else if (data.user || (!error && !data.user)) {
-        // Case 1: New user created (data.user is present) OR
-        // Case 2: Existing user found (security feature, data.user is null, error is null)
-        // In both cases, we tell the user to check their inbox and switch to sign-in.
-        toast.success(t('confirmation_email_resent_check_inbox'));
+        // Success or existing user found (security feature)
+        toast.success(t('confirmation_email_sent_check_inbox'));
+        
+        // Set last sent email and reset cooldown attempts on successful send
+        setLastSentEmail(email);
+        setResendAttempts(0);
+        setCooldown(0); // Ensure cooldown is 0 if successful
         
         // Clear form and switch to sign-in tab
         setEmail('');
@@ -109,11 +185,16 @@ const Login = () => {
         setActiveTab('signin');
       }
     } catch (error: any) {
-      toast.error(error.message);
+      if (!handleRateLimitError(error)) {
+        toast.error(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const isSignUpDisabled = loading || cooldown > 0;
+  const showResendButton = cooldown === 0 && lastSentEmail.length > 0;
 
   return (
     <>
@@ -236,9 +317,22 @@ const Login = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? t('creating') : t('sign_up')}
+                  
+                  {cooldown > 0 && (
+                    <p className="text-sm text-center text-destructive">
+                      {t('cooldown_message', { seconds: cooldown })}
+                    </p>
+                  )}
+
+                  <Button type="submit" className="w-full" disabled={isSignUpDisabled}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : t('sign_up')}
                   </Button>
+
+                  {showResendButton && (
+                    <Button type="button" variant="outline" className="w-full mt-2" onClick={handleResend} disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <><Send className="h-4 w-4 mr-2" /> {t('resend_confirmation_email')}</>}
+                    </Button>
+                  )}
                 </form>
               </TabsContent>
             </Tabs>
