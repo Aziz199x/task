@@ -17,6 +17,7 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
 import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
 import { Loader2, Send } from 'lucide-react';
+import { isRateLimitError } from '@/utils/auth'; // Import the new utility
 
 const BACKOFF_DURATIONS = [60, 120, 300]; // seconds
 
@@ -48,11 +49,7 @@ const Login = () => {
   }, [cooldown]);
 
   const handleRateLimitError = useCallback((error: any) => {
-    const isRateLimit = error.status === 429 || 
-                        error.code === 'over_email_send_rate_limit' || 
-                        (typeof error.message === 'string' && error.message.toLowerCase().includes('rate limit'));
-
-    if (isRateLimit) {
+    if (isRateLimitError(error)) {
       const currentDuration = BACKOFF_DURATIONS[resendAttempts] || BACKOFF_DURATIONS[BACKOFF_DURATIONS.length - 1];
       
       setCooldown(currentDuration);
