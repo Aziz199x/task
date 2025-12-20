@@ -74,6 +74,7 @@ const Login = () => {
       if (error) {
         toast.error(error.message);
       } else if (data.user) {
+        toast.success(t('authentication_successful')); // Added success toast for direct login
         // The SessionProvider will handle navigation to '/' on successful sign-in
       }
     } catch (error: any) {
