@@ -43,6 +43,8 @@ function App() {
               richColors 
               position="bottom-right" 
               dir={i18n.dir()} // Set direction based on i18n
+              gap={8} // Explicitly set gap between toasts
+              offset={16} // Distance from the screen edge (bottom and right/left)
               toastOptions={{
                 duration: 3000, // Default duration
                 className: 'font-sans', // Apply a consistent font
