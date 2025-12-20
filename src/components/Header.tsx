@@ -98,36 +98,37 @@ export function Header() {
       style={{ paddingTop: `env(safe-area-inset-top)` }} // Use inline style for safe area padding
     >
       <div
-        className="mx-auto flex w-full items-center px-3 sm:px-4 lg:px-6"
+        className="mx-auto flex w-full items-center justify-between px-3 sm:px-4 lg:px-6" // Added justify-between
         style={{ height: `${height}px` }}
       >
-        {/* Left: burger on mobile/tablet */}
-        {!isDesktop && (
-          <Button
-            aria-label={t('toggle_sidebar')}
-            onClick={toggle}
-            variant="ghost"
-            size="icon"
-            className="mr-2 h-10 w-10"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        )}
+        {/* Left-aligned group: Burger (if mobile) and Logo */}
+        <div className="flex items-center">
+          {!isDesktop && (
+            <Button
+              aria-label={t('toggle_sidebar')}
+              onClick={toggle}
+              variant="ghost"
+              size="icon"
+              className="mr-2 h-10 w-10"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
 
-        {/* Brand */}
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <img
-            src={logoSrc}
-            alt={t('task_manager')}
-            width={logoSize}
-            height={logoSize}
-            className="select-none"
-          />
-          <h1 className={cn("truncate font-semibold", titleSize)}>{t('task_manager')}</h1>
-        </Link>
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img
+              src={logoSrc}
+              alt={t('task_manager')}
+              width={logoSize}
+              height={logoSize}
+              className="select-none"
+            />
+            <h1 className={cn("truncate font-semibold", titleSize)}>{t('task_manager')}</h1>
+          </Link>
+        </div>
 
-        {/* Right actions slot (avatar, etc.) */}
-        <div className="ml-auto flex items-center gap-1">
+        {/* Right actions slot (pushed to the end of the line by justify-between) */}
+        <div className="flex items-center gap-1">
           <UserDropdown />
         </div>
       </div>
