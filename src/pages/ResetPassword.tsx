@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { useSession } from '@/context/SessionContext';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!session) {
-      toast.error(t('invalid_or_expired_reset_link'));
+      toastError(t('invalid_or_expired_reset_link'));
       navigate('/login');
     }
   }, [session, navigate, t]);
@@ -29,25 +29,32 @@ const ResetPassword = () => {
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error(t('passwords_do_not_match'));
+      toastError(t('passwords_do_not_match'));
       return;
     }
     if (password.length < 6) {
-      toast.error(t('password_too_short'));
+      toastError(t('password_too_short'));
       return;
     }
     setLoading(true);
+    const loadingToastId = toastLoading(t('updating'));
 
-    const { error } = await supabase.auth.updateUser({ password });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success(t('password_updated_successfully'));
-      await supabase.auth.signOut();
-      navigate('/login');
+      if (error) {
+        toastError(error);
+      } else {
+        toastSuccess(t('password_updated_successfully'));
+        await supabase.auth.signOut();
+        navigate('/login');
+      }
+    } catch (error: any) {
+      toastError(error);
+    } finally {
+      setLoading(false);
+      dismissToast(loadingToastId);
     }
-    setLoading(false);
   };
 
   return (

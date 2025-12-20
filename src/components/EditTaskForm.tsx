@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 import { useTasks } from "@/context/TaskContext";
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
@@ -16,6 +15,7 @@ import PhotoUploader from "./PhotoUploader";
 import MultiPhotoUploader from "./MultiPhotoUploader";
 import { isPast, isToday } from 'date-fns';
 import { DatePicker } from "./DatePicker";
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface EditTaskFormProps {
   task: Task;
@@ -74,30 +74,36 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
 
   const handleSaveEdit = async () => {
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('saving_changes'));
+
     if (!editedTask.title || editedTask.title.trim() === "") {
-      toast.error(t('task_title_cannot_be_empty'));
+      toastError(t('task_title_cannot_be_empty'));
       setIsSaving(false);
+      dismissToast(loadingToastId);
       return;
     }
     if (!editedTask.equipment_number || editedTask.equipment_number.trim() === "") {
-      toast.error(t('equipment_number_mandatory'));
+      toastError(t('equipment_number_mandatory'));
       setIsSaving(false);
+      dismissToast(loadingToastId);
       return;
     }
 
     const numError = validateNotificationNum(editedTask.notification_num, t); // Pass 't' here
     if (numError) {
       setNotificationNumError(numError);
-      toast.error(numError);
+      toastError(numError);
       setIsSaving(false);
+      dismissToast(loadingToastId);
       return;
     }
 
     const locError = validateLocationUrl(editedTask.location);
     if (locError) {
       setLocationError(locError);
-      toast.error(locError);
+      toastError(locError);
       setIsSaving(false);
+      dismissToast(loadingToastId);
       return;
     }
 
@@ -106,9 +112,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({ task: initialTask, onClose,
 
     const success = await updateTask(currentTask.id, updatesToSend);
     setIsSaving(false);
+    dismissToast(loadingToastId);
 
     if (success) {
-      toast.success(t('task_updated_successfully'));
+      toastSuccess(t('task_updated_successfully'));
       onClose();
     }
   };

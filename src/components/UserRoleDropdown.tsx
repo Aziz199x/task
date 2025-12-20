@@ -4,9 +4,9 @@ import React, { memo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserProfile } from '@/context/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useSession } from '@/context/SessionContext';
 import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface UserRoleDropdownProps {
   profile: UserProfile;
@@ -28,23 +28,24 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = memo(({ profile }) => 
 
   const handleRoleChange = async (newRole: UserProfile['role']) => {
     if (!currentUserProfile) {
-      toast.error(t('you_must_be_logged_in_to_change_roles'));
+      toastError(t('you_must_be_logged_in_to_change_roles'));
       return;
     }
 
     // Prevent users from changing their own role
     if (profile.id === currentUserProfile.id) {
-      toast.error(t('you_cannot_change_your_own_role'));
+      toastError(t('you_cannot_change_your_own_role'));
       return;
     }
 
     // Prevent users from changing roles of users with higher or equal authority
     if (roleHierarchy[currentUserProfile.role] <= roleHierarchy[profile.role]) {
-      toast.error(t('insufficient_authority_change_role'));
+      toastError(t('insufficient_authority_change_role'));
       return;
     }
 
     setIsUpdating(true);
+    const loadingToastId = toastLoading(t('updating_role'));
     const { error } = await supabase
       .from('profiles')
       .update({ role: newRole, updated_at: new Date().toISOString() })
@@ -52,12 +53,13 @@ const UserRoleDropdown: React.FC<UserRoleDropdownProps> = memo(({ profile }) => 
 
     if (error) {
       console.error("Error updating user role:", error.message);
-      toast.error(`${t('failed_to_update_role')} ${error.message}`);
+      toastError(error);
     } else {
       setCurrentRole(newRole);
-      toast.success(t('role_updated_successfully', { name: profile.first_name || profile.id, role: t(newRole) }));
+      toastSuccess(t('role_updated_successfully', { name: profile.first_name || profile.id, role: t(newRole) }));
     }
     setIsUpdating(false);
+    dismissToast(loadingToastId);
   };
 
   const roles: UserProfile['role'][] = ['admin', 'manager', 'supervisor', 'technician', 'contractor'];

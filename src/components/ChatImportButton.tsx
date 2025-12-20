@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2, MessageSquareText } from 'lucide-react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useTasks } from '@/context/TaskContext';
 import { Task } from '@/types/task';
 import { useProfiles, ProfileWithEmail } from '@/hooks/use-profiles'; // To resolve assignee names, import ProfileWithEmail
+import { toastSuccess, toastError, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const ChatImportButton: React.FC = () => {
   const { t } = useTranslation();
@@ -110,11 +110,12 @@ const ChatImportButton: React.FC = () => {
 
   const handleImport = async () => {
     if (!chatText.trim()) {
-      toast.error(t('please_paste_chat_text'));
+      toastError(t('please_paste_chat_text'));
       return;
     }
 
     setLoading(true);
+    const loadingToastId = toastLoading(t('processing_chat_text'));
     try {
       const parsedTasks = parseChatText(chatText);
 
@@ -122,23 +123,25 @@ const ChatImportButton: React.FC = () => {
       const invalidTaskCount = parsedTasks.length - validTasks.length;
 
       if (validTasks.length === 0) {
-        toast.error(t('no_valid_tasks_found_in_chat'));
+        toastError(t('no_valid_tasks_found_in_chat'));
         setLoading(false);
+        dismissToast(loadingToastId);
         return;
       }
 
       await addTasksBulk(validTasks as Task[]);
-      toast.success(t('chat_import_success', { count: validTasks.length }));
+      toastSuccess(t('chat_import_success', { count: validTasks.length }));
       if (invalidTaskCount > 0) {
-        toast.warning(t('chat_import_invalid_tasks_skipped', { count: invalidTaskCount }));
+        toastWarning(t('chat_import_invalid_tasks_skipped', { count: invalidTaskCount }));
       }
       setIsOpen(false);
       setChatText('');
     } catch (error: any) {
       console.error("Error importing tasks from chat:", error);
-      toast.error(`${t('error_importing_tasks_from_chat')}: ${error.message}`);
+      toastError(t('error_importing_tasks_from_chat', { message: error.message }));
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 

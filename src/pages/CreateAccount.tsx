@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const allRoles: UserProfile['role'][] = ['admin', 'manager', 'supervisor', 'technician', 'contractor'];
 
@@ -85,6 +85,7 @@ const CreateAccount: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const loadingToastId = toastLoading(t('creating'));
 
     try {
       const { data, error } = await supabase.functions.invoke('create-user-with-role', {
@@ -93,35 +94,26 @@ const CreateAccount: React.FC = () => {
 
       if (error) {
         // This handles network errors or function invocation failures
-        throw new Error(error.message);
+        throw error;
       }
       
       // Check for errors returned within the Edge Function's JSON response body
       if (data && data.error) {
-        throw new Error(data.error);
+        throw data; // Pass the data object as error to normalizeError
       }
 
-      toast.success(t('account_created_successfully', { firstName, lastName, role: t(role) }));
+      toastSuccess(t('account_created_successfully', { firstName, lastName, role: t(role) }));
       setEmail("");
       setPassword("");
       setFirstName("");
       setLastName("");
       setRole(availableRoles.length > 0 ? availableRoles[0] : "technician"); // Reset to a valid default
     } catch (error: any) {
-      console.error("Error creating account:", error.message);
-      // Attempt to parse JSON error message if it looks like one
-      let errorMessage = error.message;
-      try {
-        const errorObj = JSON.parse(error.message);
-        if (errorObj.error) {
-          errorMessage = errorObj.error;
-        }
-      } catch (e) {
-        // Ignore if not JSON
-      }
-      toast.error(`${t('failed_to_create_account')} ${errorMessage}`);
+      console.error("Error creating account:", error.message || error.error);
+      toastError(error);
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 

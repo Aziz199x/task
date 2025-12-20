@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Upload } from 'lucide-react';
-import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { useTranslation } from 'react-i18next';
 import { useTasks } from '@/context/TaskContext';
 import { Task } from '@/types/task';
+import { toastSuccess, toastError, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const ExcelUploadButton: React.FC = () => {
   const { t } = useTranslation();
@@ -29,11 +29,12 @@ const ExcelUploadButton: React.FC = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error(t('please_select_an_excel_file'));
+      toastError(t('please_select_an_excel_file'));
       return;
     }
 
     setLoading(true);
+    const loadingToastId = toastLoading(t('processing_excel_file'));
     const reader = new FileReader();
 
     reader.onload = async (e) => {
@@ -63,30 +64,33 @@ const ExcelUploadButton: React.FC = () => {
         const invalidTaskCount = newTasks.length - validTasks.length;
 
         if (validTasks.length === 0) {
-          toast.error(t('no_valid_tasks_found_in_excel'));
+          toastError(t('no_valid_tasks_found_in_excel'));
           setLoading(false);
+          dismissToast(loadingToastId);
           return;
         }
 
         await addTasksBulk(validTasks as Task[]);
-        toast.success(t('excel_upload_success', { count: validTasks.length }));
+        toastSuccess(t('excel_upload_success', { count: validTasks.length }));
         if (invalidTaskCount > 0) {
-          toast.warning(t('excel_upload_invalid_tasks_skipped', { count: invalidTaskCount }));
+          toastWarning(t('excel_upload_invalid_tasks_skipped', { count: invalidTaskCount }));
         }
         setIsOpen(false);
         setFile(null);
       } catch (error: any) {
         console.error("Error processing Excel file:", error);
-        toast.error(`${t('error_processing_excel_file')}: ${error.message}`);
+        toastError(t('error_processing_excel_file', { message: error.message }));
       } finally {
         setLoading(false);
+        dismissToast(loadingToastId);
       }
     };
 
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
-      toast.error(t('error_reading_excel_file'));
+      toastError(t('error_reading_excel_file'));
       setLoading(false);
+      dismissToast(loadingToastId);
     };
 
     reader.readAsArrayBuffer(file);

@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTasks } from "@/context/TaskContext";
-import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Task } from "@/types/task";
 import { useTranslation } from 'react-i18next';
@@ -15,6 +14,7 @@ import { useAssignableUsers } from "@/hooks/use-assignable-users";
 import { useSession } from "@/context/SessionContext";
 import { isPast, isToday } from 'date-fns';
 import { DatePicker } from "./DatePicker"; // Import the new DatePicker
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const TaskForm: React.FC = () => {
   const { addTask } = useTasks();
@@ -65,28 +65,33 @@ const TaskForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const loadingToastId = toastLoading(t('adding_task'));
 
     if (title.trim() === "") {
-      toast.error(t('task_title_cannot_be_empty'));
+      toastError(t('task_title_cannot_be_empty'));
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
     if (equipmentNumber.trim() === "") {
-      toast.error(t('equipment_number_mandatory'));
+      toastError(t('equipment_number_mandatory'));
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
     if (notificationNum.trim() !== "" && (!notificationNum.startsWith('41') || notificationNum.length !== 10 || !/^\d+$/.test(notificationNum))) {
-      toast.error(t('notification_num_invalid_format'));
+      toastError(t('notification_num_invalid_format'));
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
 
     const currentLocError = validateLocationUrl(location);
     if (currentLocError) {
       setLocationError(currentLocError);
-      toast.error(currentLocError);
+      toastError(currentLocError);
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
     
@@ -94,8 +99,9 @@ const TaskForm: React.FC = () => {
     if (dueDate) {
       const selectedDateAtMidnight = dueDate.setHours(0, 0, 0, 0);
       if (selectedDateAtMidnight < today.getTime()) {
-        toast.error(t('due_date_cannot_be_in_past'));
+        toastError(t('due_date_cannot_be_in_past'));
         setLoading(false);
+        dismissToast(loadingToastId);
         return;
       }
     }
@@ -115,6 +121,7 @@ const TaskForm: React.FC = () => {
       priority
     );
     setLoading(false);
+    dismissToast(loadingToastId);
 
     if (success) {
       setTitle("");

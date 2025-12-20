@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Edit, MoreVertical, MapPin, CalendarDays, Hash, User, Wrench, HardHat, BellRing, CheckCircle, Bell, Flag, UserCheck, Clock, Share2, UserPlus } from "lucide-react";
 import { useTasks } from "@/context/TaskContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/context/SessionContext";
 import { format, isPast, isToday, isTomorrow, addDays } from 'date-fns';
@@ -28,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { toastSuccess, toastError, toastInfo, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface TaskCardProps {
   taskId: string;
@@ -90,17 +90,21 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
   const confirmDelete = React.useCallback(async () => {
     setShowDeleteConfirmation(false);
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('deleting'));
     const deletedTask = await deleteTask(task.id);
     setIsSaving(false);
+    dismissToast(loadingToastId);
 
     if (deletedTask) {
-      const toastId = toast.info(t('task_deleted_successfully'), {
+      toastInfo(t('task_deleted_successfully'), {
         action: {
           label: t('undo'),
           onClick: async () => {
             setIsSaving(true);
+            const restoreLoadingToastId = toastLoading(t('restoring_task'));
             await restoreTask(deletedTask);
             setIsSaving(false);
+            dismissToast(restoreLoadingToastId);
           },
         },
         duration: 5000, // Toast visible for 5 seconds to allow undo
@@ -122,24 +126,30 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
       return;
     }
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('updating_status'));
     const success = await changeTaskStatus(task.id, newStatus);
-    if (success) toast.success(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')).replace('-', ' ') }));
+    if (success) toastSuccess(t('task_status_changed_to', { status: t(newStatus.replace('-', '_')).replace('-', ' ') }));
     setIsSaving(false);
+    dismissToast(loadingToastId);
   }, [changeTaskStatus, task.id, task.status, t]);
 
   const confirmRevertToInProgress = React.useCallback(async () => {
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('reverting'));
     const success = await changeTaskStatus(task.id, 'in-progress');
-    if (success) toast.success(t('task_status_changed_to', { status: t('in_progress').replace('-', ' ') }));
+    if (success) toastSuccess(t('task_status_changed_to', { status: t('in_progress').replace('-', ' ') }));
     setIsSaving(false);
+    dismissToast(loadingToastId);
     setShowRevertConfirmation(false);
   }, [changeTaskStatus, task.id, t]);
 
   const confirmCancelTask = React.useCallback(async () => {
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('cancelling'));
     const success = await changeTaskStatus(task.id, 'cancelled');
-    if (success) toast.success(t('task_status_changed_to', { status: t('cancelled') }));
+    if (success) toastSuccess(t('task_status_changed_to', { status: t('cancelled') }));
     setIsSaving(false);
+    dismissToast(loadingToastId);
     setShowCancelConfirmation(false);
   }, [changeTaskStatus, task.id, t]);
 
@@ -151,7 +161,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     if (!task.notification_num) missingFields.push(t('notification_num'));
 
     if (missingFields.length > 0) {
-      toast.error(`${t('please_fill_in_the_following_fields')}: ${missingFields.join(', ')}`);
+      toastError(t('please_fill_in_the_following_fields', { fields: missingFields.join(', ') }));
       setIsEditing(true);
     } else {
       await handleStatusChange('completed');
@@ -160,25 +170,29 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
 
   const handleAssignToMe = React.useCallback(async () => {
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('assigning_task'));
     if (user?.id) {
       const success = await assignTask(task.id, user.id);
-      if (success) toast.success(t('task_assigned_to_you'));
+      if (success) toastSuccess(t('task_assigned_to_you'));
     } else {
-      toast.error(t('you_must_be_logged_in_to_assign_tasks'));
+      toastError(t('you_must_be_logged_in_to_assign_tasks'));
     }
     setIsSaving(false);
+    dismissToast(loadingToastId);
   }, [assignTask, task.id, user, t]);
 
   const handleUnassign = React.useCallback(async () => {
     setIsSaving(true);
+    const loadingToastId = toastLoading(t('unassigning_task'));
     const success = await assignTask(task.id, null);
-    if (success) toast.success(t('task_unassigned'));
+    if (success) toastSuccess(t('task_unassigned'));
     setIsSaving(false);
+    dismissToast(loadingToastId);
   }, [assignTask, task.id, t]);
 
   const handleShare = React.useCallback(async () => {
     if (!canShare) {
-      toast.error(t('share_not_supported'));
+      toastError(t('share_not_supported'));
       return;
     }
     const assignedUser = (profiles as ProfileWithEmail[]).find(p => p.id === task.assignee_id);
@@ -195,7 +209,7 @@ const TaskCard: React.FC<TaskCardProps> = memo(({ taskId, onSelect, isSelected }
     try {
       await navigator.share({ title: t('task_details_title', { title: task.title }), text: taskDetails });
     } catch (error: any) {
-      if (error.name !== 'AbortError') toast.error(t('share_failed'));
+      if (error.name !== 'AbortError') toastError(t('share_failed'));
     }
   }, [canShare, task, profiles, t]);
 

@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toastError } from '@/utils/toast'; // Import toastError
 
 interface TaskPhotoGalleryProps {
   photoBeforeUrls?: string[] | null;
@@ -133,7 +133,7 @@ const TaskPhotoGallery: React.FC<TaskPhotoGalleryProps> = ({ photoBeforeUrls, ph
       setSignedUrls(newSignedUrls);
     } catch (error: any) {
       console.error("Error fetching signed URLs:", error);
-      toast.error(`Failed to load photos: ${error.message}`);
+      toastError(error);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner"; // Import Sonner Toaster
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -38,7 +38,30 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
-            <Toaster />
+            {/* Sonner Toaster configured for global use */}
+            <Toaster 
+              richColors 
+              position="bottom-right" 
+              dir={i18n.dir()} // Set direction based on i18n
+              toastOptions={{
+                duration: 3000, // Default duration
+                className: 'font-sans', // Apply a consistent font
+                style: {
+                  borderRadius: '0.5rem', // Rounded corners
+                  padding: '0.75rem 1rem',
+                },
+                actionButtonStyle: {
+                  background: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
+                  borderRadius: '0.375rem',
+                },
+                cancelButtonStyle: {
+                  background: 'hsl(var(--muted))',
+                  color: 'hsl(var(--muted-foreground))',
+                  borderRadius: '0.375rem',
+                },
+              }}
+            />
             <I18nextProvider i18n={i18n}>
               <BrowserRouter>
                 <SessionProvider>

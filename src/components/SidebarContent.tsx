@@ -10,11 +10,11 @@ import { Button } from './ui/button';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useTasks } from '@/context/TaskContext';
-import { toast } from 'sonner';
 import { useSidebar } from '@/state/useSidebar';
 import useIsDesktop from '@/hooks/use-is-desktop.tsx';
 import { useTheme } from 'next-themes';
 import { Skeleton } from './ui/skeleton';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 // Skeleton for sidebar items
 const SidebarSkeleton: React.FC = () => (
@@ -48,16 +48,15 @@ export function SidebarContent() {
   const handleRefreshData = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    const promise = refetchTasks();
-    toast.promise(promise, {
-      loading: t('refreshing_data'),
-      success: t('data_refreshed_successfully'),
-      error: t('failed_to_refresh_data'),
-    });
+    const loadingToastId = toastLoading(t('refreshing_data'));
     try {
-      await promise;
+      await refetchTasks();
+      toastSuccess(t('data_refreshed_successfully'));
+    } catch (error: any) {
+      toastError(error);
     } finally {
       setIsRefreshing(false);
+      dismissToast(loadingToastId);
     }
   };
 

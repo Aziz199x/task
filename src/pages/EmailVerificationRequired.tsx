@@ -5,10 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { Mail, Loader2 } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 import { Link } from 'react-router-dom';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const EmailVerificationRequired: React.FC = () => {
   const { t } = useTranslation();
@@ -17,11 +17,12 @@ const EmailVerificationRequired: React.FC = () => {
 
   const handleResendEmail = async () => {
     if (!user?.email) {
-      toast.error(t('no_email_found'));
+      toastError(t('no_email_found'));
       return;
     }
 
     setLoading(true);
+    const loadingToastId = toastLoading(t('sending_verification_email'));
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -29,14 +30,15 @@ const EmailVerificationRequired: React.FC = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        toastError(error);
       } else {
-        toast.success(t('verification_email_resent'));
+        toastSuccess(t('verification_email_resent'));
       }
     } catch (e: any) {
-      toast.error(e.message);
+      toastError(e);
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 

@@ -3,9 +3,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toastSuccess, toastError, toastInfo, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 export interface UserProfile {
   id: string;
@@ -66,14 +66,14 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     if (insertError) {
       console.error("[SessionProvider] Error creating profile:", insertError.message);
-      toast.error(`${t('failed_to_create_profile_fallback')} ${insertError.message}`);
+      toastError(insertError);
       return null;
     }
     console.log("[SessionProvider] Profile created successfully via fallback.");
     // After creating, try to fetch it again to get the full object
     // This recursive call should now succeed as the profile exists
     return fetchUserProfile(user.id); 
-  }, [t]);
+  }, []);
 
   const fetchUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     console.log(`[SessionProvider] Attempting to fetch profile for user: ${userId}`);
@@ -106,7 +106,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         return null;
       } else {
         console.error("[SessionProvider] Error fetching profile:", error.message);
-        toast.error(`${t('error_loading_user_profiles')} ${error.message}`); // Add toast for profile fetch error
+        toastError(error); // Add toast for profile fetch error
         setProfile(null);
         return null;
       }
@@ -118,7 +118,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     console.log("[SessionProvider] No profile found for user (unexpected path):", userId);
     setProfile(null);
     return null;
-  }, [t, createProfileForUser]); // Add createProfileForUser to dependencies
+  }, [createProfileForUser]);
 
   useEffect(() => {
     let isMounted = true;
@@ -142,10 +142,10 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
           if (event === 'SIGNED_OUT') {
             if (!isSigningOutRef.current) {
               console.log("[SessionProvider] Remote sign-out detected.");
-              toast.warning(t('remote_sign_out_notification'));
+              toastWarning(t('remote_sign_out_notification'));
             } else {
               console.log("[SessionProvider] Local sign-out detected.");
-              toast.success(t('signed_out_successfully')); // Explicit success toast on local sign out
+              toastSuccess(t('signed_out_successfully')); // Explicit success toast on local sign out
             }
             isSigningOutRef.current = false; // Reset for next sign-in
             setSession(null);
@@ -233,7 +233,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       clearTimeout(timeoutId);
       console.log("[SessionProvider] Component unmounted, cleaning up.");
     };
-  }, [t, fetchUserProfile, resolveLoading]);
+  }, [fetchUserProfile, resolveLoading, t]);
 
   // Set up real-time subscription for profile updates
   useEffect(() => {
@@ -256,7 +256,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         (payload) => {
           console.log('[SessionProvider] Real-time profile update received:', payload);
           setProfile(payload.new as UserProfile);
-          toast.info(t('profile_updated_realtime_notification')); // Add a toast for real-time update
+          toastInfo(t('profile_updated_realtime_notification')); // Add a toast for real-time update
         }
       )
       .subscribe((status) => {
@@ -285,7 +285,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
       console.error("[SessionProvider] Failed to sign out on network:", error.message);
       // If network sign out fails, we rely on the local state clear and the auth listener eventually catching up.
       // We inform the user but don't revert the local state change.
-      toast.error(t("failed_to_sign_out") + error.message);
+      toastError(error);
     } else {
       console.log("[SessionProvider] Signed out successfully on network.");
       // The auth listener handles the success toast now, but we ensure isSigningOutRef is true

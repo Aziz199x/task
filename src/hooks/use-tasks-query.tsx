@@ -5,9 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { useSession } from "@/context/SessionContext";
 import { useEffect } from "react";
-import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toastError } from '@/utils/toast'; // Import new toast helpers
 
 const TASKS_QUERY_KEY = ['tasks'];
 const FETCH_TIMEOUT_MS = 10000; // 10 seconds timeout
@@ -27,7 +27,7 @@ const fetchAllTasks = async (): Promise<Task[]> => {
     const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
     if (error) {
-      throw new Error("Failed to load tasks: " + error.message);
+      throw error;
     }
     return data as Task[];
   } catch (e: any) {
@@ -59,10 +59,10 @@ export const useTasksQuery = () => {
   useEffect(() => {
     if (isError) {
       // Show a user-friendly toast message on final failure
-      toast.error(t('database_connection_timeout'));
+      toastError(error);
       console.error("Task query final failure:", error?.message);
     }
-  }, [isError, error, t]);
+  }, [isError, error]);
 
   // Real-time subscription setup
   useEffect(() => {

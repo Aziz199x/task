@@ -16,11 +16,11 @@ import { Label } from "@/components/ui/label";
 import { useTranslation } from 'react-i18next';
 import { useSession } from "@/context/SessionContext";
 import { useAssignableUsers } from "@/hooks/use-assignable-users";
-import { toast } from "sonner";
 import { useProfiles, ProfileWithEmail } from "@/hooks/use-profiles"; // Import ProfileWithEmail
 import { useSearchParams } from "react-router-dom"; // Import useSearchParams
 import { cn } from "@/lib/utils";
 import { TaskListSkeleton } from "@/hooks/use-tasks-query"; // Import TaskListSkeleton
+import { toastSuccess, toastError, toastInfo, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface TaskListProps {
   hideForm?: boolean;
@@ -143,7 +143,7 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
   const handleBulkAction = useCallback(async (action: string, value?: string | null) => {
     if (selectedTaskIds.size === 0) {
-      toast.error(t('no_tasks_selected_for_bulk_action'));
+      toastError(t('no_tasks_selected_for_bulk_action'));
       return;
     }
 
@@ -159,114 +159,97 @@ const TaskList: React.FC<TaskListProps> = ({ hideForm = false }) => {
 
       const filteredCount = tasksToActOn.length;
       if (originalCount > filteredCount) {
-        const warningMessage = String(t('skipped_completed_tasks_warning', { count: originalCount - filteredCount }) || `Skipped ${originalCount - filteredCount} completed task(s) as they can only be modified by an admin.`);
-        
-        if (toast && typeof toast.warning === 'function') {
-          toast.warning(warningMessage);
-        } else {
-          console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
-          alert(`Warning: ${warningMessage}`);
-        }
+        toastWarning(t('skipped_completed_tasks_warning', { count: originalCount - filteredCount }));
       }
     }
     
     if (tasksToActOn.length === 0) {
-        toast.info(t('no_eligible_tasks_for_action'));
+        toastInfo(t('no_eligible_tasks_for_action'));
         setSelectedTaskIds(new Set());
         return;
     }
 
-    switch (action) {
-      case 'status':
-        if (value) {
-          let successCount = 0;
-          for (const taskId of tasksToActOn) {
-            // When bulk changing status, we must use the actual DB status values
-            const dbStatus = value as Task['status'];
-            const success = await changeTaskStatus(taskId, dbStatus);
+    const loadingToastId = toastLoading(t('performing_bulk_action'));
+
+    try {
+      switch (action) {
+        case 'status':
+          if (value) {
+            let successCount = 0;
+            for (const taskId of tasksToActOn) {
+              // When bulk changing status, we must use the actual DB status values
+              const dbStatus = value as Task['status'];
+              const success = await changeTaskStatus(taskId, dbStatus);
+              if (success) {
+                successCount++;
+              }
+            }
+            if (successCount > 0) {
+              toastSuccess(t('status_updated_for_tasks', { count: successCount }));
+            }
+            const failCount = tasksToActOn.length - successCount;
+            if (failCount > 0) {
+              toastWarning(t('tasks_could_not_be_updated_warning', { count: failCount }));
+            }
+          }
+          break;
+        case 'assign':
+          const assignableTasks = tasksToActOn.filter(taskId => {
+              const task = tasksByIdMap.get(taskId);
+              if (!task) return false;
+
+              const isCurrentlyAssigned = !!task.assignee_id;
+              const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) : false;
+              const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
+
+              if (currentUserProfile?.role === 'admin') return true;
+              if (!isCurrentlyAssigned) return true;
+              if (isDueDatePassed && isPrivilegedReassigner) return true;
+              
+              return false;
+          });
+
+          if (tasksToActOn.length > assignableTasks.length) {
+              const skippedCount = tasksToActOn.length - assignableTasks.length;
+              toastWarning(t('skipped_ineligible_for_reassignment', { count: skippedCount }));
+          }
+
+          if (assignableTasks.length === 0) {
+              toastInfo(t('no_eligible_tasks_for_assignment'));
+              break;
+          }
+
+          let assignSuccessCount = 0;
+          for (const taskId of assignableTasks) {
+            // When assigning, the TaskContext handles setting the status to 'assigned' or 'unassigned' if applicable.
+            const success = await assignTask(taskId, value === undefined ? null : value);
             if (success) {
-              successCount++;
+              assignSuccessCount++;
             }
           }
-          if (successCount > 0) {
-            toast.success(t('status_updated_for_tasks', { count: successCount }));
+          if (assignSuccessCount > 0) {
+            toastSuccess(t('assignee_updated_for_tasks', { count: assignSuccessCount }));
           }
-          const failCount = tasksToActOn.length - successCount;
-          if (failCount > 0) {
-            const warningMessage = String(t('tasks_could_not_be_updated_warning', { count: failCount }) || `${failCount} tasks could not be updated. They may be missing required photos.`);
-            if (toast && typeof toast.warning === 'function') {
-              toast.warning(warningMessage);
-            } else {
-              console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
-              alert(`Warning: ${warningMessage}`);
-            }
+          const assignFailCount = assignableTasks.length - assignSuccessCount;
+          if (assignFailCount > 0) {
+            toastWarning(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }));
           }
-        }
-        break;
-      case 'assign':
-        const assignableTasks = tasksToActOn.filter(taskId => {
-            const task = tasksByIdMap.get(taskId);
-            if (!task) return false;
-
-            const isCurrentlyAssigned = !!task.assignee_id;
-            const isDueDatePassed = task.due_date ? isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) : false;
-            const isPrivilegedReassigner = currentUserProfile && ['admin', 'manager', 'supervisor'].includes(currentUserProfile.role);
-
-            if (currentUserProfile?.role === 'admin') return true;
-            if (!isCurrentlyAssigned) return true;
-            if (isDueDatePassed && isPrivilegedReassigner) return true;
-            
-            return false;
-        });
-
-        if (tasksToActOn.length > assignableTasks.length) {
-            const skippedCount = tasksToActOn.length - assignableTasks.length;
-            const warningMessage = String(t('skipped_ineligible_for_reassignment', { count: skippedCount }) || `${skippedCount} task(s) were skipped as they are not eligible for re-assignment.`);
-            if (toast && typeof toast.warning === 'function') {
-              toast.warning(warningMessage);
-            } else {
-              console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
-              alert(`Warning: ${warningMessage}`);
-            }
-        }
-
-        if (assignableTasks.length === 0) {
-            toast.info(t('no_eligible_tasks_for_assignment'));
-            break;
-        }
-
-        let assignSuccessCount = 0;
-        for (const taskId of assignableTasks) {
-          // When assigning, the TaskContext handles setting the status to 'assigned' or 'unassigned' if applicable.
-          const success = await assignTask(taskId, value === undefined ? null : value);
-          if (success) {
-            assignSuccessCount++;
+          break;
+        case 'delete':
+          for (const taskId of tasksToActOn) {
+            await deleteTask(taskId);
           }
-        }
-        if (assignSuccessCount > 0) {
-          toast.success(t('assignee_updated_for_tasks', { count: assignSuccessCount }));
-        }
-        const assignFailCount = assignableTasks.length - assignSuccessCount;
-        if (assignFailCount > 0) {
-          const warningMessage = String(t('tasks_could_not_be_assigned_warning', { count: assignFailCount }) || `${assignFailCount} tasks could not be assigned.`);
-          if (toast && typeof toast.warning === 'function') {
-            toast.warning(warningMessage);
-          } else {
-            console.error("Sonner toast.warning is not a function or toast is undefined.", { toastInstance: toast, message: warningMessage });
-            alert(`Warning: ${warningMessage}`);
-          }
-        }
-        break;
-      case 'delete':
-        for (const taskId of tasksToActOn) {
-          await deleteTask(taskId);
-        }
-        toast.success(t('tasks_deleted', { count: tasksToActOn.length }));
-        break;
-      default:
-        break;
+          toastSuccess(t('tasks_deleted', { count: tasksToActOn.length }));
+          break;
+        default:
+          break;
+      }
+    } catch (error: any) {
+      toastError(error);
+    } finally {
+      setSelectedTaskIds(new Set());
+      dismissToast(loadingToastId);
     }
-    setSelectedTaskIds(new Set());
   }, [selectedTaskIds, currentUserProfile, tasksByIdMap, t, changeTaskStatus, assignTask, deleteTask]);
 
   const allTasksSelected = filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length;

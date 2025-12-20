@@ -11,11 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Form, FormLabel, FormMessage, FormItem, FormField, FormControl } from '@/components/ui/form';
 import PhotoUploader from './PhotoUploader';
 import { cn } from '@/lib/utils';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 // Extend UserProfile type locally to include phone_number for type safety
 interface ProfileWithPhone extends UserProfile {
@@ -55,7 +55,7 @@ const ProfileSettingsForm: React.FC = () => {
     defaultValues: {
       first_name: profile?.first_name || '',
       last_name: profile?.last_name || '',
-      phone_number: profile?.phone_number || '',
+      phone_number: (profile as ProfileWithPhone).phone_number || '',
       avatar_url: profile?.avatar_url || '',
     },
     mode: 'onChange',
@@ -86,6 +86,7 @@ const ProfileSettingsForm: React.FC = () => {
     if (!user) return;
 
     setLoading(true);
+    const loadingToastId = toastLoading(translate('settings.saving_profile'));
     try {
       const { error: profileError } = await supabase.from('profiles').update({
         first_name: data.first_name,
@@ -97,37 +98,40 @@ const ProfileSettingsForm: React.FC = () => {
 
       if (profileError) throw profileError;
       await refetchProfile(user.id);
-      toast.success(translate('profile_updated_successfully'));
+      toastSuccess(translate('profile_updated_successfully'));
     } catch (error: any) {
       console.error("Profile update failed:", error);
-      toast.error(translate('failed_to_update_profile') + error.message);
+      toastError(error);
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordMismatch || newPassword.length < 6) {
-      toast.error(translate('password_too_short'));
+      toastError(translate('password_too_short'));
       return;
     }
     setPasswordLoading(true);
+    const loadingToastId = toastLoading(translate('settings.updating_password'));
 
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
 
       if (error) {
-        toast.error(error.message);
+        toastError(error);
       } else {
-        toast.success(translate('password_updated_short'));
+        toastSuccess(translate('password_updated_short'));
         setNewPassword('');
         setConfirmPassword('');
       }
     } catch (e: any) {
-      toast.error(e.message);
+      toastError(e);
     } finally {
       setPasswordLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 
@@ -160,14 +164,23 @@ const ProfileSettingsForm: React.FC = () => {
                   currentImageUrl={field.value}
                   onUploadSuccess={(url) => {
                     field.onChange(url);
-                    toast.success(translate('avatar_uploaded_successfully'));
+                    toastSuccess(translate('avatar_uploaded_successfully'));
                   }}
                   onRemove={async () => {
                     if (!field.value) return;
-                    // Extract path from public URL
-                    const path = new URL(field.value).pathname.split('/avatars/')[1];
-                    await supabase.storage.from('avatars').remove([path]);
-                    field.onChange('');
+                    const loadingToastId = toastLoading(translate('settings.removing_avatar'));
+                    try {
+                      // Extract path from public URL
+                      const path = new URL(field.value).pathname.split('/avatars/')[1];
+                      const { error } = await supabase.storage.from('avatars').remove([path]);
+                      if (error) throw error;
+                      field.onChange('');
+                      toastSuccess(translate('photo_removed_successfully'));
+                    } catch (error: any) {
+                      toastError(error);
+                    } finally {
+                      dismissToast(loadingToastId);
+                    }
                   }}
                 />
               </FormControl>

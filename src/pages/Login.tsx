@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserProfile } from '@/context/SessionContext'; // Import UserProfile type
@@ -18,6 +17,7 @@ import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utili
 import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
 import { Loader2, Send } from 'lucide-react';
 import { isRateLimitError } from '@/utils/auth'; // Import the new utility
+import { toastSuccess, toastError, toastInfo, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const BACKOFF_DURATIONS = [60, 120, 300]; // seconds
 
@@ -55,7 +55,7 @@ const Login = () => {
       setCooldown(currentDuration);
       setResendAttempts(prev => prev + 1);
       
-      toast.error(t('email_rate_limit_cooldown', { seconds: currentDuration }));
+      toastError(t('email_rate_limit_cooldown', { seconds: currentDuration }));
       return true;
     }
     return false;
@@ -64,6 +64,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const loadingToastId = toastLoading(t('signing_in'));
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -72,15 +73,16 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        toastError(error);
       } else if (data.user) {
-        toast.success(t('authentication_successful')); // Added success toast for direct login
+        toastSuccess(t('authentication_successful'));
         // The SessionProvider will handle navigation to '/' on successful sign-in
       }
     } catch (error: any) {
-      toast.error(error.message);
+      toastError(error);
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 
@@ -88,6 +90,7 @@ const Login = () => {
     if (cooldown > 0) return;
 
     setLoading(true);
+    const loadingToastId = toastLoading(t('sending_confirmation_email'));
     
     const emailRedirectTo = getCapacitorBaseUrl().startsWith('com.abumiral.workflow') 
       ? getCapacitorBaseUrl() 
@@ -102,19 +105,20 @@ const Login = () => {
 
       if (error) {
         if (!handleRateLimitError(error)) {
-          toast.error(error.message);
+          toastError(error);
         }
       } else {
-        toast.success(t('confirmation_email_resent_check_inbox'));
+        toastSuccess(t('confirmation_email_resent_check_inbox'));
         // Reset attempts if successful, but keep cooldown at 0
         setResendAttempts(0);
       }
     } catch (error: any) {
       if (!handleRateLimitError(error)) {
-        toast.error(error.message);
+        toastError(error);
       }
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 
@@ -122,15 +126,18 @@ const Login = () => {
     e.preventDefault();
     if (cooldown > 0) return;
     setLoading(true);
+    const loadingToastId = toastLoading(t('creating_account'));
 
     if (password !== confirmPassword) {
-      toast.error(t('passwords_do_not_match'));
+      toastError(t('passwords_do_not_match'));
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
     if (password.length < 6) {
-      toast.error(t('password_too_short'));
+      toastError(t('password_too_short'));
       setLoading(false);
+      dismissToast(loadingToastId);
       return;
     }
 
@@ -158,10 +165,10 @@ const Login = () => {
         if (!handleRateLimitError(error)) {
           // Handle specific error for already registered user
           if (error.message.includes('User already registered')) {
-            toast.error(t('user_already_registered_login_instead'));
+            toastError(t('user_already_registered_login_instead'));
             setActiveTab('signin'); // Switch to sign-in tab
           } else {
-            toast.error(error.message);
+            toastError(error);
           }
         }
       } else if (data.user || (!error && !data.user)) {
@@ -169,10 +176,11 @@ const Login = () => {
         
         // Only show success toast if no session was returned (meaning email confirmation is required)
         if (!data.session) {
-          toast.success(t('confirmation_email_sent_check_inbox'));
+          toastSuccess(t('confirmation_email_sent_check_inbox'));
         } else {
           // If session exists, the user was auto-signed in (e.g., email confirmation is off, or user already confirmed)
           // SessionProvider handles navigation and a success toast will be shown there.
+          toastSuccess(t('authentication_successful'));
         }
         
         // Set last sent email and reset cooldown attempts on successful send
@@ -191,10 +199,11 @@ const Login = () => {
       }
     } catch (error: any) {
       if (!handleRateLimitError(error)) {
-        toast.error(error.message);
+        toastError(error);
       }
     } finally {
       setLoading(false);
+      dismissToast(loadingToastId);
     }
   };
 

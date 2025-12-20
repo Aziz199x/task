@@ -3,12 +3,12 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { Task } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useSession } from "./SessionContext";
 import { useTranslation } from 'react-i18next';
 import { useTasksQuery } from "@/hooks/use-tasks-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react"; // Import Loader2 for loading state
+import { toastSuccess, toastError, toastInfo, toastWarning, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface TaskContextType {
   tasks: Task[];
@@ -84,25 +84,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const oldRecord = payload.old as Task;
 
           if (payload.eventType === 'INSERT') {
-            if (newRecord.creator_id !== user.id) toast.info(t('new_task_created_notification', { title: newRecord.title }));
+            if (newRecord.creator_id !== user.id) toastInfo(t('new_task_created_notification', { title: newRecord.title }));
             if (newRecord.assignee_id === user.id && newRecord.creator_id !== user.id) {
               playNotificationSound();
-              toast.warning(t('new_task_assigned_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
+              toastWarning(t('new_task_assigned_warning', { title: newRecord.title }));
             }
           } else if (payload.eventType === 'UPDATE' && oldRecord) {
             if (newRecord.creator_id !== user.id) {
-              if (oldRecord.status !== newRecord.status) toast.info(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
+              if (oldRecord.status !== newRecord.status) toastInfo(t('task_status_changed_notification', { title: newRecord.title, status: t(newRecord.status.replace('-', '_')) }));
               if (oldRecord.assignee_id !== newRecord.assignee_id) {
                 if (newRecord.assignee_id === user.id) {
                   playNotificationSound();
-                  toast.warning(t('task_assigned_to_you_warning', { title: newRecord.title }), { duration: 8000, style: { background: '#FEF3C7', border: '2px solid #F59E0B', color: '#92400E', fontWeight: 'bold' }, icon: '⚠️' });
+                  toastWarning(t('task_assigned_to_you_warning', { title: newRecord.title }));
                 } else if (oldRecord.assignee_id === user.id) {
-                  toast.info(t('task_unassigned_from_you_notification', { title: newRecord.title }));
+                  toastInfo(t('task_unassigned_from_you_notification', { title: newRecord.title }));
                 }
               }
-              if ((oldRecord.photo_before_urls?.length || 0) < (newRecord.photo_before_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
-              if ((oldRecord.photo_after_urls?.length || 0) < (newRecord.photo_after_urls?.length || 0)) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
-              if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toast.info(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
+              if ((oldRecord.photo_before_urls?.length || 0) < (newRecord.photo_before_urls?.length || 0)) toastInfo(t('photo_added_notification', { title: newRecord.title, type: t('before') }));
+              if ((oldRecord.photo_after_urls?.length || 0) < (newRecord.photo_after_urls?.length || 0)) toastInfo(t('photo_added_notification', { title: newRecord.title, type: t('after') }));
+              if (!oldRecord.photo_permit_url && newRecord.photo_permit_url) toastInfo(t('photo_added_notification', { title: newRecord.title, type: t('permit') }));
             }
           }
         }
@@ -136,7 +136,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (error) {
           console.error("[TaskContext] Error checking for unique task ID:", error.message);
-          throw new Error(t('error_generating_unique_task_id') + ": " + error.message);
+          throw error;
         }
         if (!data || data.length === 0) {
           unique = true;
@@ -146,9 +146,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (e: any) {
         console.error("[TaskContext] Exception during unique task ID generation:", e.message);
-        if (e.message.includes('timed out')) {
-          toast.error(t('database_connection_timeout'));
-        }
+        toastError(e);
         throw e;
       }
       attempts++;
@@ -164,7 +162,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('[TaskContext] addTask called with:', { title, equipmentNumber, assigneeId });
     
     if (!equipmentNumber) {
-      toast.error(t("equipment_number_mandatory"));
+      toastError(t("equipment_number_mandatory"));
       return false;
     }
 
@@ -186,20 +184,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (checkError) {
           console.error('[TaskContext] Error checking notification number:', checkError.message);
-          toast.error(`Error checking notification number: ${checkError.message}`);
+          toastError(checkError);
           return false;
         }
         if (data && data.length > 0) {
-          toast.error(t("notification_num_not_unique"));
+          toastError(t("notification_num_not_unique"));
           return false;
         }
       } catch (e: any) {
         console.error("[TaskContext] Exception during notification number uniqueness check:", e.message);
-        if (e.message.includes('timed out')) {
-          toast.error(t('database_connection_timeout'));
-        } else {
-          toast.error(`Error checking notification number: ${e.message}`);
-        }
+        toastError(e);
         return false;
       }
     }
@@ -211,7 +205,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('[TaskContext] Task ID generated:', taskId);
     } catch (error: any) {
       console.error('[TaskContext] Failed to generate task ID:', error.message);
-      toast.error(error.message);
+      toastError(error);
       return false;
     }
 
@@ -269,7 +263,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('[TaskContext] Error inserting task:', error.message);
-        toast.error(t("failed_to_add_task") + error.message);
+        toastError(error);
         // Revert optimistic update on failure
         if (previousTasks) {
           queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
@@ -282,16 +276,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
       
       // Show success toast
-      toast.success(t('task_added_successfully'));
+      toastSuccess(t('task_added_successfully'));
 
       return true;
     } catch (e: any) {
       console.error('[TaskContext] Exception during task insert:', e.message);
-      if (e.message.includes('timed out')) {
-        toast.error(t('database_connection_timeout'));
-      } else {
-        toast.error(t("failed_to_add_task") + e.message);
-      }
+      toastError(e);
       // Revert optimistic update on exception
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
@@ -308,7 +298,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (notificationNums.length > 0) {
       const uniqueNums = new Set(notificationNums);
       if (uniqueNums.size !== notificationNums.length) {
-        toast.error(t("upload_contains_duplicates"));
+        toastError(t("upload_contains_duplicates"));
         return;
       }
 
@@ -319,17 +309,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .in('notification_num', notificationNums);
 
         if (error) {
-          toast.error(t("error_checking_notification_numbers", { message: error.message }));
+          toastError(t("error_checking_notification_numbers", { message: error.message }));
           return;
         }
         if (data && data.length > 0) {
           const existingNums = data.map(d => d.notification_num).join(', ');
-          toast.error(t("upload_numbers_exist", { existingNums }));
+          toastError(t("upload_numbers_exist", { existingNums }));
           return;
         }
       } catch (e: any) {
         console.error("Exception during bulk notification number uniqueness check:", e.message);
-        toast.error(`Error checking notification numbers: ${e.message}`);
+        toastError(e);
         return;
       }
     }
@@ -343,7 +333,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         taskId = await generateUniqueTaskId();
       } catch (error: any) {
-        toast.error(error.message);
+        toastError(error);
         return;
       }
       
@@ -373,7 +363,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       optimisticTasks.push({ ...fullTaskPayload, id: 'temp-' + Date.now() + Math.random(), _optimistic: true } as Task);
     }
     if (tasksToInsert.length === 0) {
-      toast.warning(t('no_valid_tasks_found_in_excel'));
+      toastWarning(t('no_valid_tasks_found_in_excel'));
       return;
     }
 
@@ -386,52 +376,52 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error: insertError } = await supabase.from('tasks').insert(tasksToInsert);
 
     if (insertError) {
-      toast.error(t("failed_to_add_tasks_bulk") + insertError.message);
+      toastError(insertError);
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
     } else {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-      toast.success(t('tasks_added_successfully_bulk', { count: tasksToInsert.length })); // Added success toast
+      toastSuccess(t('tasks_added_successfully_bulk', { count: tasksToInsert.length })); // Added success toast
     }
   }, [user, generateUniqueTaskId, t, queryClient]);
 
   const changeTaskStatus = useCallback(async (id: string, newStatus: Task['status']): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
-      toast.error(t("task_not_found"));
+      toastError(t("task_not_found"));
       return false;
     }
     
     // Enforce the flow: unassigned/assigned -> in-progress -> completed
     if (newStatus === 'in-progress' && taskToUpdate.status !== 'unassigned' && taskToUpdate.status !== 'assigned') {
-        toast.error(t("task_must_be_pending_to_start_progress"));
+        toastError(t("task_must_be_pending_to_start_progress"));
         return false;
     }
     if (newStatus === 'completed' && taskToUpdate.status !== 'in-progress') {
-        toast.error(t("task_must_be_in_progress_to_complete"));
+        toastError(t("task_must_be_in_progress_to_complete"));
         return false;
     }
     if (taskToUpdate.status === 'completed' && newStatus !== 'in-progress' && profile?.role !== 'admin') {
-      toast.error(t("completed_tasks_admin_only"));
+      toastError(t("completed_tasks_admin_only"));
       return false;
     }
     
     if (newStatus === 'completed') {
       const canCurrentUserComplete = (profile?.id === taskToUpdate.assignee_id) || (profile?.role === 'admin');
       if (!canCurrentUserComplete) {
-        toast.error(t("permission_denied_complete_task"));
+        toastError(t("permission_denied_complete_task"));
         return false;
       }
       if (!taskToUpdate.notification_num || (taskToUpdate.photo_before_urls?.length || 0) === 0 || (taskToUpdate.photo_after_urls?.length || 0) === 0 || !taskToUpdate.photo_permit_url) {
-        toast.error(t("photos_and_permit_required_to_complete"));
+        toastError(t("photos_and_permit_required_to_complete"));
         return false;
       }
     }
     if (newStatus === 'cancelled') {
       const canCancel = (profile?.id === taskToUpdate.creator_id) || (profile && ['admin', 'manager'].includes(profile.role));
       if (!canCancel) {
-        toast.error(t("permission_denied_cancel_task"));
+        toastError(t("permission_denied_cancel_task"));
         return false;
       }
     }
@@ -458,7 +448,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
-      toast.error(t("failed_to_update_status") + error.message);
+      toastError(error);
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -477,16 +467,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const filePath = pathParts[1];
       const { error } = await supabase.storage.from('task_photos').remove([filePath]);
-      if (error) toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+      if (error) toastError(t('failed_to_delete_photo_from_storage', { message: error.message }));
     } catch (error: any) {
-      toast.error(`${t('failed_to_delete_photo_from_storage')}: ${error.message}`);
+      toastError(t('failed_to_delete_photo_from_storage', { message: error.message }));
     }
   }, [t]);
 
   const deleteTask = useCallback(async (id: string): Promise<Task | null> => {
     const taskToDelete = tasksByIdMap.get(id);
     if (!taskToDelete) {
-      toast.error(t("task_not_found"));
+      toastError(t("task_not_found"));
       return null;
     }
 
@@ -496,16 +486,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (isAdminOrManager) {
       if (taskToDelete.status === 'completed' && profile?.role !== 'admin') {
-        toast.error(t("completed_tasks_admin_only_delete"));
+        toastError(t("completed_tasks_admin_only_delete"));
         return null;
       }
     } else if (isTechnician && isCreator) {
       if (taskToDelete.status === 'completed' || taskToDelete.status === 'cancelled') {
-        toast.error(t("technician_cannot_delete_completed_or_cancelled_task"));
+        toastError(t("technician_cannot_delete_completed_or_cancelled_task"));
         return null;
       }
     } else {
-      toast.error(t("permission_denied_delete_task"));
+      toastError(t("permission_denied_delete_task"));
       return null;
     }
 
@@ -528,7 +518,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) {
-      toast.error(t("failed_to_delete_task") + error.message);
+      toastError(error);
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -556,7 +546,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { error } = await supabase.from('tasks').insert(taskToInsert);
 
     if (error) {
-      toast.error(t("failed_to_restore_task") + error.message);
+      toastError(error);
       // Revert optimistic update if insert fails
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
@@ -564,14 +554,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-    toast.success(t('task_restored_successfully', { title: task.title }));
+    toastSuccess(t('task_restored_successfully', { title: task.title }));
     return true;
   }, [t, queryClient]);
 
   const updateTask = useCallback(async (id: string, updates: Partial<Task>): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
-      toast.error(t("task_not_found"));
+      toastError(t("task_not_found"));
       return false;
     }
 
@@ -579,12 +569,12 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (taskToUpdate.status === 'completed') {
       if (profile?.role !== 'admin') {
-        toast.error(t("completed_tasks_admin_only_modify"));
+        toastError(t("completed_tasks_admin_only_modify"));
         return false;
       }
       if (finalUpdates.status && finalUpdates.status !== 'completed') {
         delete finalUpdates.status;
-        toast.info(t("completed_task_status_preserved"));
+        toastInfo(t("completed_task_status_preserved"));
       }
     }
 
@@ -611,16 +601,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .limit(1);
 
         if (checkError) {
-          toast.error(`Error checking notification number: ${checkError.message}`);
+          toastError(checkError);
           return false;
         }
         if (existingTask && existingTask.length > 0) {
-          toast.error(t("notification_num_not_unique"));
+          toastError(t("notification_num_not_unique"));
           return false;
         }
       } catch (e: any) {
         console.error("Exception during notification number uniqueness check (updateTask):", e.message);
-        toast.error(`Error checking notification number: ${e.message}`);
+        toastError(e);
         return false;
       }
     }
@@ -633,7 +623,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { error } = await supabase.from('tasks').update(finalUpdates).eq('id', id);
     if (error) {
-      toast.error(t("failed_to_update_task") + error.message);
+      toastError(error);
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }
@@ -646,7 +636,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const assignTask = useCallback(async (id: string, assigneeId: string | null): Promise<boolean> => {
     const taskToUpdate = tasksByIdMap.get(id);
     if (!taskToUpdate) {
-      toast.error(t("task_not_found"));
+      toastError(t("task_not_found"));
       return false;
     }
 
@@ -663,7 +653,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (taskToUpdate.status === 'completed') {
       if (profile?.role !== 'admin') {
-        toast.error(t("completed_tasks_admin_only_assign"));
+        toastError(t("completed_tasks_admin_only_assign"));
         return false;
       }
       // Admin can reassign completed tasks, but status remains 'completed'
@@ -676,7 +666,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (taskToUpdate.assignee_id === assigneeId && taskToUpdate.status === updates.status) {
-      toast.info(t("no_change_in_assignment"));
+      toastInfo(t("no_change_in_assignment"));
       return false;
     }
 
@@ -688,7 +678,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { error } = await supabase.from('tasks').update(updates).eq('id', id);
     if (error) {
-      toast.error(t("failed_to_assign_task") + error.message);
+      toastError(error);
       if (previousTasks) {
         queryClient.setQueryData(TASKS_QUERY_KEY, previousTasks);
       }

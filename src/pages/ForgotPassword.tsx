@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { getCapacitorBaseUrl } from '@/utils/capacitor'; // Import the new utility
 import { APP_URL } from '@/utils/constants'; // Import APP_URL for explicit web fallback
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -22,6 +22,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setMessageSent(false);
+    const loadingToastId = toastLoading(t('sending'));
 
     // Determine the correct redirect URL.
     // If running on a native platform, use the deep link scheme.
@@ -30,21 +31,23 @@ const ForgotPassword = () => {
       ? getCapacitorBaseUrl() 
       : `${APP_URL}/auth/callback`;
     
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
 
-    if (error) {
-      if (error.message.includes('rate limit exceeded')) {
-        toast.error(t('email_rate_limit_exceeded'));
+      if (error) {
+        toastError(error);
       } else {
-        toast.error(error.message);
+        toastSuccess(t('password_reset_email_sent'));
+        setMessageSent(true);
       }
-    } else {
-      toast.success(t('password_reset_email_sent'));
-      setMessageSent(true);
+    } catch (error: any) {
+      toastError(error);
+    } finally {
+      setLoading(false);
+      dismissToast(loadingToastId);
     }
-    setLoading(false);
   };
 
   return (
@@ -71,7 +74,7 @@ const ForgotPassword = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('enter_your_email')}
                   required
                 />
               </div>

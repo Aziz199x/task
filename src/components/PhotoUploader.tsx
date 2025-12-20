@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2, Trash2, Upload, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import imageCompression from 'browser-image-compression';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 interface PhotoUploaderProps {
   label: string;
@@ -32,12 +32,13 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, bucketName, folder
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error(t('invalid_file_type'));
+      toastError(t('invalid_file_type'));
       return;
     }
 
     setUploading(true);
     setUploadProgress(0);
+    const loadingToastId = toastLoading(t('uploading_photo'));
 
     try {
       // Options for image compression
@@ -74,15 +75,16 @@ const PhotoUploader: React.FC<PhotoUploaderProps> = ({ label, bucketName, folder
       
       if (publicUrlData.publicUrl) {
         onUploadSuccess(publicUrlData.publicUrl);
-        toast.success(t('photo_uploaded_successfully'));
+        toastSuccess(t('photo_uploaded_successfully'));
       } else {
         throw new Error(t('could_not_get_photo_url'));
       }
     } catch (error: any) {
-      toast.error(`${t('upload_failed')}: ${error.message}`);
+      toastError(error);
     } finally {
       setUploading(false);
       setUploadProgress(0);
+      dismissToast(loadingToastId);
     }
   }, [bucketName, folderName, fileNamePrefix, onUploadSuccess, t]);
 

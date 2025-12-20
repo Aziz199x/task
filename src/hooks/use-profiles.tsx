@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { UserProfile } from '@/context/SessionContext';
 import { useSession } from '@/context/SessionContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query'; // Import useQuery and useQueryClient
+import { toastError, toastWarning } from '@/utils/toast'; // Import new toast helpers
+import i18n from '@/i18n'; // Import i18n for translation
 
 // Extend UserProfile type locally to include email
 export interface ProfileWithEmail extends UserProfile {
@@ -24,7 +25,7 @@ const fetchAllProfiles = async (accessToken: string | undefined): Promise<Profil
     .order('first_name', { ascending: true });
 
   if (profileError) {
-    throw new Error("Failed to load profiles: " + profileError.message);
+    throw profileError;
   }
 
   let profilesWithEmails: ProfileWithEmail[] = profileData.map(p => ({ ...p, email: null })) as ProfileWithEmail[];
@@ -42,6 +43,7 @@ const fetchAllProfiles = async (accessToken: string | undefined): Promise<Profil
 
       if (emailError) {
         console.warn("Warning: Failed to fetch user emails via Edge Function (Permission issue or function error). Falling back to ID display.", emailError.message);
+        toastWarning(i18n.t('failed_to_fetch_user_emails_warning', { message: emailError.message }));
       } else if (emailData && Array.isArray(emailData)) {
         const emailMap = new Map(emailData.map(item => [item.id, item.email]));
         profilesWithEmails = profilesWithEmails.map(p => ({
@@ -51,6 +53,7 @@ const fetchAllProfiles = async (accessToken: string | undefined): Promise<Profil
       }
     } catch (e: any) {
       console.warn("Warning: Failed to invoke list-user-emails function:", e.message);
+      toastWarning(i18n.t('failed_to_invoke_list_user_emails_function', { message: e.message }));
     }
   }
 
@@ -72,7 +75,7 @@ export const useProfiles = () => {
   // Use a useEffect to handle errors and display toasts
   useEffect(() => {
     if (error) {
-      toast.error(error.message);
+      toastError(error);
     }
   }, [error]);
 

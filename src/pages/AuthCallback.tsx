@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { useSession } from '@/context/SessionContext';
 import { useTasks } from '@/context/TaskContext';
+import { toastSuccess, toastError, toastLoading, dismissToast } from '@/utils/toast'; // Import new toast helpers
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +30,7 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       const url = window.location.href;
+      const loadingToastId = toastLoading(t('processing_authentication'));
       
       // 1. Check for error parameters (e.g., from password reset failure)
       const urlParams = new URLSearchParams(window.location.search);
@@ -44,6 +45,7 @@ const AuthCallback: React.FC = () => {
           setErrorMessage(t('auth_link_invalid_try_again'));
         }
         setStatus('error');
+        dismissToast(loadingToastId);
         return;
       }
 
@@ -59,6 +61,7 @@ const AuthCallback: React.FC = () => {
             setErrorMessage(t('auth_link_invalid_try_again'));
           }
           setStatus('error');
+          dismissToast(loadingToastId);
           return;
         }
 
@@ -73,7 +76,7 @@ const AuthCallback: React.FC = () => {
           } else {
             navigate('/', { replace: true });
           }
-          toast.success(t('authentication_successful'));
+          toastSuccess(t('authentication_successful'));
           setStatus('success');
         } else {
           // Should not happen if no error, but handle unexpected state
@@ -84,6 +87,8 @@ const AuthCallback: React.FC = () => {
         console.error("Exception during code exchange:", e.message);
         setErrorMessage(t('auth_link_invalid_try_again'));
         setStatus('error');
+      } finally {
+        dismissToast(loadingToastId);
       }
     };
 
