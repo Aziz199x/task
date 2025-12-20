@@ -69,6 +69,7 @@
   "task_title_cannot_be_empty": "لا يمكن أن يكون عنوان المهمة فارغًا.",
   "equipment_number_mandatory": "رقم المعدة إلزامي.",
   "task_added_successfully": "تمت إضافة المهمة بنجاح!",
+  "tasks_added_successfully_bulk": "تمت إضافة {{count}} مهام بنجاح!",
   "search_tasks": "البحث عن المهام (العنوان، رقم المعدة، معرف المهمة، رقم الإشعار)",
   "filter_by_status": "التصفية حسب الحالة",
   "all_statuses": "جميع الحالات",

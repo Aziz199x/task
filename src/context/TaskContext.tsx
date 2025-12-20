@@ -392,7 +392,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } else {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-      // No bulk success toast requested, sticking to scope.
+      toast.success(t('tasks_added_successfully_bulk', { count: tasksToInsert.length })); // Added success toast
     }
   }, [user, generateUniqueTaskId, t, queryClient]);
 

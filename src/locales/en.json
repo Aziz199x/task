@@ -69,6 +69,7 @@
   "task_title_cannot_be_empty": "Task title cannot be empty.",
   "equipment_number_mandatory": "Equipment number is mandatory.",
   "task_added_successfully": "Task added successfully!",
+  "tasks_added_successfully_bulk": "{{count}} tasks added successfully!",
   "search_tasks": "Search tasks (Title, Equipment No, Task ID, Notification No)",
   "filter_by_status": "Filter by Status",
   "all_statuses": "All Statuses",
